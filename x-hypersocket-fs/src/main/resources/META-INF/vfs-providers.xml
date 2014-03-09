@@ -1,0 +1,6 @@
+<providers>
+	<provider
+		class-name="org.apache.commons.vfs2.provider.smb.SmbFileProvider">
+		<scheme name="smb" />
+	</provider>
+</providers>
