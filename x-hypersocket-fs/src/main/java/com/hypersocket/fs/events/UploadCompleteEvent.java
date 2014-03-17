@@ -22,7 +22,7 @@ public class UploadCompleteEvent extends FileResourceEvent {
 	}
 
 	public UploadCompleteEvent(Object source,
-			Session currentSession, Exception e, String name, String childPath) {
+			Session currentSession, Throwable e, String name, String childPath) {
 		super(source, "fs.uploadComplete", e, currentSession, name, childPath);
 	}
 

@@ -195,7 +195,7 @@ public class FileResourceController extends ResourceController {
 				sessionUtils.getLocale(request), mountService);
 		try {
 			
-			return new ResourceStatus(mountService.deleteFile(
+			return new ResourceStatus(mountService.deleteURIFile(
 					request.getHeader("Host"), "api/fsDelete",
 					URLDecoder.decode(request.getRequestURI(), "UTF-8")));
 
@@ -219,7 +219,7 @@ public class FileResourceController extends ResourceController {
 
 			String uri = URLDecoder.decode(request.getRequestURI(), "UTF-8");
 			
-			FileResource resource = mountService.getMountForPath(
+			FileResource resource = mountService.getMountForURIPath(
 					request.getHeader("Host"), "api/fsCreateFolder",
 					uri);
 
@@ -227,7 +227,7 @@ public class FileResourceController extends ResourceController {
 			
 			List folders = new ArrayList();
 			
-			FileObject newFile = mountService.createFolder(
+			FileObject newFile = mountService.createURIFolder(
 					request.getHeader("Host"), "api/fsCreateFolder",
 					uri);
 			
@@ -253,7 +253,7 @@ public class FileResourceController extends ResourceController {
 				sessionUtils.getLocale(request), mountService);
 		try {
 
-			return new ResourceStatus(mountService.renameFile(
+			return new ResourceStatus(mountService.renameURIFile(
 					request.getHeader("Host"), "api/fsRename",
 					URLDecoder.decode(request.getRequestURI(), "UTF-8"),
 					URLDecoder.decode(toUri, "UTF-8")));
@@ -277,7 +277,7 @@ public class FileResourceController extends ResourceController {
 
 			String uri = URLDecoder.decode(request.getRequestURI(), "UTF-8");
 			
-			mountService.downloadFile(request.getHeader("Host"), 
+			mountService.downloadURIFile(request.getHeader("Host"), 
 					"api/fsDownload", uri, new HttpDownloadProcessor(request, response, 0, Long.MAX_VALUE));
 			
 
@@ -324,7 +324,7 @@ public class FileResourceController extends ResourceController {
 				}
 				
 			};
-			mountService.uploadFile(request.getHeader("Host"), 
+			mountService.uploadURIFile(request.getHeader("Host"), 
 					"api/fsUpload", uri, file.getInputStream(), processor);
 			
 			return new ResourceStatus<TreeFile>(processor.getResult());
@@ -351,13 +351,13 @@ public class FileResourceController extends ResourceController {
 			@SuppressWarnings("rawtypes")
 			List folders = new ArrayList();
 			String uri = URLDecoder.decode(request.getRequestURI(), "UTF-8");
-			FileResource resource = mountService.getMountForPath(
+			FileResource resource = mountService.getMountForURIPath(
 					request.getHeader("Host"), "api/fsList",
 					uri);
 
 			FileObject mountFile = mountService.resolveMountFile(resource);
 
-			String childPath = mountService.resolveChildPath(resource,
+			String childPath = mountService.resolveURIChildPath(resource,
 					"api/fsList", uri);
 
 			FileObject file = mountFile.resolveFile(childPath);
