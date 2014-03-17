@@ -13,6 +13,7 @@
 
 	<modules>
 		<module>x-hypersocket-fs</module>
+		<module>x-hypersocket-ftp</module>
 	</modules>
 
 	<dependencies>
