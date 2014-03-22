@@ -1,7 +1,0 @@
-extension.id=x-hypersocket-fs
-extension.depends=server-core
-extension.image=hypersocket.png
-extension.license=GPLv3
-extension.vendor=Hypersocket Limited
-extension.url=http://www.hypersocket.com
-extension.weight=11
