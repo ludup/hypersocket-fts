@@ -12,8 +12,8 @@
 	</properties>
 
 	<modules>
-		<module>x-hypersocket-fs</module>
-		<module>x-hypersocket-ftp</module>
+		<module>hypersocket-fs</module>
+		<module>hypersocket-ftp</module>
 	</modules>
 
 	<dependencies>
