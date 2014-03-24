@@ -9,6 +9,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.util.Locale;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.FtpServerFactory;
 import org.apache.ftpserver.ftplet.DefaultFtplet;
@@ -70,12 +72,15 @@ public class FTPServiceImpl implements FTPService,
 	FtpServer ftpServer;
 	FtpServer ftpsServer;
 	
+	@PostConstruct
+	private void postConstruct() {
+		i18nService.registerBundle(RESOURCE_BUNDLE);
+	}
+	
 	public void onApplicationEvent(SystemEvent event) {
 
 		if (event instanceof ServerStartedEvent) {
 
-			i18nService.registerBundle(RESOURCE_BUNDLE);
-			
 			if (configurationService.getBooleanValue("ftp.enabled")) {
 				startFTP();
 			}

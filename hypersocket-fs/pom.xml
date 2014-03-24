@@ -10,9 +10,9 @@
 
 	<parent>
 		<groupId>com.hypersocket</groupId>
-		<artifactId>hypersocket-group</artifactId>
+		<artifactId>hypersocket-fts</artifactId>
 		<version>0.0.6-SNAPSHOT</version>
-		<relativePath>../hypersocket-group</relativePath>
+		<relativePath>..</relativePath>
 	</parent>
 
 	<dependencies>

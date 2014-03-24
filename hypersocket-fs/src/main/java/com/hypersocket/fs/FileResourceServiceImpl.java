@@ -233,7 +233,7 @@ public class FileResourceServiceImpl extends
 	public String resolveURIChildPath(FileResource resource,
 			String controllerPath, String path) throws IOException {
 		return resolveChildPath(resource,
-				server.resolvePath(controllerPath + "/" + resource.getName()),
+				server.resolvePath(controllerPath),
 				path);
 	}
 

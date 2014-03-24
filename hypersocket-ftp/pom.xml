@@ -12,12 +12,12 @@
 		<relativePath>..</relativePath>
 	</parent>
 	<artifactId>hypersocket-ftp</artifactId>
-	<name>Hypersocket - FTP Access</name>
+	<name>Hypersocket - FTP Server</name>
 
 	<dependencies>
 		<dependency>
 			<groupId>com.hypersocket</groupId>
-			<artifactId>server-netty</artifactId>
+			<artifactId>hypersocket-netty</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
