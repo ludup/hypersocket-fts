@@ -22,7 +22,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.hypersocket</groupId>
-			<artifactId>x-hypersocket-fs</artifactId>
+			<artifactId>hypersocket-fs</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
