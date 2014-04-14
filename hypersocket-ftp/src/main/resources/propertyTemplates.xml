@@ -3,7 +3,7 @@
 	<propertyCategory resourceKey="category.ftp"
 		resourceBundle="FTPService" weight="1000">
 
-	    <property resourceKey="ftp.enabled" inputType="boolean"
+	    <property resourceKey="ftp.enabled" inputType="switch"
 			weight="100" defaultValue="true" />
 	    
 		<property resourceKey="ftp.port" inputType="number"
@@ -21,7 +21,7 @@
 	<propertyCategory resourceKey="category.ftps"
 		resourceBundle="FTPService" weight="1000">
 
-	    <property resourceKey="ftps.enabled" inputType="boolean"
+	    <property resourceKey="ftps.enabled" inputType="switch"
 			weight="100" defaultValue="true" />
 	    
 		<property resourceKey="ftps.port" inputType="number"
