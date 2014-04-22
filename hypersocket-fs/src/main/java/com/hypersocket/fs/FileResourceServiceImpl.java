@@ -43,7 +43,7 @@ import com.hypersocket.resource.AbstractAssignableResourceRepository;
 import com.hypersocket.resource.AbstractAssignableResourceServiceImpl;
 import com.hypersocket.server.HypersocketServer;
 import com.hypersocket.session.Session;
-import com.hypersocket.ui.jquery.JQueryUIContentHandler;
+import com.hypersocket.ui.UserInterfaceContentHandler;
 import com.hypersocket.util.FileUtils;
 
 @Service
@@ -67,7 +67,7 @@ public class FileResourceServiceImpl extends
 	MenuService menuService;
 
 	@Autowired
-	JQueryUIContentHandler jQueryUIContentHandler;
+	UserInterfaceContentHandler jQueryUIContentHandler;
 
 	@Autowired
 	FileResourceRepository resourceRepository;
@@ -98,7 +98,7 @@ public class FileResourceServiceImpl extends
 		}
 
 		menuService.registerMenu(new MenuRegistration(RESOURCE_BUNDLE,
-				"filesystems", "filesystems", 200, FileResourcePermission.READ,
+				"filesystems", "fa-folder-open-o", "filesystems", 200, FileResourcePermission.READ,
 				FileResourcePermission.CREATE, FileResourcePermission.UPDATE,
 				FileResourcePermission.DELETE), MenuService.MENU_RESOURCES);
 
