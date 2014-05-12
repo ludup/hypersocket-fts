@@ -1,116 +1,153 @@
-<div id="contentFilesystems">
-	<ul id="filesystemTabs">
-		<li><a href="#tabMounts"><span localize="mounts.label"></span></a></li>
-	</ul>
-	<div id="tabMounts"></div>
+<div id="tabMounts">
 
-	<div id="addMountForm" class="dialog" dialog-for="tabMounts">
-		<form class="form">
-			<div class="dialogError"></div>
-			<div class="formInputField">
-				<label for="resourceName" class="formLabel"
-					localize="mount.name.label"></label> <input type="text"
-					name="resourceName" id="resourceName"
-					class="formInput text ui-widget-content ui-corner-all" />
+	<div class="modal" id="addMountForm" tabindex="-1" role="dialog" dialog-for="tabMounts">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"
+						aria-hidden="true">&times;</button>
+					<h4 class="modal-title"></h4>
+				</div>
+				<div class="modal-body">
+					<div class="dialogError"></div>
+
+						<div class="propertyItem form-group">
+							<label class="col-md-3 control-label" localize="mount.name.label"></label>
+							<div class="propertyValue col-md-9">
+								<input type="text" class="form-control propertyInput"
+									placeholder="" id="resourceName" maxlength="" name="resourceName" value="">
+								<div>
+									<span class="help-block" localize="mount.name.info"></span>
+								</div>
+							</div>
+						</div>
+						
+						<div id="mountProperties"></div>
+						<div id="tabFile" class="dialogTab">
+						<div class="propertyItem form-group">
+							<label class="col-md-3 control-label" localize="mount.scheme.label"></label>
+							<div class="propertyValue col-md-9">
+								<div id="schemeButton"></div>
+								<div>
+									<span class="help-block" localize="mount.scheme.info"></span>
+								</div>
+							</div>
+						</div>
+						<div class="propertyItem form-group remoteDiv">
+							<label class="col-md-3 control-label" localize="mount.server.label"></label>
+							<div class="propertyValue col-md-9">
+								<input type="text" class="form-control propertyInput"
+									placeholder="" id="server" maxlength="" name="server" value="">
+								<div>
+									<span class="help-block" localize="mount.server.info"></span>
+								</div>
+							</div>
+						</div>
+						<div class="propertyItem form-group remoteDiv">
+							<label class="col-md-3 control-label" localize="mount.port.label"></label>
+							<div class="propertyValue col-md-9">
+								<input type="text" class="form-control propertyInput"
+									placeholder="" id="port" maxlength="" name="port" value="">
+								<div>
+									<span class="help-block" localize="mount.port.info"></span>
+								</div>
+							</div>
+						</div>
+						<div class="propertyItem form-group">
+							<label class="col-md-3 control-label" localize="mount.path.label"></label>
+							<div class="propertyValue col-md-9">
+								<input type="text" class="form-control propertyInput"
+									placeholder="" id="path" maxlength="" name="path" value="">
+								<div>
+									<span class="help-block" localize="mount.path.info"></span>
+								</div>
+							</div>
+						</div>						
+					</div>
+					<div id="tabAuth" class="dialogTab">
+					
+						<div class="propertyItem form-group credsDiv">
+							<label class="col-md-3 control-label" localize="mount.username.label"></label>
+							<div class="propertyValue col-md-9">
+								<input type="text" class="form-control propertyInput"
+									placeholder="" id="username" maxlength="" name="username" value="">
+								<div>
+									<span class="help-block" localize="mount.username.info"></span>
+								</div>
+							</div>
+						</div>	
+						<div class="propertyItem form-group credsDiv">
+							<label class="col-md-3 control-label" localize="mount.password.label"></label>
+							<div class="propertyValue col-md-9">
+								<input type="password" class="form-control propertyInput"
+									placeholder="" id="password" maxlength="" name="password" value="">
+								<div>
+									<span class="help-block" localize="mount.username.info"></span>
+								</div>
+							</div>
+						</div>	
+					</div>
+					<div id="tabOptions" class="dialogTab">
+						<div class="propertyItem">
+							<label for="readOnly" class="col-md-3 control-label" 
+								localize="mount.readOnly.label"></label> 
+							<div class="propertyValue col-md-9">
+								<input type="checkbox"
+									name="readOnly" id="readOnly" />
+								<div>
+									<span class="help-block" localize="mount.readOnly.info"></span>
+								</div>
+							</div>
+						</div>
+						<div class="propertyItem">
+							<label for="showHidden" class="col-md-3 control-label" 
+								localize="mount.showHidden.label"></label> 
+							<div class="propertyValue col-md-9">
+								<input type="checkbox"
+								name="showHidden" id="showHidden"/>
+								<div>
+									<span class="help-block" localize="mount.showHidden.info"></span>
+								</div>
+							</div>
+						</div>
+						<div class="propertyItem">
+							<label for="showFolders" class="col-md-3 control-label" 
+								localize="mount.showFolders.label"></label> 
+							<div class="propertyValue col-md-9">
+								<input type="checkbox"
+								name="showFolders" id="showFolders" />
+								<div>
+									<span class="help-block" localize="mount.showFolders.info"></span>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div id="tabRoles" class="dialogTab">
+					<input type="hidden" id="resourceId" name="resourceId" value="" />
+				</div>
+				</div>
+				<div class="modal-footer"></div>
 			</div>
-
-			<div id="mountDetails">
-				<ul id="mountTabs">
-					<li><a href="#tabFile"><span
-							localize="mount.details.label"></span></a></li>
-					<li><a href="#tabAuth"><span localize="mount.auth.label"></span></a></li>
-					<li><a href="#tabOptions"><span
-							localize="mount.options.label"></span></a></li>
-					<li><a href="#roles"><span localize="mount.roles.label"></span></a></li>
-				</ul>
-
-				<div id="tabFile" class="dialogTab">
-					<div class="formInputField">
-						<label for="scheme" class="formLabel" localize="mount.scheme.label"></label>
-						<select name="scheme" id="scheme"
-							class="formInput text ui-widget-content ui-corner-all">
-						</select>
-					</div>
-					<div class="formInputField remoteDiv">
-						<label for="server" class="formLabel"
-							localize="mount.server.label"></label> <input type="text"
-							name="server" id="server"
-							class="formInput text ui-widget-content ui-corner-all" />
-					</div>
-					<div class="formInputField remoteDiv">
-						<label for="port" class="formLabel" localize="mount.port.label"></label>
-						<input type="text" name="port" id="port"
-							class="formInput text ui-widget-content ui-corner-all" />
-					</div>
-					<div class="formInputField">
-						<label for="path" class="formLabel" localize="mount.path.label"></label>
-						<input type="text" name="path" id="path"
-							class="formInput text ui-widget-content ui-corner-all" />
-					</div>
-
-				</div>
-				<div id="tabAuth" class="dialogTab">
-					<div class="formInputField credsDiv">
-						<label for="username" class="formLabel"
-							localize="mount.username.label"></label> <input type="text"
-							name="username" id="username"
-							class="formInput text ui-widget-content ui-corner-all" />
-					</div>
-					<div class="formInputField credsDiv">
-						<label for="password" class="formLabel"
-							localize="mount.password.label"></label> <input type="password"
-							name="password" id="password"
-							class="formInput text ui-widget-content ui-corner-all" />
-					</div>
-				</div>
-				<div id="tabOptions" class="dialogTab">
-					<div class="formInputField">
-						<label for="readOnly" class="formLabel"
-							localize="mount.readOnly.label"></label> <input type="checkbox"
-							name="readOnly" id="readOnly"
-							class="formInput text ui-widget-content ui-corner-all" />
-					</div>
-					<div class="formInputField">
-						<label for="showHidden" class="formLabel"
-							localize="mount.showHidden.label"></label> <input type="checkbox"
-							name="showHidden" id="showHidden"
-							class="formInput text ui-widget-content ui-corner-all" />
-					</div>
-					<div class="formInputField">
-						<label for="showFolders" class="formLabel"
-							localize="mount.showFolders.label"></label> <input type="checkbox"
-							name="showFolders" id="showFolders"
-							class="formInput text ui-widget-content ui-corner-all" />
-					</div>
-				</div>
-				<div id="roles" class="dialogTab">
-				</div>
-			</div>
-			<input type="hidden" id="resourceId" name="resourceId" value="" />
-		</form>
+		</div>
 	</div>
+
 </div>
 
 <script type="text/javascript">
-	$(document).ready(
-			function() {
-				$('#contentFilesystems').localize();
-				$('#contentFilesystems').tabs();
-				
-				getJSON('schemes', null, function(data) {
+	$(document).ready(function() {
+				$('#tabMounts').localize();
 					
-					
-					$.each(data.resources, function() {
-						$('#scheme').append(
-								'<option id="' + this.scheme + 'Scheme" value="' + this.scheme + '\">'
-										+ getResource("mount." + this.scheme
-												+ '.label') + '</option>');
-						$('#' + this.scheme + 'Scheme').data('scheme', this);
-					});
-					
-					$('#scheme').change(function() {
-						var option = $("#scheme option:selected");
-						var scheme = option.data('scheme');
+				$('#schemeButton').selectButton({
+					id: 'scheme',
+					url: 'schemes',
+					nameAttr: 'scheme',
+					valueAttr: 'scheme',
+					nameIsResourceKey: true,
+					resourceKeyTemplate: 'mount.{0}.label',
+					name: 'file',
+					value: 'file',
+					changed: function(scheme) {
+						debugger;
 						if(scheme.remote) {
 							$('.remoteDiv').show();
 							
@@ -136,25 +173,49 @@
 							$('#username').val('');
 							$('#password').val('');
 						}
-					});
-					
-					$('#scheme').trigger('change');
+					}
 				});
+
 				
 				if(currentMenu.canCreate || currentMenu.canUpdate) {
 					getJSON('roles', null, function(data) {
-						$('#roles').multipleSelect({
+						$('#tabRoles').multipleSelect({
 							values : data.resources,
 							selectedIsObjectList : true,
 							resourceKey : 'mount'
 						});
 					});
 				}
+				
+				$('#mountProperties').propertyPage({
+					url : 'template/mount',
+					showButtons : false,
+					useTemplates : true,
+					canUpdate : currentMenu.canUpdate,
+					additionalTabs : [ {
+						id : "tabFile",
+						name : getResource("mount.details.label")
+					},
+					{
+						id : "tabAuth",
+						name : getResource("mount.auth.label")
+					},
+					{
+						id : "tabOptions",
+						name : getResource("mount.options.label")
+					},
+					{
+						id : "tabRoles",
+						name : getResource("label.roles")
+					}]
+				});
 
-				$('#tabMounts').resourcePage(
+				$('#tabMounts').ajaxResourcePage(
 						{
 							id : "Mounts",
-							tableUrl : "mounts",
+							tableUrl : "table/mounts",
+							title: getResource("filesystems.label"),
+							icon: 'fa-folder-open',
 							resourceUrl : "mount",
 							fields : [ {
 								name : "name"
@@ -168,14 +229,14 @@
 							canCreate: currentMenu.canCreate,
 							canUpdate: currentMenu.canUpdate,
 							canDelete: currentMenu.canDelete,
-							additionalActions : [ { resourceKey: "openMount",
-								iconClass: "ui-icon-folder-open",
-								enabled: true,
-								action : function(resource) {
-									window.open('viewfs/' + resource.name,
-											'_blank',
-											'width=800,height=600,toolbar=0,menubar=0,location=1,status=1,scrollbars=1,resizable=1,left=0,top=0');
-								}}],
+// 							additionalActions : [ { resourceKey: "openMount",
+// 								iconClass: "ui-icon-folder-open",
+// 								enabled: true,
+// 								action : function(resource) {
+// 									window.open('viewfs/' + resource.name,
+// 											'_blank',
+// 											'width=800,height=600,toolbar=0,menubar=0,location=1,status=1,scrollbars=1,resizable=1,left=0,top=0');
+// 								}}],
 							validate : function() {
 
 								if ($('#resourceName').val() == '') {
@@ -214,7 +275,7 @@
 								$('#showHidden').prop('checked', false);
 								$('#showFolders').prop('checked', true);
 								
-								$('#roles').multipleSelect();
+								$('#tabRoles').multipleSelect();
 							},
 							createResource : function() {
 								resource = new Object();
@@ -230,7 +291,7 @@
 								resource.showHidden = $('#showHidden').prop('checked') ? true : false;
 								resource.showFolders = $('#showFolders').prop('checked') ? true : false;
 								
-								resource.roles = $('#roles').multipleSelectValues();
+								resource.roles = $('#tabRoles').multipleSelectValues();
 								
 								return resource;
 							},
@@ -255,18 +316,16 @@
 								if(resource.showFolders) {
 									$('#showFolders').prop('checked', true);
 								}
-								$('#roles').multipleSelect({
+								$('#tabRoles').multipleSelect({
 									selected : resource.roles,
 									selectedIsObjectList : true,
 									resourceKey : 'mount'
 								});
 							},
 							complete : function() {
-
-								$('#mountDetails').tabs();
-
 								loadComplete();
 							}
 						});
+
 			});
 </script>

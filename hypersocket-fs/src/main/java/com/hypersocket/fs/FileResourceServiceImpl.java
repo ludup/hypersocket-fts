@@ -47,7 +47,6 @@ import com.hypersocket.ui.UserInterfaceContentHandler;
 import com.hypersocket.util.FileUtils;
 
 @Service
-@Transactional
 public class FileResourceServiceImpl extends
 		AbstractAssignableResourceServiceImpl<FileResource> implements
 		FileResourceService, DownloadEventProcessor, UploadEventProcessor {
@@ -98,7 +97,7 @@ public class FileResourceServiceImpl extends
 		}
 
 		menuService.registerMenu(new MenuRegistration(RESOURCE_BUNDLE,
-				"filesystems", "fa-folder-open-o", "filesystems", 200, FileResourcePermission.READ,
+				"filesystems", "fa-folder-open", "filesystems", 200, FileResourcePermission.READ,
 				FileResourcePermission.CREATE, FileResourcePermission.UPDATE,
 				FileResourcePermission.DELETE), MenuService.MENU_RESOURCES);
 
@@ -927,5 +926,41 @@ public class FileResourceServiceImpl extends
 			FileObject file, Throwable t, String protocol) {
 		eventService.publishEvent(new DownloadCompleteEvent(this, t,
 				getCurrentSession(), resource.getName(), childPath, protocol));
+	}
+
+	@Override
+	protected void fireResourceCreationEvent(FileResource resource) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	protected void fireResourceCreationEvent(FileResource resource, Throwable t) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	protected void fireResourceUpdateEvent(FileResource resource) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	protected void fireResourceUpdateEvent(FileResource resource, Throwable t) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	protected void fireResourceDeletionEvent(FileResource resource) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	protected void fireResourceDeletionEvent(FileResource resource, Throwable t) {
+		// TODO Auto-generated method stub
+		
 	}
 }

@@ -43,12 +43,19 @@ import com.hypersocket.json.ResourceList;
 import com.hypersocket.json.ResourceStatus;
 import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.permissions.Role;
+import com.hypersocket.properties.PropertyCategory;
 import com.hypersocket.realm.Realm;
 import com.hypersocket.resource.ResourceChangeException;
+import com.hypersocket.resource.ResourceColumns;
+import com.hypersocket.resource.ResourceCreationException;
 import com.hypersocket.resource.ResourceException;
 import com.hypersocket.resource.ResourceNotFoundException;
 import com.hypersocket.session.json.SessionTimeoutException;
 import com.hypersocket.session.json.SessionUtils;
+import com.hypersocket.tables.Column;
+import com.hypersocket.tables.ColumnSort;
+import com.hypersocket.tables.DataTablesResult;
+import com.hypersocket.tables.json.DataTablesPageProcessor;
 import com.hypersocket.util.FileUtils;
 
 @Controller
@@ -96,6 +103,63 @@ public class FileResourceController extends ResourceController {
 	}
 
 	@AuthenticationRequired
+	@RequestMapping(value = "template/mount", method = RequestMethod.GET, produces = { "application/json" })
+	@ResponseBody
+	@ResponseStatus(value = HttpStatus.OK)
+	public ResourceList<PropertyCategory> getRealmTemplate(HttpServletRequest request)
+			throws AccessDeniedException, UnauthorizedException,
+			SessionTimeoutException {
+		setupAuthenticatedContext(sessionUtils.getSession(request),
+				sessionUtils.getLocale(request));
+
+		try {
+			return new ResourceList<PropertyCategory>();
+		} finally {
+			clearAuthenticatedContext();
+		}
+		
+	}
+	
+	@AuthenticationRequired
+	@RequestMapping(value = "table/mounts", method = RequestMethod.GET, produces = { "application/json" })
+	@ResponseBody
+	@ResponseStatus(value = HttpStatus.OK)
+	public DataTablesResult tableMounts(final HttpServletRequest request,
+			HttpServletResponse response) throws AccessDeniedException,
+			UnauthorizedException, SessionTimeoutException {
+
+		setupAuthenticatedContext(sessionUtils.getSession(request),
+				sessionUtils.getLocale(request), mountService);
+
+		try {
+			return processDataTablesRequest(request,
+					new DataTablesPageProcessor() {
+
+						@Override
+						public Column getColumn(int col) {
+							return ResourceColumns.values()[col];
+						}
+
+						@Override
+						public List<?> getPage(String searchPattern, int start, int length,
+								ColumnSort[] sorting) throws UnauthorizedException, AccessDeniedException {
+							return mountService.searchResources(sessionUtils.getCurrentRealm(request),
+									searchPattern, start, length, sorting);
+						}
+						
+						@Override
+						public Long getTotalCount(String searchPattern) throws UnauthorizedException, AccessDeniedException {
+							return mountService.getResourceCount(
+									sessionUtils.getCurrentRealm(request),
+									searchPattern);
+						}
+					});
+		} finally {
+			clearAuthenticatedContext();
+		}
+	}
+	
+	@AuthenticationRequired
 	@RequestMapping(value = "mount", method = RequestMethod.POST, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
@@ -132,6 +196,10 @@ public class FileResourceController extends ResourceController {
 					resource.getId() != null ? "mount.updated.info"
 							: "mount.created.info", resource.getName()));
 
+		} catch (ResourceCreationException e) {
+			return new ResourceStatus<FileResource>(false, I18N.getResource(
+					sessionUtils.getLocale(request), e.getBundle(),
+					e.getResourceKey(), e.getArgs()));
 		} catch (ResourceChangeException e) {
 			return new ResourceStatus<FileResource>(false, I18N.getResource(
 					sessionUtils.getLocale(request), e.getBundle(),
