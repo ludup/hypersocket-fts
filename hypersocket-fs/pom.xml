@@ -18,7 +18,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>com.hypersocket</groupId>
-			<artifactId>hypersocket-ui-common</artifactId>
+			<artifactId>hypersocket-ui-bootstrap</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>

@@ -106,7 +106,7 @@ public class FileResourceController extends ResourceController {
 	@RequestMapping(value = "template/mount", method = RequestMethod.GET, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
-	public ResourceList<PropertyCategory> getRealmTemplate(HttpServletRequest request)
+	public ResourceList<PropertyCategory> getResourceTemplate(HttpServletRequest request)
 			throws AccessDeniedException, UnauthorizedException,
 			SessionTimeoutException {
 		setupAuthenticatedContext(sessionUtils.getSession(request),
@@ -116,8 +116,7 @@ public class FileResourceController extends ResourceController {
 			return new ResourceList<PropertyCategory>();
 		} finally {
 			clearAuthenticatedContext();
-		}
-		
+		}	
 	}
 	
 	@AuthenticationRequired
