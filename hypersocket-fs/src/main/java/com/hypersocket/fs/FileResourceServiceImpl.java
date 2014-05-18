@@ -689,9 +689,6 @@ public class FileResourceServiceImpl extends
 			String parentUri, final String newName, String protocol) throws IOException,
 			AccessDeniedException {
 
-		assertAnyPermission(FileResourcePermission.CREATE,
-				FileResourcePermission.CONTENT_READ_WRITE);
-
 		FileResolver<FileObject> resolver = new CreateFolderFileResolver(newName, protocol);
 
 		return resolver.processURIRequest(host, controllerPath, parentUri);
@@ -701,9 +698,6 @@ public class FileResourceServiceImpl extends
 	@Override
 	public FileObject createFolder(String parentPath, final String newName, String protocol) throws IOException,
 			AccessDeniedException {
-
-		assertAnyPermission(FileResourcePermission.CREATE,
-				FileResourcePermission.CONTENT_READ_WRITE);
 
 		FileResolver<FileObject> resolver = new CreateFolderFileResolver(newName, protocol);
 

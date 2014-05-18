@@ -7,9 +7,7 @@ public enum FileResourcePermission implements PermissionType {
 	CREATE("mount.create"),
 	READ("mount.read"),
 	UPDATE("mount.update"),
-	DELETE("mount.delete"),
-	CONTENT_READONLY("content.readOnly"),
-	CONTENT_READ_WRITE("content.readWrite");
+	DELETE("mount.delete");
 	
 	private final String val;
 	
