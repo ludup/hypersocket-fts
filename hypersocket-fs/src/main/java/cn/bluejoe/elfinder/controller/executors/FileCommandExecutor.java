@@ -18,7 +18,8 @@ import cn.bluejoe.elfinder.controller.executor.FsItemEx;
 import cn.bluejoe.elfinder.service.FsService;
 import cn.bluejoe.elfinder.util.MimeTypesUtils;
 
-import com.sun.xml.internal.messaging.saaj.packaging.mime.internet.MimeUtility;
+//import com.sun.xml.internal.messaging.saaj.packaging.mime.internet.MimeUtility;
+import javax.mail.internet.MimeUtility;
 
 public class FileCommandExecutor extends AbstractCommandExecutor implements CommandExecutor
 {
