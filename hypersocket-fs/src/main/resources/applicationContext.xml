@@ -42,15 +42,6 @@
 						<property name="tmbWidth" value="80" />
 					</bean>
 				</property>
-				<!-- this FsService serves two volumes -->
-				<property name="volumes">
-					<list>
-						<bean class="cn.bluejoe.elfinder.localfs.LocalFsVolume">
-							<property name="name" value="MyFiles" />
-							<property name="rootDir" value="/home/lee" />
-						</bean>
-					</list>
-				</property>
 				<!-- define security checking rules here -->
 				<property name="securityChecker">
 					<bean class="cn.bluejoe.elfinder.impl.FsSecurityCheckerChain">
@@ -65,15 +56,7 @@
 										</bean>
 									</property>
 								</bean>
-								<bean class="cn.bluejoe.elfinder.impl.FsSecurityCheckFilterMapping">
-									<property name="pattern" value="B_.*" />
-									<property name="checker">
-										<bean class="cn.bluejoe.elfinder.impl.FsSecurityCheckForAll">
-											<property name="readable" value="true" />
-											<property name="writable" value="false" />
-										</bean>
-									</property>
-								</bean>
+								
 							</list>
 						</property>
 					</bean>

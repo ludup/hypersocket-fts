@@ -4,8 +4,9 @@
 <title>File View</title>
 <link rel="shortcut icon" href="${uiPath}/images/favicon.ico">
 <link rel="icon" type="image/png" href="${uiPath}/images/shield_16x16.png">
-<link rel="stylesheet" type="text/css" href="${uiPath}/css/elfinder.min.css"
-	media="screen" />
+<link rel="stylesheet" type="text/css" href="${uiPath}/css/elfinder.min.css" media="screen" />
+<link rel="stylesheet" type="text/css" href="${uiPath}/css/theme.css" media="screen" />
+<link rel="stylesheet" type="text/css" href="${uiPath}/css/jquery-ui.min.css" media="screen" />
 <style>
 .ui-menu {
 	width: 150px;
@@ -17,6 +18,7 @@
 }
 </style>
 <script type="text/javascript" src="${uiPath}/js/jquery.min.js"></script>
+<script type="text/javascript" src="${uiPath}/js/jquery-migrate.min.js"></script>
 <script type="text/javascript" src="${uiPath}/js/jquery-ui.min.js"></script>
 <script type="text/javascript" src="${uiPath}/js/hypersocket-utils.js"></script>
 <script type="text/javascript" src="${uiPath}/js/elfinder.min.js"></script>
@@ -24,6 +26,9 @@
 	$(document).ready(function() {
 	    $('#elfinder').elfinder({
 	        url : basePath + '/api/connector',
+	        height: 700,
+	        resizable: true,
+	        dragUploadAllow: true
 	    });
 });
 </script>

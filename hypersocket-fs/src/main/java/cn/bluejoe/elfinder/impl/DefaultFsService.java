@@ -1,10 +1,13 @@
 package cn.bluejoe.elfinder.impl;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.codec.binary.Base64;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import cn.bluejoe.elfinder.service.FsItem;
@@ -13,6 +16,14 @@ import cn.bluejoe.elfinder.service.FsService;
 import cn.bluejoe.elfinder.service.FsServiceConfig;
 import cn.bluejoe.elfinder.service.FsVolume;
 
+import com.hypersocket.auth.json.UnauthorizedException;
+import com.hypersocket.fs.FileResource;
+import com.hypersocket.fs.FileResourceService;
+import com.hypersocket.fs.elfinder.UserMountsFsVolume;
+import com.hypersocket.netty.Request;
+import com.hypersocket.realm.Principal;
+import com.hypersocket.session.json.SessionUtils;
+
 @Service
 public class DefaultFsService implements FsService
 {
@@ -20,6 +31,12 @@ public class DefaultFsService implements FsService
 
 	FsServiceConfig _serviceConfig;
 
+	@Autowired
+	SessionUtils sessionUtils;
+	
+	@Autowired
+	FileResourceService fileResourceService;
+	
 	public FsServiceConfig getServiceConfig()
 	{
 		return _serviceConfig;
@@ -30,16 +47,18 @@ public class DefaultFsService implements FsService
 		_serviceConfig = serviceConfig;
 	}
 
-	Map<FsVolume, String> _volumeIds = new HashMap<FsVolume, String>();
+	Map<Principal,List<FsVolume>> userVolumes = new HashMap<Principal,List<FsVolume>>();
+	Map<Principal,Map<FsVolume,String>> userVolumeIds = new HashMap<Principal,Map<FsVolume,String>>();
+	//Map<FsVolume, String> _volumeIds = new HashMap<FsVolume, String>();
 
-	FsVolume[] _volumes;
+	//FsVolume[] _volumes;
 
 	String[][] escapes = { { "+", "_P" }, { "-", "_M" }, { "/", "_S" }, { ".", "_D" }, { "=", "_E" } };
 
 	@Override
 	public FsItem fromHash(String hash)
 	{
-		for (FsVolume v : _volumes)
+		for (FsVolume v : getUserVolumes())
 		{
 			String prefix = getVolumeId(v) + "_";
 
@@ -65,6 +84,39 @@ public class DefaultFsService implements FsService
 		return null;
 	}
 
+	private List<FsVolume> getUserVolumes() {
+		
+		try {
+			Principal principal = sessionUtils.getPrincipal(Request.get());
+			
+			if(userVolumes.containsKey(principal)) {
+				return userVolumes.get(principal);
+			}
+			
+			List<FileResource> resources = fileResourceService.getResources(principal);
+			
+			List<FsVolume> volumes = new ArrayList<FsVolume>();
+			Map<FsVolume, String> volumeIds = new HashMap<FsVolume,String>();
+			
+			char vid = 'A';
+			for(FileResource r : resources) {
+				FsVolume v = new UserMountsFsVolume(r, fileResourceService);
+				volumeIds.put(v,"" + vid);
+				volumes.add(v);
+				vid++;
+			}
+			
+			userVolumes.put(principal, volumes);
+			userVolumeIds.put(principal, volumeIds);
+			return volumes;
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
 	@Override
 	public String getHash(FsItem item) throws IOException
 	{
@@ -87,27 +139,26 @@ public class DefaultFsService implements FsService
 	@Override
 	public String getVolumeId(FsVolume volume)
 	{
-		return _volumeIds.get(volume);
+		try {
+			Principal principal = sessionUtils.getPrincipal(Request.get());
+			
+			if(userVolumeIds.containsKey(principal)) {
+				return userVolumeIds.get(principal).get(volume);
+			}
+		} catch (UnauthorizedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	public FsVolume[] getVolumes()
 	{
-		return _volumes;
+		return getUserVolumes().toArray(new FsVolume[0]);
 	}
 
 	public void setSecurityChecker(FsSecurityChecker securityChecker)
 	{
 		_securityChecker = securityChecker;
-	}
-
-	public void setVolumes(FsVolume[] volumes)
-	{
-		_volumes = volumes;
-		char vid = 'A';
-		for (FsVolume volume : volumes)
-		{
-			_volumeIds.put(volume, "" + vid);
-			vid++;
-		}
 	}
 }

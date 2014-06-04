@@ -113,8 +113,7 @@ public class FileResourceServiceImpl extends
 		}
 
 		eventService.registerEvent(DownloadStartedEvent.class, RESOURCE_BUNDLE);
-		eventService
-				.registerEvent(DownloadCompleteEvent.class, RESOURCE_BUNDLE);
+		eventService.registerEvent(DownloadCompleteEvent.class, RESOURCE_BUNDLE);
 		eventService.registerEvent(UploadStartedEvent.class, RESOURCE_BUNDLE);
 		eventService.registerEvent(UploadCompleteEvent.class, RESOURCE_BUNDLE);
 		eventService.registerEvent(CopyFileEvent.class, RESOURCE_BUNDLE);
@@ -131,6 +130,8 @@ public class FileResourceServiceImpl extends
 		registerScheme(new FileResourceScheme("tmp", false, false));
 		registerScheme(new FileResourceScheme("smb", true, true));
 
+		server.registerControllerPackage("cn.bluejoe.elfinder.controller");
+		
 		jQueryUIContentHandler
 				.addAlias("^/viewfs/.*$", "content/fileview.html");
 

@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.json.JSONObject;
+import org.springframework.http.HttpStatus;
 
 import cn.bluejoe.elfinder.service.FsService;
 
@@ -20,9 +21,9 @@ public abstract class AbstractJsonCommandExecutor extends AbstractCommandExecuto
 		try
 		{
 			execute(fsService, request, servletContext, json);
-			//response.setContentType("application/json; charset=UTF-8");
-			response.setContentType("text/html; charset=UTF-8");
-
+			response.setContentType("application/json; charset=UTF-8");
+			//response.setContentType("text/html; charset=UTF-8");
+			response.setStatus(HttpStatus.OK.value());
 			PrintWriter writer = response.getWriter();
 			json.write(writer);
 			writer.flush();
