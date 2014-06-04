@@ -130,6 +130,8 @@ public class FileResourceServiceImpl extends
 		registerScheme(new FileResourceScheme("tmp", false, false));
 		registerScheme(new FileResourceScheme("smb", true, true));
 
+		server.registerControllerPackage("cn.bluejoe.elfinder.controller");
+		
 		jQueryUIContentHandler
 				.addAlias("^/viewfs/.*$", "content/fileview.html");
 
