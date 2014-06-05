@@ -3,7 +3,6 @@ package com.hypersocket.fs.elfinder;
 import java.io.IOException;
 
 import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemException;
 
 import cn.bluejoe.elfinder.service.FsItem;
 import cn.bluejoe.elfinder.service.FsVolume;
