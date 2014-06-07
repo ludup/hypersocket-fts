@@ -48,8 +48,8 @@ public class FileResourcesFsVolume implements FsVolume {
 
 		FileResourceFsItem item = getMountItem(fsi);
 
-		if (log.isInfoEnabled()) {
-			log.info("createFile " + item.getPath());
+		if (log.isDebugEnabled()) {
+			log.debug("createFile " + item.getPath());
 			;
 		}
 
@@ -62,8 +62,8 @@ public class FileResourcesFsVolume implements FsVolume {
 		try {
 			FileResourceFsItem item = getMountItem(fsi);
 
-			if (log.isInfoEnabled()) {
-				log.info("createFolder " + item.getPath());
+			if (log.isDebugEnabled()) {
+				log.debug("createFolder " + item.getPath());
 			}
 
 			fileResourceService.createFolder(item.getParent().getPath(),
@@ -85,8 +85,8 @@ public class FileResourcesFsVolume implements FsVolume {
 		try {
 			FileResourceFsItem item = getMountItem(fsi);
 
-			if (log.isInfoEnabled()) {
-				log.info("deleteFolder " + item.getPath());
+			if (log.isDebugEnabled()) {
+				log.debug("deleteFolder " + item.getPath());
 			}
 
 			fileResourceService.deleteFile(item.getPath(), HTTP_PROTOCOL);
@@ -103,8 +103,8 @@ public class FileResourcesFsVolume implements FsVolume {
 		} else {
 			FileResourceFsItem mount = getMountItem(newFile);
 
-			if (log.isInfoEnabled()) {
-				log.info("exists " + mount.getPath());
+			if (log.isDebugEnabled()) {
+				log.debug("exists " + mount.getPath());
 			}
 			try {
 				return mount.getFileObject().exists();
@@ -118,8 +118,8 @@ public class FileResourcesFsVolume implements FsVolume {
 	@Override
 	public FsItem fromPath(String relativePath) {
 
-		if (log.isInfoEnabled()) {
-			log.info("fromPath " + relativePath);
+		if (log.isDebugEnabled()) {
+			log.debug("fromPath " + relativePath);
 		}
 
 		if (relativePath.equals(rootItem.getPath())) {
@@ -147,8 +147,8 @@ public class FileResourcesFsVolume implements FsVolume {
 
 		FileResourceFsItem item = getMountItem(fsi);
 
-		if (log.isInfoEnabled()) {
-			log.info("getDimentions " + item.getPath());
+		if (log.isDebugEnabled()) {
+			log.debug("getDimentions " + item.getPath());
 		}
 		return null;
 	}
@@ -160,8 +160,8 @@ public class FileResourcesFsVolume implements FsVolume {
 		} else {
 			FileResourceFsItem mount = getMountItem(fsi);
 
-			if (log.isInfoEnabled()) {
-				log.info("getLastModified " + mount.getPath());
+			if (log.isDebugEnabled()) {
+				log.debug("getLastModified " + mount.getPath());
 			}
 			try {
 				return mount.getFileObject().getContent().getLastModifiedTime();
@@ -179,8 +179,8 @@ public class FileResourcesFsVolume implements FsVolume {
 		}
 		FileResourceFsItem mount = getMountItem(fsi);
 
-		if (log.isInfoEnabled()) {
-			log.info("getMimeType " + mount.getPath());
+		if (log.isDebugEnabled()) {
+			log.debug("getMimeType " + mount.getPath());
 		}
 
 		try {
@@ -213,8 +213,8 @@ public class FileResourcesFsVolume implements FsVolume {
 		} else {
 			FileResourceFsItem mount = getMountItem(fsi);
 
-			if (log.isInfoEnabled()) {
-				log.info("getName " + mount.getPath());
+			if (log.isDebugEnabled()) {
+				log.debug("getName " + mount.getPath());
 			}
 
 			if (mount.isMountRoot()) {
@@ -232,8 +232,8 @@ public class FileResourcesFsVolume implements FsVolume {
 		} else {
 			FileResourceFsItem mount = getMountItem(fsi);
 
-			if (log.isInfoEnabled()) {
-				log.info("getParent " + mount.getPath());
+			if (log.isDebugEnabled()) {
+				log.debug("getParent " + mount.getPath());
 			}
 			FileObject obj;
 			try {
@@ -258,8 +258,8 @@ public class FileResourcesFsVolume implements FsVolume {
 		} else {
 			FileResourceFsItem item = getMountItem(fsi);
 
-			if (log.isInfoEnabled()) {
-				log.info("getPath " + item.getPath());
+			if (log.isDebugEnabled()) {
+				log.debug("getPath " + item.getPath());
 			}
 
 			return item.getPath();
@@ -278,8 +278,8 @@ public class FileResourcesFsVolume implements FsVolume {
 		} else {
 			FileResourceFsItem mount = getMountItem(fsi);
 
-			if (log.isInfoEnabled()) {
-				log.info("getSize " + mount.getPath());
+			if (log.isDebugEnabled()) {
+				log.debug("getSize " + mount.getPath());
 			}
 			try {
 				if (mount.getFileObject().getType() == FileType.FOLDER) {
@@ -299,8 +299,8 @@ public class FileResourcesFsVolume implements FsVolume {
 
 		FileResourceFsItem mount = getMountItem(fsi);
 
-		if (log.isInfoEnabled()) {
-			log.info("getThumbnailFileName " + mount.getPath());
+		if (log.isDebugEnabled()) {
+			log.debug("getThumbnailFileName " + mount.getPath());
 		}
 
 		return null;
@@ -311,8 +311,8 @@ public class FileResourcesFsVolume implements FsVolume {
 
 		FileResourceFsItem mount = getMountItem(fsi);
 
-		if (log.isInfoEnabled()) {
-			log.info("hasChildFolder " + mount.getPath());
+		if (log.isDebugEnabled()) {
+			log.debug("hasChildFolder " + mount.getPath());
 		}
 
 		try {
@@ -337,8 +337,8 @@ public class FileResourcesFsVolume implements FsVolume {
 		} else {
 			FileResourceFsItem mountItem = getMountItem(fsi);
 
-			if (log.isInfoEnabled()) {
-				log.info("isFolder " + mountItem.getPath());
+			if (log.isDebugEnabled()) {
+				log.debug("isFolder " + mountItem.getPath());
 			}
 			try {
 				return mountItem.getFileObject().getType() == FileType.FOLDER;
@@ -361,8 +361,8 @@ public class FileResourcesFsVolume implements FsVolume {
 
 		FileResourceFsItem mount = getMountItem(fsi);
 
-		if (log.isInfoEnabled()) {
-			log.info("listChildren " + mount.getPath());
+		if (log.isDebugEnabled()) {
+			log.debug("listChildren " + mount.getPath());
 		}
 		FileObject file = mount.getFileObject();
 		try {
@@ -370,8 +370,8 @@ public class FileResourcesFsVolume implements FsVolume {
 				if (!obj.getName().getBaseName().equals(".")
 						&& !obj.getName().getBaseName().equals("..")) {
 
-					if (log.isInfoEnabled()) {
-						log.info("Adding child "
+					if (log.isDebugEnabled()) {
+						log.debug("Adding child "
 								+ obj.getName().getBaseName());
 					}
 					items.add(new FileResourceFsItem(this, obj, mount.getMount(),
@@ -391,8 +391,8 @@ public class FileResourcesFsVolume implements FsVolume {
 		try {
 			FileResourceFsItem mount = getMountItem(fsi);
 
-			if (log.isInfoEnabled()) {
-				log.info("openInputStream " + mount.getPath());
+			if (log.isDebugEnabled()) {
+				log.debug("openInputStream " + mount.getPath());
 			}
 			return fileResourceService.downloadFile(
 					mount.getPath(), 0, HTTP_PROTOCOL);
@@ -406,8 +406,8 @@ public class FileResourcesFsVolume implements FsVolume {
 		try {
 			FileResourceFsItem mount = getMountItem(fsi);
 
-			if (log.isInfoEnabled()) {
-				log.info("openOutputStream " + mount.getPath());
+			if (log.isDebugEnabled()) {
+				log.debug("openOutputStream " + mount.getPath());
 			}
 			
 			return fileResourceService.uploadFile(mount.getPath(),
@@ -423,8 +423,8 @@ public class FileResourcesFsVolume implements FsVolume {
 		try {
 			FileResourceFsItem mount = getMountItem(src);
 			FileResourceFsItem mountDest = getMountItem(dst);
-			if (log.isInfoEnabled()) {
-				log.info("openOutputStream " + mount.getPath());
+			if (log.isDebugEnabled()) {
+				log.debug("openOutputStream " + mount.getPath());
 			}
 			
 			fileResourceService.renameFile(mount.getPath(),

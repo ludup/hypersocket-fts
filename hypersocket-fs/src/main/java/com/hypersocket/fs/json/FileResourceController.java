@@ -159,6 +159,45 @@ public class FileResourceController extends ResourceController {
 	}
 	
 	@AuthenticationRequired
+	@RequestMapping(value = "personal/mounts", method = RequestMethod.GET, produces = { "application/json" })
+	@ResponseBody
+	@ResponseStatus(value = HttpStatus.OK)
+	public DataTablesResult personalMounts(final HttpServletRequest request,
+			HttpServletResponse response) throws AccessDeniedException,
+			UnauthorizedException, SessionTimeoutException {
+
+		setupAuthenticatedContext(sessionUtils.getSession(request),
+				sessionUtils.getLocale(request), mountService);
+
+		try {
+			return processDataTablesRequest(request,
+					new DataTablesPageProcessor() {
+
+						@Override
+						public Column getColumn(int col) {
+							return ResourceColumns.values()[col];
+						}
+
+						@Override
+						public List<?> getPage(String searchPattern, int start, int length,
+								ColumnSort[] sorting) throws UnauthorizedException, AccessDeniedException {
+							return mountService.searchPersonalResources(sessionUtils.getPrincipal(request),
+									searchPattern, start, length, sorting);
+						}
+						
+						@Override
+						public Long getTotalCount(String searchPattern) throws UnauthorizedException, AccessDeniedException {
+							return mountService.getPersonalResourceCount(
+									sessionUtils.getPrincipal(request),
+									searchPattern);
+						}
+					});
+		} finally {
+			clearAuthenticatedContext();
+		}
+	}
+	
+	@AuthenticationRequired
 	@RequestMapping(value = "mount", method = RequestMethod.POST, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)

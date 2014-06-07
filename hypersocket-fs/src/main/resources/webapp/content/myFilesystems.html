@@ -1,0 +1,45 @@
+<div id="tabMounts">
+
+</div>
+
+<script type="text/javascript">
+	$(document).ready(function() {
+				$('#tabMounts').localize();
+
+				$('#tabMounts').ajaxResourcePage(
+						{
+							id : "Mounts",
+							tableUrl : "personal/mounts",
+							title: getResource("filesystems.label"),
+							icon: 'fa-folder-open',
+							resourceUrl : "mount",
+							fields : [ {
+								name : "name"
+							}, {
+								name : "scheme",
+								isResourceKey : true
+							}, {
+								name : "url"
+							} ],
+							resourceKey : "mount",
+							canCreate: false,
+							canUpdate: false,
+							canDelete: false,
+							additionalButtons : [ 
+								{ resourceKey: "browseFiles", 
+									icon : "fa-folder-open-o", 
+									buttonClass: "btn-primary",
+									action : function() {
+										window.open('viewfs/',
+												'_blank',
+												'width=1024,height=800,toolbar=0,menubar=0,location=0,status=1,scrollbars=0,resizable=0,left=0,top=0');
+									}
+								}
+							],
+							complete : function() {
+								loadComplete();
+							}
+						});
+
+			});
+</script>
