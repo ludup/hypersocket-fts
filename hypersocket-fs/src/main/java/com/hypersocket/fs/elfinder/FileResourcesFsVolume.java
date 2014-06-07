@@ -20,33 +20,33 @@ import com.hypersocket.fs.FileResource;
 import com.hypersocket.fs.FileResourceService;
 import com.hypersocket.permissions.AccessDeniedException;
 
-public class UserMountsFsVolume implements FsVolume {
+public class FileResourcesFsVolume implements FsVolume {
 
 	public static final String HTTP_PROTOCOL = "HTTP";
 
 	private static Logger log = LoggerFactory
-			.getLogger(UserMountsFsVolume.class);
+			.getLogger(FileResourcesFsVolume.class);
 
 	FileResourceService fileResourceService;
 	FileResource resource;
 
-	MountFsItem rootItem;
-	public UserMountsFsVolume(FileResource resource, FileResourceService fileResourceService) throws IOException {
+	FileResourceFsItem rootItem;
+	public FileResourcesFsVolume(FileResource resource, FileResourceService fileResourceService) throws IOException {
 		this.resource = resource;
 		this.fileResourceService = fileResourceService;
 		
 		FileObject file = fileResourceService.resolveMountFile(resource);
-		rootItem = new MountFsItem(this, file, resource, file);
+		rootItem = new FileResourceFsItem(this, file, resource, file);
 	}
 	
-	private MountFsItem getMountItem(FsItem fsi) {
-		return (MountFsItem) fsi;
+	private FileResourceFsItem getMountItem(FsItem fsi) {
+		return (FileResourceFsItem) fsi;
 	}
 
 	@Override
 	public void createFile(FsItem fsi) throws IOException {
 
-		MountFsItem item = getMountItem(fsi);
+		FileResourceFsItem item = getMountItem(fsi);
 
 		if (log.isInfoEnabled()) {
 			log.info("createFile " + item.getPath());
@@ -60,7 +60,7 @@ public class UserMountsFsVolume implements FsVolume {
 	public void createFolder(FsItem fsi) throws IOException {
 
 		try {
-			MountFsItem item = getMountItem(fsi);
+			FileResourceFsItem item = getMountItem(fsi);
 
 			if (log.isInfoEnabled()) {
 				log.info("createFolder " + item.getPath());
@@ -83,7 +83,7 @@ public class UserMountsFsVolume implements FsVolume {
 	public void deleteFolder(FsItem fsi) throws IOException {
 
 		try {
-			MountFsItem item = getMountItem(fsi);
+			FileResourceFsItem item = getMountItem(fsi);
 
 			if (log.isInfoEnabled()) {
 				log.info("deleteFolder " + item.getPath());
@@ -101,7 +101,7 @@ public class UserMountsFsVolume implements FsVolume {
 		if (isRoot(newFile)) {
 			return true;
 		} else {
-			MountFsItem mount = getMountItem(newFile);
+			FileResourceFsItem mount = getMountItem(newFile);
 
 			if (log.isInfoEnabled()) {
 				log.info("exists " + mount.getPath());
@@ -134,7 +134,7 @@ public class UserMountsFsVolume implements FsVolume {
 				String childPath = fileResourceService.resolveChildPath(mount,
 						relativePath);
 				FileObject file = mountFile.resolveFile(childPath);
-				return new MountFsItem(this, file, mount, mountFile);
+				return new FileResourceFsItem(this, file, mount, mountFile);
 			} catch (IOException e) {
 				log.error("Failed to create FsItem for " + relativePath, e);
 			}
@@ -145,7 +145,7 @@ public class UserMountsFsVolume implements FsVolume {
 	@Override
 	public String getDimensions(FsItem fsi) {
 
-		MountFsItem item = getMountItem(fsi);
+		FileResourceFsItem item = getMountItem(fsi);
 
 		if (log.isInfoEnabled()) {
 			log.info("getDimentions " + item.getPath());
@@ -158,7 +158,7 @@ public class UserMountsFsVolume implements FsVolume {
 		if (isRoot(fsi)) {
 			return rootItem.getMount().getModifiedDate().getTime();
 		} else {
-			MountFsItem mount = getMountItem(fsi);
+			FileResourceFsItem mount = getMountItem(fsi);
 
 			if (log.isInfoEnabled()) {
 				log.info("getLastModified " + mount.getPath());
@@ -177,7 +177,7 @@ public class UserMountsFsVolume implements FsVolume {
 		if (isRoot(fsi)) {
 			return "directory";
 		}
-		MountFsItem mount = getMountItem(fsi);
+		FileResourceFsItem mount = getMountItem(fsi);
 
 		if (log.isInfoEnabled()) {
 			log.info("getMimeType " + mount.getPath());
@@ -211,7 +211,7 @@ public class UserMountsFsVolume implements FsVolume {
 		if (isRoot(fsi)) {
 			return getName();
 		} else {
-			MountFsItem mount = getMountItem(fsi);
+			FileResourceFsItem mount = getMountItem(fsi);
 
 			if (log.isInfoEnabled()) {
 				log.info("getName " + mount.getPath());
@@ -230,7 +230,7 @@ public class UserMountsFsVolume implements FsVolume {
 		if (isRoot(fsi)) {
 			return null;
 		} else {
-			MountFsItem mount = getMountItem(fsi);
+			FileResourceFsItem mount = getMountItem(fsi);
 
 			if (log.isInfoEnabled()) {
 				log.info("getParent " + mount.getPath());
@@ -241,7 +241,7 @@ public class UserMountsFsVolume implements FsVolume {
 				if (obj.equals(mount.getFileObject())) {
 					return rootItem;
 				} else {
-					return new MountFsItem(this, mount.getFileObject()
+					return new FileResourceFsItem(this, mount.getFileObject()
 							.getParent(), mount.getMount(), obj);
 				}
 			} catch (IOException e) {
@@ -256,7 +256,7 @@ public class UserMountsFsVolume implements FsVolume {
 		if (isRoot(fsi)) {
 			return rootItem.getPath();
 		} else {
-			MountFsItem item = getMountItem(fsi);
+			FileResourceFsItem item = getMountItem(fsi);
 
 			if (log.isInfoEnabled()) {
 				log.info("getPath " + item.getPath());
@@ -276,7 +276,7 @@ public class UserMountsFsVolume implements FsVolume {
 		if (isRoot(fsi)) {
 			return 0;
 		} else {
-			MountFsItem mount = getMountItem(fsi);
+			FileResourceFsItem mount = getMountItem(fsi);
 
 			if (log.isInfoEnabled()) {
 				log.info("getSize " + mount.getPath());
@@ -297,7 +297,7 @@ public class UserMountsFsVolume implements FsVolume {
 	@Override
 	public String getThumbnailFileName(FsItem fsi) {
 
-		MountFsItem mount = getMountItem(fsi);
+		FileResourceFsItem mount = getMountItem(fsi);
 
 		if (log.isInfoEnabled()) {
 			log.info("getThumbnailFileName " + mount.getPath());
@@ -309,7 +309,7 @@ public class UserMountsFsVolume implements FsVolume {
 	@Override
 	public boolean hasChildFolder(FsItem fsi) {
 
-		MountFsItem mount = getMountItem(fsi);
+		FileResourceFsItem mount = getMountItem(fsi);
 
 		if (log.isInfoEnabled()) {
 			log.info("hasChildFolder " + mount.getPath());
@@ -335,7 +335,7 @@ public class UserMountsFsVolume implements FsVolume {
 		if (isRoot(fsi)) {
 			return true;
 		} else {
-			MountFsItem mountItem = getMountItem(fsi);
+			FileResourceFsItem mountItem = getMountItem(fsi);
 
 			if (log.isInfoEnabled()) {
 				log.info("isFolder " + mountItem.getPath());
@@ -359,7 +359,7 @@ public class UserMountsFsVolume implements FsVolume {
 		ArrayList<FsItem> items = new ArrayList<FsItem>();
 
 
-		MountFsItem mount = getMountItem(fsi);
+		FileResourceFsItem mount = getMountItem(fsi);
 
 		if (log.isInfoEnabled()) {
 			log.info("listChildren " + mount.getPath());
@@ -374,7 +374,7 @@ public class UserMountsFsVolume implements FsVolume {
 						log.info("Adding child "
 								+ obj.getName().getBaseName());
 					}
-					items.add(new MountFsItem(this, obj, mount.getMount(),
+					items.add(new FileResourceFsItem(this, obj, mount.getMount(),
 							mount.getMountFile()));
 				}
 			}
@@ -389,7 +389,7 @@ public class UserMountsFsVolume implements FsVolume {
 	@Override
 	public InputStream openInputStream(FsItem fsi) throws IOException {
 		try {
-			MountFsItem mount = getMountItem(fsi);
+			FileResourceFsItem mount = getMountItem(fsi);
 
 			if (log.isInfoEnabled()) {
 				log.info("openInputStream " + mount.getPath());
@@ -404,7 +404,7 @@ public class UserMountsFsVolume implements FsVolume {
 	@Override
 	public OutputStream openOutputStream(FsItem fsi) throws IOException {
 		try {
-			MountFsItem mount = getMountItem(fsi);
+			FileResourceFsItem mount = getMountItem(fsi);
 
 			if (log.isInfoEnabled()) {
 				log.info("openOutputStream " + mount.getPath());
@@ -421,8 +421,8 @@ public class UserMountsFsVolume implements FsVolume {
 	public void rename(FsItem src, FsItem dst) throws IOException {
 
 		try {
-			MountFsItem mount = getMountItem(src);
-			MountFsItem mountDest = getMountItem(dst);
+			FileResourceFsItem mount = getMountItem(src);
+			FileResourceFsItem mountDest = getMountItem(dst);
 			if (log.isInfoEnabled()) {
 				log.info("openOutputStream " + mount.getPath());
 			}

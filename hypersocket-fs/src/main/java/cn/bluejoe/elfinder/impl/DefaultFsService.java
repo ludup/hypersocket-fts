@@ -19,7 +19,7 @@ import cn.bluejoe.elfinder.service.FsVolume;
 import com.hypersocket.auth.json.UnauthorizedException;
 import com.hypersocket.fs.FileResource;
 import com.hypersocket.fs.FileResourceService;
-import com.hypersocket.fs.elfinder.UserMountsFsVolume;
+import com.hypersocket.fs.elfinder.FileResourcesFsVolume;
 import com.hypersocket.netty.Request;
 import com.hypersocket.realm.Principal;
 import com.hypersocket.session.json.SessionUtils;
@@ -89,9 +89,9 @@ public class DefaultFsService implements FsService
 		try {
 			Principal principal = sessionUtils.getPrincipal(Request.get());
 			
-			if(userVolumes.containsKey(principal)) {
-				return userVolumes.get(principal);
-			}
+//			if(userVolumes.containsKey(principal)) {
+//				return userVolumes.get(principal);
+//			}
 			
 			List<FileResource> resources = fileResourceService.getResources(principal);
 			
@@ -100,7 +100,7 @@ public class DefaultFsService implements FsService
 			
 			char vid = 'A';
 			for(FileResource r : resources) {
-				FsVolume v = new UserMountsFsVolume(r, fileResourceService);
+				FsVolume v = new FileResourcesFsVolume(r, fileResourceService);
 				volumeIds.put(v,"" + vid);
 				volumes.add(v);
 				vid++;

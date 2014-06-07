@@ -8,9 +8,10 @@ import java.util.List;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.support.DefaultMultipartHttpServletRequest;
 
 import cn.bluejoe.elfinder.controller.executor.AbstractJsonCommandExecutor;
 import cn.bluejoe.elfinder.controller.executor.CommandExecutor;
@@ -23,18 +24,15 @@ public class UploadCommandExecutor extends AbstractJsonCommandExecutor implement
 	public void execute(FsService fsService, HttpServletRequest request, ServletContext servletContext, JSONObject json)
 			throws Exception
 	{
-		List<FileItemStream> listFiles = (List<FileItemStream>) request.getAttribute(FileItemStream.class.getName());
+		DefaultMultipartHttpServletRequest multipartRequest = (DefaultMultipartHttpServletRequest) request;
 		List<FsItemEx> added = new ArrayList<FsItemEx>();
-
 		String target = request.getParameter("target");
 		FsItemEx dir = super.findItem(fsService, target);
-
-		for (FileItemStream fis : listFiles)
-		{
-			String fileName = fis.getName();
-			FsItemEx newFile = new FsItemEx(dir, fileName);
+		
+		for(MultipartFile file : multipartRequest.getFileMap().values()) {
+			FsItemEx newFile = new FsItemEx(dir, file.getOriginalFilename());
 			newFile.createFile();
-			InputStream is = fis.openStream();
+			InputStream is = file.getInputStream();
 			OutputStream os = newFile.openOutputStream();
 
 			IOUtils.copy(is, os);

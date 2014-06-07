@@ -9,7 +9,7 @@ import cn.bluejoe.elfinder.service.FsVolume;
 
 import com.hypersocket.fs.FileResource;
 
-public class MountFsItem implements FsItem {
+public class FileResourceFsItem implements FsItem {
 
 	FileResource mount;
 	FileObject file;
@@ -17,7 +17,7 @@ public class MountFsItem implements FsItem {
 	FsVolume volume;
 	String path;
 	
-	public MountFsItem(FsVolume volume, FileObject file, FileResource mount, FileObject mountFile) throws IOException {
+	public FileResourceFsItem(FsVolume volume, FileObject file, FileResource mount, FileObject mountFile) throws IOException {
 		this.volume = volume;
 		this.file = file;
 		this.mountFile = mountFile;
@@ -35,8 +35,8 @@ public class MountFsItem implements FsItem {
 		return path;
 	}
 	
-	public MountFsItem getParent() throws IOException {
-		return new MountFsItem(volume, file.getParent(), mount, mountFile);
+	public FileResourceFsItem getParent() throws IOException {
+		return new FileResourceFsItem(volume, file.getParent(), mount, mountFile);
 	}
 	
 	public FileResource getMount() {

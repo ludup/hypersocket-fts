@@ -1,39 +1,46 @@
+<!DOCTYPE html>
 <html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>File View</title>
-<link rel="shortcut icon" href="${uiPath}/images/favicon.ico">
-<link rel="icon" type="image/png" href="${uiPath}/images/shield_16x16.png">
-<link rel="stylesheet" type="text/css" href="${uiPath}/css/elfinder.min.css" media="screen" />
-<link rel="stylesheet" type="text/css" href="${uiPath}/css/theme.css" media="screen" />
-<link rel="stylesheet" type="text/css" href="${uiPath}/css/jquery-ui.min.css" media="screen" />
-<style>
-.ui-menu {
-	width: 150px;
-}
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title localize="fileResources.title"></title>
 
-#menu {
-	position: absolute;
-	display: none;
-}
-</style>
-<script type="text/javascript" src="${uiPath}/js/jquery.min.js"></script>
-<script type="text/javascript" src="${uiPath}/js/jquery-migrate.min.js"></script>
-<script type="text/javascript" src="${uiPath}/js/jquery-ui.min.js"></script>
-<script type="text/javascript" src="${uiPath}/js/hypersocket-utils.js"></script>
-<script type="text/javascript" src="${uiPath}/js/elfinder.min.js"></script>
-<script type="text/javascript" charset="utf-8">
-	$(document).ready(function() {
-	    $('#elfinder').elfinder({
-	        url : basePath + '/api/connector',
-	        height: 700,
-	        resizable: true,
-	        dragUploadAllow: true
-	    });
-});
-</script>
-</head>
-<body>
-	<div id="elfinder"></div>
-</body>
+		<!-- jQuery and jQuery UI (REQUIRED) -->
+		<link rel="stylesheet" type="text/css" media="screen" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/themes/smoothness/jquery-ui.css">
+		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/jquery-ui.min.js"></script>
+
+		<!-- elFinder CSS (REQUIRED) -->
+		<link rel="stylesheet" type="text/css" media="screen" href="${uiPath}/css/elfinder.min.css">
+		<link rel="stylesheet" type="text/css" media="screen" href="${uiPath}/css/theme.css">
+
+		<!-- elFinder JS (REQUIRED) -->
+		<script type="text/javascript" src="${uiPath}/js/elfinder.min.js"></script>
+
+		<script type="text/javascript" src="${uiPath}/js/hypersocket-utils.js"></script>
+
+		<!-- elFinder initialization (REQUIRED) -->
+		<script type="text/javascript" charset="utf-8">
+			$(document).ready(function() {
+				
+				$(document).localize();
+				
+		    	$('#elfinder').elfinder({
+		        	url : basePath + '/api/connector',
+		        	height: 800,
+		        	dragUploadAllow: true
+		    	});
+		    	$(window).resize(function(){
+		    	    $('#elfinder').height($(window).height()-20); 
+		    	});
+			});
+		</script>
+	</head>
+	<body>
+
+		<!-- Element where elFinder will be created (REQUIRED) -->
+		<div id="elfinder"></div>
+
+	</body>
 </html>
+
+	
