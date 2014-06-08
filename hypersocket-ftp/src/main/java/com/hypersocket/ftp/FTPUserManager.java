@@ -44,7 +44,7 @@ public class FTPUserManager implements UserManager {
 			UsernamePasswordAuthentication auth) throws AccessDeniedException {
 
 		try {
-			Map<String, String> environment = new HashMap<String, String>();
+			Map<String, Object> environment = new HashMap<String, Object>();
 
 			environment
 					.put(HttpHeaders.AUTHORIZATION,
