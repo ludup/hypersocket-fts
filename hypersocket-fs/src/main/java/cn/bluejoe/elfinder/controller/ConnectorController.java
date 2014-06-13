@@ -1,6 +1,8 @@
 package cn.bluejoe.elfinder.controller;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.annotation.Resource;
 import javax.servlet.ServletContext;
@@ -11,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
@@ -22,6 +25,7 @@ import cn.bluejoe.elfinder.service.FsServiceFactory;
 import com.hypersocket.auth.json.AuthenticatedController;
 import com.hypersocket.auth.json.AuthenticationRequired;
 import com.hypersocket.auth.json.UnauthorizedException;
+import com.hypersocket.fs.FileResource;
 import com.hypersocket.fs.FileResourceService;
 import com.hypersocket.session.json.SessionTimeoutException;
 import com.hypersocket.session.json.SessionUtils;
@@ -43,9 +47,9 @@ public class ConnectorController extends AuthenticatedController {
 	FileResourceService fileResourceService;
 	
 	@AuthenticationRequired
-	@RequestMapping(value = "connector", method = { RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT })
+	@RequestMapping(value = "connector/{resourceName}", method = { RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT })
 	public void connector(HttpServletRequest request,
-			final HttpServletResponse response) throws IOException, UnauthorizedException, SessionTimeoutException {
+			final HttpServletResponse response, @PathVariable String resourceName) throws IOException, UnauthorizedException, SessionTimeoutException {
 
 		setupAuthenticatedContext(sessionUtils.getSession(request),
 				sessionUtils.getLocale(request),
@@ -53,6 +57,25 @@ public class ConnectorController extends AuthenticatedController {
 
 		try {
 
+			
+			List<FileResource> resources = fileResourceService.getPersonalResources(sessionUtils.getPrincipal(request));
+			
+			FileResource targetResource = null;
+			for(FileResource resource : resources) {
+				if(resource.getName().equals(resourceName)) {
+					targetResource = resource;
+					break;
+				}
+			}
+			
+			if(targetResource==null) {
+				throw new UnauthorizedException();
+			}
+			
+			List<FileResource> tmp = new ArrayList<FileResource>();
+			tmp.add(targetResource);
+			request.setAttribute("resources", tmp);
+			
 			String cmd = request.getParameter("cmd");
 			CommandExecutor ce = _commandExecutorFactory.get(cmd);
 
@@ -85,7 +108,6 @@ public class ConnectorController extends AuthenticatedController {
 					}
 				});
 			} catch (Throwable e) {
-				e.printStackTrace();
 				throw new FsException("unknown error", e);
 			}
 

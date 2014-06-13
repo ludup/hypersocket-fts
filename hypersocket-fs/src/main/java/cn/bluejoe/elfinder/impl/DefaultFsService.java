@@ -47,12 +47,6 @@ public class DefaultFsService implements FsService
 		_serviceConfig = serviceConfig;
 	}
 
-	Map<Principal,List<FsVolume>> userVolumes = new HashMap<Principal,List<FsVolume>>();
-	Map<Principal,Map<FsVolume,String>> userVolumeIds = new HashMap<Principal,Map<FsVolume,String>>();
-	//Map<FsVolume, String> _volumeIds = new HashMap<FsVolume, String>();
-
-	//FsVolume[] _volumes;
-
 	String[][] escapes = { { "+", "_P" }, { "-", "_M" }, { "/", "_S" }, { ".", "_D" }, { "=", "_E" } };
 
 	@Override
@@ -84,16 +78,14 @@ public class DefaultFsService implements FsService
 		return null;
 	}
 
+	@SuppressWarnings("unchecked")
 	private List<FsVolume> getUserVolumes() {
 		
+		if(Request.get().getAttribute("volumes")!=null) {
+			return (List<FsVolume>) Request.get().getAttribute("volumes");
+		}
 		try {
-			Principal principal = sessionUtils.getPrincipal(Request.get());
-			
-//			if(userVolumes.containsKey(principal)) {
-//				return userVolumes.get(principal);
-//			}
-			
-			List<FileResource> resources = fileResourceService.getResources(principal);
+			List<FileResource> resources = (List<FileResource>) Request.get().getAttribute("resources");
 			
 			List<FsVolume> volumes = new ArrayList<FsVolume>();
 			Map<FsVolume, String> volumeIds = new HashMap<FsVolume,String>();
@@ -106,13 +98,12 @@ public class DefaultFsService implements FsService
 				vid++;
 			}
 			
-			userVolumes.put(principal, volumes);
-			userVolumeIds.put(principal, volumeIds);
+			Request.get().setAttribute("volumes", volumes);
+			Request.get().setAttribute("volumeIds", volumeIds);
+
 			return volumes;
 			
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 		return null;
 	}
@@ -139,15 +130,12 @@ public class DefaultFsService implements FsService
 	@Override
 	public String getVolumeId(FsVolume volume)
 	{
-		try {
-			Principal principal = sessionUtils.getPrincipal(Request.get());
-			
-			if(userVolumeIds.containsKey(principal)) {
-				return userVolumeIds.get(principal).get(volume);
-			}
-		} catch (UnauthorizedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+
+		@SuppressWarnings("unchecked")
+		Map<FsVolume, String> userVolumeIds = (Map<FsVolume,String>) Request.get().getAttribute("volumeIds");
+		
+		if(userVolumeIds.containsKey(volume)) {
+			return userVolumeIds.get(volume);
 		}
 		return null;
 	}

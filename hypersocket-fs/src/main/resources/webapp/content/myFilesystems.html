@@ -25,17 +25,14 @@
 							canCreate: false,
 							canUpdate: false,
 							canDelete: false,
-							additionalButtons : [ 
-								{ resourceKey: "browseFiles", 
-									icon : "fa-folder-open-o", 
-									buttonClass: "btn-primary",
-									action : function() {
-										window.open('viewfs/',
-												'_blank',
-												'width=1024,height=800,toolbar=0,menubar=0,location=0,status=1,scrollbars=0,resizable=0,left=0,top=0');
-									}
-								}
-							],
+							additionalActions : [{ resourceKey: "openMount",
+								iconClass: "fa-folder-open-o",
+								enabled: true,
+								action : function(resource) {
+									window.open('viewfs/' + resource.name,
+											'_blank',
+											'width=1024,height=800,toolbar=0,menubar=0,location=0,status=1,scrollbars=0,resizable=0,left=0,top=0');
+								}}],
 							complete : function() {
 								loadComplete();
 							}

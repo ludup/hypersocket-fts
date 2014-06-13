@@ -23,9 +23,16 @@
 			$(document).ready(function() {
 				
 				$(document).localize();
+				debugger;
+				var urlregex = new RegExp(/(.[^\:]+)(\:\/\/)(.[^\/]+)(.[^\/]+)(.[^\/]+)(.[^\/]+)(.*)/);
+				var fileUrl = urlregex.exec(document.URL);
+				var controller = basePath + '/api/connector';
+				if(!fileUrl[fileUrl.length-1].startsWith('/viewfs')) {
+					controller += fileUrl[fileUrl.length-1];
+				}
 				
 		    	$('#elfinder').elfinder({
-		        	url : basePath + '/api/connector',
+		        	url : controller,
 		        	height: 800,
 		        	dragUploadAllow: true
 		    	});
