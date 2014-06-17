@@ -32,12 +32,14 @@ import com.hypersocket.fs.events.RenameEvent;
 import com.hypersocket.fs.events.UploadCompleteEvent;
 import com.hypersocket.fs.events.UploadStartedEvent;
 import com.hypersocket.i18n.I18NService;
+import com.hypersocket.menus.MenuEnablerService;
 import com.hypersocket.menus.MenuRegistration;
 import com.hypersocket.menus.MenuService;
 import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.permissions.PermissionCategory;
 import com.hypersocket.permissions.PermissionService;
 import com.hypersocket.permissions.PermissionType;
+import com.hypersocket.realm.Principal;
 import com.hypersocket.resource.AbstractAssignableResourceRepository;
 import com.hypersocket.resource.AbstractAssignableResourceServiceImpl;
 import com.hypersocket.server.HypersocketServer;
@@ -48,7 +50,8 @@ import com.hypersocket.util.FileUtils;
 @Service
 public class FileResourceServiceImpl extends
 		AbstractAssignableResourceServiceImpl<FileResource> implements
-		FileResourceService, DownloadEventProcessor, UploadEventProcessor {
+		FileResourceService, DownloadEventProcessor, UploadEventProcessor,
+		MenuEnablerService {
 
 	static Logger log = LoggerFactory.getLogger(FileResourceServiceImpl.class);
 
@@ -100,6 +103,10 @@ public class FileResourceServiceImpl extends
 				FileResourcePermission.CREATE, FileResourcePermission.UPDATE,
 				FileResourcePermission.DELETE), MenuService.MENU_RESOURCES);
 
+		menuService.registerMenu(new MenuRegistration(RESOURCE_BUNDLE,
+				"myFilesystems", "fa-folder-open", "myFilesystems", 200, this), MenuService.MENU_MY_RESOURCES);
+
+		
 		if (log.isInfoEnabled()) {
 			log.info("VFS reports the following schemes available");
 
@@ -130,6 +137,8 @@ public class FileResourceServiceImpl extends
 		registerScheme(new FileResourceScheme("tmp", false, false));
 		registerScheme(new FileResourceScheme("smb", true, true));
 
+		server.registerControllerPackage("cn.bluejoe.elfinder.controller");
+		
 		jQueryUIContentHandler
 				.addAlias("^/viewfs/.*$", "content/fileview.html");
 
@@ -954,5 +963,10 @@ public class FileResourceServiceImpl extends
 	protected void fireResourceDeletionEvent(FileResource resource, Throwable t) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public boolean enableMenu(String menu, Principal principal) {
+		return resourceRepository.getAssignableResourceCount(principal) > 0;
 	}
 }
