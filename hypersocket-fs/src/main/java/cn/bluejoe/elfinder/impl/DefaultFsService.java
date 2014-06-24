@@ -16,12 +16,10 @@ import cn.bluejoe.elfinder.service.FsService;
 import cn.bluejoe.elfinder.service.FsServiceConfig;
 import cn.bluejoe.elfinder.service.FsVolume;
 
-import com.hypersocket.auth.json.UnauthorizedException;
 import com.hypersocket.fs.FileResource;
 import com.hypersocket.fs.FileResourceService;
 import com.hypersocket.fs.elfinder.FileResourcesFsVolume;
 import com.hypersocket.netty.Request;
-import com.hypersocket.realm.Principal;
 import com.hypersocket.session.json.SessionUtils;
 
 @Service

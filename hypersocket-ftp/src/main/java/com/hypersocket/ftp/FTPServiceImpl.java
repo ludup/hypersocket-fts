@@ -236,7 +236,7 @@ public class FTPServiceImpl implements FTPService,
 		FtpServerFactory serverFactory = new FtpServerFactory();
 
 		certificateService.setCurrentPrincipal(realmService
-				.getSystemPrincipal(), Locale.getDefault(),
+				.getSystemPrincipal(), i18nService.getDefaultLocale(),
 				realmService.getSystemPrincipal().getRealm());
 		
 		KeyStore keystore = certificateService.getDefaultCertificate();
