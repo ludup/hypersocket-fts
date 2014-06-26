@@ -3,7 +3,7 @@ package com.hypersocket.fs.events;
 import com.hypersocket.fs.FileResource;
 import com.hypersocket.session.Session;
 
-public class UploadCompleteEvent extends FileResourceEvent {
+public class UploadCompleteEvent extends FileOperationEvent {
 
 	private static final long serialVersionUID = 2948287474957129496L;
 

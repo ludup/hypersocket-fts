@@ -3,7 +3,7 @@ package com.hypersocket.fs.events;
 import com.hypersocket.fs.FileResource;
 import com.hypersocket.session.Session;
 
-public class CreateFolderEvent extends FileResourceEvent {
+public class CreateFolderEvent extends FileOperationEvent {
 
 	private static final long serialVersionUID = 7356710650649275059L;
 

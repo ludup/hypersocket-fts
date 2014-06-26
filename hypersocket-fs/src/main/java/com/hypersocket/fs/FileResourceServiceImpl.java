@@ -1,5 +1,7 @@
 package com.hypersocket.fs;
 
+import static com.hypersocket.fs.FileResourceService.RESOURCE_BUNDLE;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -27,7 +29,10 @@ import com.hypersocket.fs.events.CreateFolderEvent;
 import com.hypersocket.fs.events.DeleteFileEvent;
 import com.hypersocket.fs.events.DownloadCompleteEvent;
 import com.hypersocket.fs.events.DownloadStartedEvent;
-import com.hypersocket.fs.events.FileResourceEvent;
+import com.hypersocket.fs.events.FileOperationEvent;
+import com.hypersocket.fs.events.FileResourceCreatedEvent;
+import com.hypersocket.fs.events.FileResourceDeletedEvent;
+import com.hypersocket.fs.events.FileResourceUpdatedEvent;
 import com.hypersocket.fs.events.RenameEvent;
 import com.hypersocket.fs.events.UploadCompleteEvent;
 import com.hypersocket.fs.events.UploadStartedEvent;
@@ -119,6 +124,10 @@ public class FileResourceServiceImpl extends
 			}
 		}
 
+		eventService.registerEvent(FileResourceCreatedEvent.class, RESOURCE_BUNDLE);
+		eventService.registerEvent(FileResourceUpdatedEvent.class, RESOURCE_BUNDLE);
+		eventService.registerEvent(FileResourceDeletedEvent.class, RESOURCE_BUNDLE);
+		
 		eventService.registerEvent(DownloadStartedEvent.class, RESOURCE_BUNDLE);
 		eventService.registerEvent(DownloadCompleteEvent.class, RESOURCE_BUNDLE);
 		eventService.registerEvent(UploadStartedEvent.class, RESOURCE_BUNDLE);
@@ -907,7 +916,7 @@ public class FileResourceServiceImpl extends
 	@Override
 	public long downloadStarted(FileResource resource, String childPath,
 			FileObject file, String protocol) {
-		FileResourceEvent evt = new DownloadStartedEvent(this,
+		FileOperationEvent evt = new DownloadStartedEvent(this,
 				getCurrentSession(), resource, childPath, protocol);
 		eventService.publishEvent(evt);
 		return evt.getTimestamp();
@@ -931,38 +940,32 @@ public class FileResourceServiceImpl extends
 
 	@Override
 	protected void fireResourceCreationEvent(FileResource resource) {
-		// TODO Auto-generated method stub
-		
+		eventService.publishEvent(new FileResourceCreatedEvent(this, getCurrentSession(), resource));
 	}
 
 	@Override
 	protected void fireResourceCreationEvent(FileResource resource, Throwable t) {
-		// TODO Auto-generated method stub
-		
+		eventService.publishEvent(new FileResourceCreatedEvent(this, t, getCurrentSession(), resource));
 	}
 
 	@Override
 	protected void fireResourceUpdateEvent(FileResource resource) {
-		// TODO Auto-generated method stub
-		
+		eventService.publishEvent(new FileResourceUpdatedEvent(this, getCurrentSession(), resource));
 	}
 
 	@Override
 	protected void fireResourceUpdateEvent(FileResource resource, Throwable t) {
-		// TODO Auto-generated method stub
-		
+		eventService.publishEvent(new FileResourceUpdatedEvent(this, t, getCurrentSession(), resource));
 	}
 
 	@Override
 	protected void fireResourceDeletionEvent(FileResource resource) {
-		// TODO Auto-generated method stub
-		
+		eventService.publishEvent(new FileResourceDeletedEvent(this, getCurrentSession(), resource));
 	}
 
 	@Override
 	protected void fireResourceDeletionEvent(FileResource resource, Throwable t) {
-		// TODO Auto-generated method stub
-		
+		eventService.publishEvent(new FileResourceDeletedEvent(this, t, getCurrentSession(), resource));
 	}
 
 	@Override

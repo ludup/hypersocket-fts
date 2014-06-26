@@ -3,7 +3,7 @@ package com.hypersocket.fs.events;
 import com.hypersocket.fs.FileResource;
 import com.hypersocket.session.Session;
 
-public class DownloadCompleteEvent extends FileResourceEvent {
+public class DownloadCompleteEvent extends FileOperationEvent {
 
 	private static final long serialVersionUID = -8393558342445743016L;
 

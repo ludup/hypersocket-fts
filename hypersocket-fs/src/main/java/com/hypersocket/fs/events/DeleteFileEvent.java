@@ -3,7 +3,7 @@ package com.hypersocket.fs.events;
 import com.hypersocket.fs.FileResource;
 import com.hypersocket.session.Session;
 
-public class DeleteFileEvent extends FileResourceEvent {
+public class DeleteFileEvent extends FileOperationEvent {
 
 	private static final long serialVersionUID = -2933354011349261002L;
 

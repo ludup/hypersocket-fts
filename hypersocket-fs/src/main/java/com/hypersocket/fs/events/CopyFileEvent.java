@@ -3,7 +3,7 @@ package com.hypersocket.fs.events;
 import com.hypersocket.fs.FileResource;
 import com.hypersocket.session.Session;
 
-public class CopyFileEvent extends FileResourceEvent {
+public class CopyFileEvent extends FileOperationEvent {
 
 	private static final long serialVersionUID = 4385306086965414518L;
 

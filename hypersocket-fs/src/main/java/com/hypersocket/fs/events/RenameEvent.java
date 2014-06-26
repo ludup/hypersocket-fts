@@ -3,7 +3,7 @@ package com.hypersocket.fs.events;
 import com.hypersocket.fs.FileResource;
 import com.hypersocket.session.Session;
 
-public class RenameEvent extends FileResourceEvent {
+public class RenameEvent extends FileOperationEvent {
 
 	private static final long serialVersionUID = -5630859010723876007L;
 
