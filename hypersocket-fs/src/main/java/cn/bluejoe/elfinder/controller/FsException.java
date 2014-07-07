@@ -4,6 +4,7 @@ import java.io.IOException;
 
 public class FsException extends IOException
 {
+	private static final long serialVersionUID = 5394756753686633760L;
 
 	public FsException(String message)
 	{
