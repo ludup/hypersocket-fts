@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 
 import com.hypersocket.auth.AuthenticationService;
 import com.hypersocket.auth.AuthenticationState;
+import com.hypersocket.auth.BrowserEnvironment;
 import com.hypersocket.i18n.I18NService;
 import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.realm.RealmService;
@@ -46,6 +47,7 @@ public class FTPUserManager implements UserManager {
 		try {
 			Map<String, Object> environment = new HashMap<String, Object>();
 
+			environment.put(BrowserEnvironment.USER_AGENT.toString(), "FTP Client");
 			environment
 					.put(HttpHeaders.AUTHORIZATION,
 							"basic "
