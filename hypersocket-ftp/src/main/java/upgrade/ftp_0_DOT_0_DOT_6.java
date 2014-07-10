@@ -19,7 +19,6 @@ import com.hypersocket.local.LocalRealmProvider;
 import com.hypersocket.local.LocalUserRepository;
 import com.hypersocket.permissions.PermissionRepository;
 import com.hypersocket.realm.RealmRepository;
-import com.hypersocket.upgrade.UpgradeService;
 
 public class ftp_0_DOT_0_DOT_6 implements Runnable {
 
