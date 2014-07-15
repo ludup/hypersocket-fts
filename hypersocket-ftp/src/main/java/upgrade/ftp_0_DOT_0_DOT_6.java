@@ -13,13 +13,14 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.hypersocket.auth.AuthenticationRepository;
+import com.hypersocket.auth.AuthenticationScheme;
 import com.hypersocket.auth.UsernameAndPasswordAuthenticator;
 import com.hypersocket.local.LocalRealmProvider;
 import com.hypersocket.local.LocalUserRepository;
 import com.hypersocket.permissions.PermissionRepository;
 import com.hypersocket.realm.RealmRepository;
 
-public class core_0_DOT_0_DOT_6 implements Runnable {
+public class ftp_0_DOT_0_DOT_6 implements Runnable {
 
 	@Autowired
 	RealmRepository realmRepository;
@@ -35,7 +36,7 @@ public class core_0_DOT_0_DOT_6 implements Runnable {
 
 	@Autowired
 	LocalRealmProvider localRealmProvider;
-
+	
 	@Override
 	public void run() {
 
@@ -44,7 +45,12 @@ public class core_0_DOT_0_DOT_6 implements Runnable {
 			List<String> modules = new ArrayList<String>();
 			modules.add(UsernameAndPasswordAuthenticator.RESOURCE_KEY);
 
-			authenticationRepository.createScheme("FTP", modules, "basic", true);
+			// This file was originally and incorrectly named core_ which means
+			// existing installs may execute this corrected class again.
+			AuthenticationScheme s = authenticationRepository.getScheme("FTP");
+			if(s==null) {
+				authenticationRepository.createScheme("FTP", modules, "basic", true);
+			}
 
 		} catch (Exception e) {
 			throw new RuntimeException(e);

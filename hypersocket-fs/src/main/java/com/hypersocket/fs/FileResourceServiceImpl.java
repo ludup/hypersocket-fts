@@ -1,7 +1,5 @@
 package com.hypersocket.fs;
 
-import static com.hypersocket.fs.FileResourceService.RESOURCE_BUNDLE;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -94,10 +92,10 @@ public class FileResourceServiceImpl extends
 			log.debug("Constructing FileResourceService");
 		}
 
-		i18nService.registerBundle(RESOURCE_BUNDLE);
+		i18nService.registerBundle(FileResourceService.RESOURCE_BUNDLE);
 
 		PermissionCategory cat = permissionService.registerPermissionCategory(
-				RESOURCE_BUNDLE, "category.fileResources");
+				FileResourceService.RESOURCE_BUNDLE, "category.fileResources");
 
 		for (FileResourcePermission p : FileResourcePermission.values()) {
 			permissionService.registerPermission(p.getResourceKey(), cat);

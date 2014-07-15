@@ -4,11 +4,10 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.hypersocket.fs.FileResource;
 import com.hypersocket.fs.FileResourceService;
-import com.hypersocket.resource.Resource;
-import com.hypersocket.resource.ResourceEvent;
+import com.hypersocket.resource.AssignableResourceEvent;
 import com.hypersocket.session.Session;
 
-public class FileResourceEvent extends ResourceEvent {
+public class FileResourceEvent extends AssignableResourceEvent {
 
 	private static final long serialVersionUID = -8366174502219193895L;
 	
