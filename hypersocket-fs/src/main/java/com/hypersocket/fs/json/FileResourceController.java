@@ -63,16 +63,11 @@ public class FileResourceController extends ResourceController {
 
 	static Logger log = LoggerFactory.getLogger(FileResourceController.class);
 	
-	public static final String HTTP_PROTOCOL = "HTTP";
-	public static final String CONTENT_INPUTSTREAM = "ContentInputStream";
-	
 	@Autowired
 	FileResourceService mountService;
 
 	@Autowired
-	SessionUtils sessionUtils;
-
-	
+	SessionUtils sessionUtils;	
 	
 	@RequestMapping(value = "mounts/schemes", method = RequestMethod.GET, produces = { "application/json" })
 	@ResponseBody
@@ -288,212 +283,6 @@ public class FileResourceController extends ResourceController {
 		}
 	}
 
-	
-	@SuppressWarnings("rawtypes")
-	@AuthenticationRequired
-	@RequestMapping(value = "fs/delete/**", method = RequestMethod.GET, produces = { "application/json" })
-	@ResponseBody
-	@ResponseStatus(value = HttpStatus.OK)
-	public ResourceStatus<?> delete(HttpServletRequest request,
-			HttpServletResponse response) throws AccessDeniedException,
-			UnauthorizedException, IOException, SessionTimeoutException {
-
-		setupAuthenticatedContext(sessionUtils.getSession(request),
-				sessionUtils.getLocale(request), mountService);
-		try {
-			
-			return new ResourceStatus(mountService.deleteURIFile(
-					request.getHeader("Host"), "api/fs/delete",
-					URLDecoder.decode(request.getRequestURI(), "UTF-8"), HTTP_PROTOCOL));
-
-		} finally {
-			clearAuthenticatedContext();
-		}
-	}
-
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	@AuthenticationRequired
-	@RequestMapping(value = "fs/createFolder/**", method = RequestMethod.GET, produces = { "application/json" })
-	@ResponseBody
-	@ResponseStatus(value = HttpStatus.OK)
-	public ResourceStatus<TreeList> createFolder(HttpServletRequest request,
-			HttpServletResponse response) throws AccessDeniedException,
-			UnauthorizedException, IOException, SessionTimeoutException {
-
-		setupAuthenticatedContext(sessionUtils.getSession(request),
-				sessionUtils.getLocale(request), mountService);
-		try {
-
-			String uri = URLDecoder.decode(request.getRequestURI(), "UTF-8");
-			
-			FileResource resource = mountService.getMountForURIPath(
-					request.getHeader("Host"), "api/fs/createFolder",
-					uri);
-
-			FileObject mountFile = mountService.resolveMountFile(resource);
-			
-			List folders = new ArrayList();
-			
-			FileObject newFile = mountService.createURIFolder(
-					request.getHeader("Host"), "api/fs/createFolder",
-					uri, HTTP_PROTOCOL);
-			
-			folders.add(new TreeFolder(newFile, mountFile, resource));
-			return new ResourceStatus(new TreeList(folders), "");
-
-		} finally {
-			clearAuthenticatedContext();
-		}
-	}
-	
-	@SuppressWarnings("rawtypes")
-	@AuthenticationRequired
-	@RequestMapping(value = "fs/rename/**", method = RequestMethod.POST, produces = { "application/json" })
-	@ResponseBody
-	@ResponseStatus(value = HttpStatus.OK)
-	public ResourceStatus<?> rename(HttpServletRequest request,
-			HttpServletResponse response,
-			@RequestParam String toUri) throws AccessDeniedException,
-			UnauthorizedException, IOException, SessionTimeoutException {
-
-		setupAuthenticatedContext(sessionUtils.getSession(request),
-				sessionUtils.getLocale(request), mountService);
-		try {
-
-			return new ResourceStatus(mountService.renameURIFile(
-					request.getHeader("Host"), "api/fs/rename",
-					URLDecoder.decode(request.getRequestURI(), "UTF-8"),
-					URLDecoder.decode(toUri, "UTF-8"), HTTP_PROTOCOL));
-
-		} finally {
-			clearAuthenticatedContext();
-		}
-	}
-	
-	@AuthenticationRequired
-	@RequestMapping(value = "fs/download/**", method = RequestMethod.GET, produces = { "application/json" })
-	@ResponseStatus(value = HttpStatus.OK)
-	public void downloadFile(HttpServletRequest request,
-			HttpServletResponse response,
-			@RequestParam String forceDownload) throws AccessDeniedException,
-			UnauthorizedException, SessionTimeoutException {
-
-		setupAuthenticatedContext(sessionUtils.getSession(request),
-				sessionUtils.getLocale(request), mountService);
-		try {
-
-			String uri = URLDecoder.decode(request.getRequestURI(), "UTF-8");
-			
-			mountService.downloadURIFile(request.getHeader("Host"), 
-					"api/fs/download", uri, new HttpDownloadProcessor(request, response, 0, Long.MAX_VALUE, HTTP_PROTOCOL), HTTP_PROTOCOL);
-			
-
-		} catch (Exception e) {
-			try {
-				response.sendError(HttpStatus.INTERNAL_SERVER_ERROR.value());
-			} catch (IOException e1) {
-			}
-		} finally {
-			clearAuthenticatedContext();
-		}
-	}
-	
-	@AuthenticationRequired
-	@RequestMapping(value = "fs/upload/**", method = RequestMethod.POST, produces = {"application/json" })
-	@ResponseStatus(value = HttpStatus.OK)
-	@ResponseBody
-	public ResourceStatus<TreeFile> uploadFile(HttpServletRequest request,
-			HttpServletResponse response,
-			@RequestPart(value = "file") MultipartFile file)
-			throws AccessDeniedException, UnauthorizedException, IOException, SessionTimeoutException {
-
-		setupAuthenticatedContext(sessionUtils.getSession(request),
-				sessionUtils.getLocale(request), mountService);
-
-		try {
-
-			String uri = FileUtils.checkEndsWithSlash(URLDecoder.decode(request.getRequestURI(), "UTF-8"));
-			uri += FileUtils.lastPathElement(file.getOriginalFilename());
-			
-			UploadProcessor<TreeFile> processor = new UploadProcessor<TreeFile>() {
-
-				TreeFile treeFile;
-				@Override
-				public void processUpload(FileResource resource,
-						FileObject mountFile,
-						String childPath, FileObject file) throws FileSystemException {
-					treeFile = new TreeFile(file,  mountFile);
-				}
-
-				@Override
-				public TreeFile getResult() {
-					return treeFile;
-				}
-				
-			};
-			mountService.uploadURIFile(request.getHeader("Host"), 
-					"api/fs/upload", uri, file.getInputStream(), processor, HTTP_PROTOCOL);
-			
-			return new ResourceStatus<TreeFile>(processor.getResult());
-			
-			
-		} finally {
-			clearAuthenticatedContext(mountService);
-		}
-	}
-	
-	@SuppressWarnings("unchecked")
-	@AuthenticationRequired
-	@RequestMapping(value = "fs/list/**", method = RequestMethod.GET, produces = { "application/json" })
-	@ResponseBody
-	@ResponseStatus(value = HttpStatus.OK)
-	public TreeList list(HttpServletRequest request,
-			HttpServletResponse response) throws AccessDeniedException,
-			UnauthorizedException, IOException, SessionTimeoutException {
-
-		setupAuthenticatedContext(sessionUtils.getSession(request),
-				sessionUtils.getLocale(request), mountService);
-		try {
-
-			@SuppressWarnings("rawtypes")
-			List folders = new ArrayList();
-			String uri = URLDecoder.decode(request.getRequestURI(), "UTF-8");
-			FileResource resource = mountService.getMountForURIPath(
-					request.getHeader("Host"), "api/fs/list",
-					uri);
-
-			FileObject mountFile = mountService.resolveMountFile(resource);
-
-			String childPath = mountService.resolveURIChildPath(resource,
-					"api/fs/list", uri);
-
-			FileObject file = mountFile.resolveFile(childPath);
-
-			for (FileObject f : file.getChildren()) {
-				if (f.getType() == FileType.FOLDER
-						&& (!f.isHidden() || resource.isShowHidden())) {
-					folders.add(new TreeFolder(f, mountFile, resource));
-				}
-			}
-
-			for (FileObject f : file.getChildren()) {
-				if (f.getType() == FileType.FILE
-						&& (!f.isHidden() || resource.isShowHidden())) {
-					folders.add(new TreeFile(f, mountFile));
-				}
-			}
-
-			return new TreeList(folders);
-
-		} catch (FileSystemException e) {
-			throw e;
-		} catch (IOException e) {
-			throw e;
-		} finally {
-			clearAuthenticatedContext();
-		}
-	}
-
 	private void buildResource(Realm realm, FileResource resource,
 			FileResourceUpdate update, Set<Role> roles)
 			throws UnauthorizedException {
@@ -513,5 +302,5 @@ public class FileResourceController extends ResourceController {
 
 		resource.setRoles(roles);
 	}
-
+	
 }
