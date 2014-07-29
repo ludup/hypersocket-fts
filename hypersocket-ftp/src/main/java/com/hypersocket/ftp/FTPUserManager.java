@@ -31,7 +31,6 @@ public class FTPUserManager implements UserManager {
 
 	static Logger log = LoggerFactory.getLogger(FTPUserManager.class);
 	
-	public static final String FTP_AUTHENTICATION_SCHEME = "FTP";
 	@Autowired
 	AuthenticationService authenticationService;
 
@@ -55,7 +54,7 @@ public class FTPUserManager implements UserManager {
 											+ ":" + auth.getPassword())
 											.getBytes("UTF-8")), "UTF-8"));
 			AuthenticationState state = authenticationService
-					.createAuthenticationState(FTP_AUTHENTICATION_SCHEME,
+					.createAuthenticationState(FTPServiceImpl.AUTHENTICATION_SCHEME_RESOURCE_KEY,
 							auth.getUserMetadata()
 							.getInetAddress().getHostAddress(), environment,
 							i18nService.getDefaultLocale());

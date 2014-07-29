@@ -13,7 +13,7 @@ import com.hypersocket.util.FileUtils;
 import com.hypersocket.util.Utils;
 
 @Entity
-@Table(name="file_resources", uniqueConstraints = {@UniqueConstraint(columnNames={"name"})})
+@Table(name="file_resources")
 public class FileResource extends AssignableResource {
 
 	@Column(name="scheme")

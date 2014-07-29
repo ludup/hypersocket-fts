@@ -7,31 +7,14 @@
  ******************************************************************************/
 package upgrade;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.hypersocket.auth.AuthenticationModuleRepository;
 import com.hypersocket.auth.AuthenticationScheme;
 import com.hypersocket.auth.AuthenticationSchemeRepository;
-import com.hypersocket.auth.UsernameAndPasswordAuthenticator;
 import com.hypersocket.ftp.FTPServiceImpl;
-import com.hypersocket.local.LocalRealmProvider;
-import com.hypersocket.local.LocalUserRepository;
-import com.hypersocket.permissions.PermissionRepository;
-import com.hypersocket.realm.RealmRepository;
 
-public class ftp_0_DOT_0_DOT_6 implements Runnable {
-
-	@Autowired
-	RealmRepository realmRepository;
-
-	@Autowired
-	LocalUserRepository userRepository;
-
-	@Autowired
-	PermissionRepository permissionRepository;
+public class ftp_0_DOT_2_DOT_0 implements Runnable {
 
 	@Autowired
 	AuthenticationModuleRepository authenticationRepository;
@@ -39,26 +22,15 @@ public class ftp_0_DOT_0_DOT_6 implements Runnable {
 	@Autowired
 	AuthenticationSchemeRepository schemeRepository;
 	
-	@Autowired
-	LocalRealmProvider localRealmProvider;
-
 	@Override
 	public void run() {
 
 		try {
-
-			List<String> modules = new ArrayList<String>();
-			modules.add(UsernameAndPasswordAuthenticator.RESOURCE_KEY);
-
 			// This file was originally and incorrectly named core_ which means
 			// existing installs may execute this corrected class again.
-			AuthenticationScheme s = schemeRepository.getSchemeByName("FTP");
-			if (s == null) {
-				schemeRepository.createScheme(
-						FTPServiceImpl.AUTHENTICATION_SCHEME_NAME, modules,
-						"basic", true);
-			}
-
+			AuthenticationScheme s = schemeRepository.getSchemeByName(FTPServiceImpl.AUTHENTICATION_SCHEME_NAME);
+			s.setResourceKey(FTPServiceImpl.AUTHENTICATION_SCHEME_RESOURCE_KEY);
+			schemeRepository.saveScheme(s);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

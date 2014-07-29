@@ -41,6 +41,10 @@ public class FTPServiceImpl implements FTPService,
 		ApplicationListener<SystemEvent> {
 
 	static final String RESOURCE_BUNDLE = "FTPService";
+
+	public static final String AUTHENTICATION_SCHEME_NAME = "FTP";
+
+	public static final String AUTHENTICATION_SCHEME_RESOURCE_KEY = "ftp";
 	
 	static Logger log = LoggerFactory.getLogger(FTPServiceImpl.class);
 

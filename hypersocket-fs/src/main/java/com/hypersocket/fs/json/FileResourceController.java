@@ -74,7 +74,7 @@ public class FileResourceController extends ResourceController {
 
 	
 	
-	@RequestMapping(value = "schemes", method = RequestMethod.GET, produces = { "application/json" })
+	@RequestMapping(value = "mounts/schemes", method = RequestMethod.GET, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
 	public ResourceList<FileResourceScheme> getResourcesByCurrentPrincipal(
@@ -84,7 +84,7 @@ public class FileResourceController extends ResourceController {
 	}
 
 	@AuthenticationRequired
-	@RequestMapping(value = "mounts", method = RequestMethod.GET, produces = { "application/json" })
+	@RequestMapping(value = "mounts/list", method = RequestMethod.GET, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
 	public ResourceList<FileResource> getResources(HttpServletRequest request,
@@ -103,7 +103,7 @@ public class FileResourceController extends ResourceController {
 	}
 
 	@AuthenticationRequired
-	@RequestMapping(value = "template/mount", method = RequestMethod.GET, produces = { "application/json" })
+	@RequestMapping(value = "mounts/template", method = RequestMethod.GET, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
 	public ResourceList<PropertyCategory> getResourceTemplate(HttpServletRequest request)
@@ -120,7 +120,7 @@ public class FileResourceController extends ResourceController {
 	}
 	
 	@AuthenticationRequired
-	@RequestMapping(value = "table/mounts", method = RequestMethod.GET, produces = { "application/json" })
+	@RequestMapping(value = "mounts/table", method = RequestMethod.GET, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
 	public DataTablesResult tableMounts(final HttpServletRequest request,
@@ -159,7 +159,7 @@ public class FileResourceController extends ResourceController {
 	}
 	
 	@AuthenticationRequired
-	@RequestMapping(value = "personal/mounts", method = RequestMethod.GET, produces = { "application/json" })
+	@RequestMapping(value = "mounts/personal", method = RequestMethod.GET, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
 	public DataTablesResult personalMounts(final HttpServletRequest request,
@@ -198,7 +198,7 @@ public class FileResourceController extends ResourceController {
 	}
 	
 	@AuthenticationRequired
-	@RequestMapping(value = "mount", method = RequestMethod.POST, produces = { "application/json" })
+	@RequestMapping(value = "mounts/mount", method = RequestMethod.POST, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
 	public ResourceStatus<FileResource> createOrUpdateResource(
@@ -252,7 +252,7 @@ public class FileResourceController extends ResourceController {
 	}
 
 	@AuthenticationRequired
-	@RequestMapping(value = "mount/{id}", method = RequestMethod.DELETE, produces = { "application/json" })
+	@RequestMapping(value = "mounts/mount/{id}", method = RequestMethod.DELETE, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
 	public ResourceStatus<FileResource> deleteResource(
@@ -291,7 +291,7 @@ public class FileResourceController extends ResourceController {
 	
 	@SuppressWarnings("rawtypes")
 	@AuthenticationRequired
-	@RequestMapping(value = "fsDelete/**", method = RequestMethod.GET, produces = { "application/json" })
+	@RequestMapping(value = "fs/delete/**", method = RequestMethod.GET, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
 	public ResourceStatus<?> delete(HttpServletRequest request,
@@ -303,7 +303,7 @@ public class FileResourceController extends ResourceController {
 		try {
 			
 			return new ResourceStatus(mountService.deleteURIFile(
-					request.getHeader("Host"), "api/fsDelete",
+					request.getHeader("Host"), "api/fs/delete",
 					URLDecoder.decode(request.getRequestURI(), "UTF-8"), HTTP_PROTOCOL));
 
 		} finally {
@@ -313,7 +313,7 @@ public class FileResourceController extends ResourceController {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@AuthenticationRequired
-	@RequestMapping(value = "fsCreateFolder/**", method = RequestMethod.GET, produces = { "application/json" })
+	@RequestMapping(value = "fs/createFolder/**", method = RequestMethod.GET, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
 	public ResourceStatus<TreeList> createFolder(HttpServletRequest request,
@@ -327,7 +327,7 @@ public class FileResourceController extends ResourceController {
 			String uri = URLDecoder.decode(request.getRequestURI(), "UTF-8");
 			
 			FileResource resource = mountService.getMountForURIPath(
-					request.getHeader("Host"), "api/fsCreateFolder",
+					request.getHeader("Host"), "api/fs/createFolder",
 					uri);
 
 			FileObject mountFile = mountService.resolveMountFile(resource);
@@ -335,7 +335,7 @@ public class FileResourceController extends ResourceController {
 			List folders = new ArrayList();
 			
 			FileObject newFile = mountService.createURIFolder(
-					request.getHeader("Host"), "api/fsCreateFolder",
+					request.getHeader("Host"), "api/fs/createFolder",
 					uri, HTTP_PROTOCOL);
 			
 			folders.add(new TreeFolder(newFile, mountFile, resource));
@@ -348,7 +348,7 @@ public class FileResourceController extends ResourceController {
 	
 	@SuppressWarnings("rawtypes")
 	@AuthenticationRequired
-	@RequestMapping(value = "fsRename/**", method = RequestMethod.POST, produces = { "application/json" })
+	@RequestMapping(value = "fs/rename/**", method = RequestMethod.POST, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
 	public ResourceStatus<?> rename(HttpServletRequest request,
@@ -361,7 +361,7 @@ public class FileResourceController extends ResourceController {
 		try {
 
 			return new ResourceStatus(mountService.renameURIFile(
-					request.getHeader("Host"), "api/fsRename",
+					request.getHeader("Host"), "api/fs/rename",
 					URLDecoder.decode(request.getRequestURI(), "UTF-8"),
 					URLDecoder.decode(toUri, "UTF-8"), HTTP_PROTOCOL));
 
@@ -371,7 +371,7 @@ public class FileResourceController extends ResourceController {
 	}
 	
 	@AuthenticationRequired
-	@RequestMapping(value = "fsDownload/**", method = RequestMethod.GET, produces = { "application/json" })
+	@RequestMapping(value = "fs/download/**", method = RequestMethod.GET, produces = { "application/json" })
 	@ResponseStatus(value = HttpStatus.OK)
 	public void downloadFile(HttpServletRequest request,
 			HttpServletResponse response,
@@ -385,7 +385,7 @@ public class FileResourceController extends ResourceController {
 			String uri = URLDecoder.decode(request.getRequestURI(), "UTF-8");
 			
 			mountService.downloadURIFile(request.getHeader("Host"), 
-					"api/fsDownload", uri, new HttpDownloadProcessor(request, response, 0, Long.MAX_VALUE, HTTP_PROTOCOL), HTTP_PROTOCOL);
+					"api/fs/download", uri, new HttpDownloadProcessor(request, response, 0, Long.MAX_VALUE, HTTP_PROTOCOL), HTTP_PROTOCOL);
 			
 
 		} catch (Exception e) {
@@ -399,7 +399,7 @@ public class FileResourceController extends ResourceController {
 	}
 	
 	@AuthenticationRequired
-	@RequestMapping(value = "fsUpload/**", method = RequestMethod.POST, produces = {"application/json" })
+	@RequestMapping(value = "fs/upload/**", method = RequestMethod.POST, produces = {"application/json" })
 	@ResponseStatus(value = HttpStatus.OK)
 	@ResponseBody
 	public ResourceStatus<TreeFile> uploadFile(HttpServletRequest request,
@@ -432,7 +432,7 @@ public class FileResourceController extends ResourceController {
 				
 			};
 			mountService.uploadURIFile(request.getHeader("Host"), 
-					"api/fsUpload", uri, file.getInputStream(), processor, HTTP_PROTOCOL);
+					"api/fs/upload", uri, file.getInputStream(), processor, HTTP_PROTOCOL);
 			
 			return new ResourceStatus<TreeFile>(processor.getResult());
 			
@@ -444,7 +444,7 @@ public class FileResourceController extends ResourceController {
 	
 	@SuppressWarnings("unchecked")
 	@AuthenticationRequired
-	@RequestMapping(value = "fsList/**", method = RequestMethod.GET, produces = { "application/json" })
+	@RequestMapping(value = "fs/list/**", method = RequestMethod.GET, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
 	public TreeList list(HttpServletRequest request,
@@ -459,13 +459,13 @@ public class FileResourceController extends ResourceController {
 			List folders = new ArrayList();
 			String uri = URLDecoder.decode(request.getRequestURI(), "UTF-8");
 			FileResource resource = mountService.getMountForURIPath(
-					request.getHeader("Host"), "api/fsList",
+					request.getHeader("Host"), "api/fs/list",
 					uri);
 
 			FileObject mountFile = mountService.resolveMountFile(resource);
 
 			String childPath = mountService.resolveURIChildPath(resource,
-					"api/fsList", uri);
+					"api/fs/list", uri);
 
 			FileObject file = mountFile.resolveFile(childPath);
 

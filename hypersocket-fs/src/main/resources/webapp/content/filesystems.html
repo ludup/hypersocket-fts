@@ -139,7 +139,7 @@
 					
 				$('#schemeButton').selectButton({
 					id: 'scheme',
-					url: 'schemes',
+					url: 'mounts/schemes',
 					nameAttr: 'scheme',
 					valueAttr: 'scheme',
 					nameIsResourceKey: true,
@@ -187,7 +187,7 @@
 				}
 				
 				$('#mountProperties').propertyPage({
-					url : 'template/mount',
+					url : 'mounts/template',
 					showButtons : false,
 					useTemplates : true,
 					canUpdate : currentMenu.canUpdate,
@@ -212,10 +212,10 @@
 				$('#tabMounts').ajaxResourcePage(
 						{
 							id : "Mounts",
-							tableUrl : "table/mounts",
+							tableUrl : "mounts/table",
 							title: getResource("filesystems.label"),
 							icon: 'fa-folder-open',
-							resourceUrl : "mount",
+							resourceUrl : "mounts/mount",
 							fields : [ {
 								name : "name"
 							}, {
