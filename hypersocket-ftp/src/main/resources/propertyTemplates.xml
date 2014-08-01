@@ -13,7 +13,7 @@
 			minValue="0" maxValue="3600" weight="300" defaultValue="360" />
 		
 		<property resourceKey="ftp.interfaces" inputType="multipleSelect"
-			restart="true" url="networkInterfaces" selectAllIfEmpty="true"
+			restart="true" url="server/networkInterfaces" selectAllIfEmpty="true"
 			weight="600"/>
 	</propertyCategory>
 
@@ -31,7 +31,7 @@
 			minValue="0" maxValue="3600" weight="300" defaultValue="360" />
 		
 		<property resourceKey="ftps.interfaces" inputType="multipleSelect"
-			restart="true" url="networkInterfaces" selectAllIfEmpty="true"
+			restart="true" url="server/networkInterfaces" selectAllIfEmpty="true"
 			weight="600"/>
 	</propertyCategory>
 	
