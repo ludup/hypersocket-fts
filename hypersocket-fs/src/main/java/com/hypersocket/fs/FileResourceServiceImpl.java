@@ -260,7 +260,7 @@ public class FileResourceServiceImpl extends
 			String path) throws IOException {
 		return FileUtils.stripParentPath(FileUtils.checkEndsWithSlash(rootPath)
 				+ FileUtils.checkEndsWithSlash(resource.getName()),
-				FileUtils.checkStartsWithNoSlash(path));
+				FileUtils.checkStartsWithSlash(path));
 	}
 
 	public String resolveChildPath(String mountName, String path)
