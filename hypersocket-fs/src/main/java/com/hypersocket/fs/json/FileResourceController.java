@@ -1,8 +1,5 @@
 package com.hypersocket.fs.json;
 
-import java.io.IOException;
-import java.net.URLDecoder;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -10,9 +7,6 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemException;
-import org.apache.commons.vfs2.FileType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,11 +16,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.hypersocket.auth.json.AuthenticationRequired;
 import com.hypersocket.auth.json.ResourceController;
@@ -34,10 +25,6 @@ import com.hypersocket.auth.json.UnauthorizedException;
 import com.hypersocket.fs.FileResource;
 import com.hypersocket.fs.FileResourceScheme;
 import com.hypersocket.fs.FileResourceService;
-import com.hypersocket.fs.UploadProcessor;
-import com.hypersocket.fs.tree.TreeFile;
-import com.hypersocket.fs.tree.TreeFolder;
-import com.hypersocket.fs.tree.TreeList;
 import com.hypersocket.i18n.I18N;
 import com.hypersocket.json.ResourceList;
 import com.hypersocket.json.ResourceStatus;
@@ -56,7 +43,6 @@ import com.hypersocket.tables.Column;
 import com.hypersocket.tables.ColumnSort;
 import com.hypersocket.tables.DataTablesResult;
 import com.hypersocket.tables.json.DataTablesPageProcessor;
-import com.hypersocket.util.FileUtils;
 
 @Controller
 public class FileResourceController extends ResourceController {

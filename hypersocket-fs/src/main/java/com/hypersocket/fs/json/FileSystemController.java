@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -36,8 +35,6 @@ import com.hypersocket.fs.tree.TreeFolder;
 import com.hypersocket.fs.tree.TreeList;
 import com.hypersocket.json.ResourceStatus;
 import com.hypersocket.permissions.AccessDeniedException;
-import com.hypersocket.permissions.Role;
-import com.hypersocket.realm.Realm;
 import com.hypersocket.session.json.SessionTimeoutException;
 import com.hypersocket.session.json.SessionUtils;
 import com.hypersocket.util.FileUtils;

@@ -1,7 +1,5 @@
 package com.hypersocket.fs;
 
-import static com.hypersocket.fs.FileResourceService.RESOURCE_BUNDLE;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;

@@ -1,7 +1,5 @@
 package com.hypersocket.fs.events;
 
-import java.util.Map;
-
 import com.hypersocket.fs.FileResource;
 import com.hypersocket.session.Session;
 
