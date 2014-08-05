@@ -209,7 +209,7 @@ public class FileResourceServiceImpl extends
 			String mountPath = FileUtils.stripParentPath(rootPath, path);
 			String mountName = FileUtils.firstPathElement(mountPath);
 
-			for (FileResource r : getPersonalResources(getCurrentPrincipal())) {
+			for (FileResource r : getResources()) {
 				if (r.getName().equals(mountName)) {
 					return r;
 				}

@@ -73,13 +73,13 @@ public class FileResourceController extends ResourceController {
 			UnauthorizedException, SessionTimeoutException {
 
 		setupAuthenticatedContext(sessionUtils.getSession(request),
-				sessionUtils.getLocale(request), mountService);
+				sessionUtils.getLocale(request));
 		try {
 			return new ResourceList<FileResource>(
 					mountService.getResources(sessionUtils
 							.getCurrentRealm(request)));
 		} finally {
-			clearAuthenticatedContext(mountService);
+			clearAuthenticatedContext();
 		}
 	}
 
@@ -109,7 +109,7 @@ public class FileResourceController extends ResourceController {
 			UnauthorizedException, SessionTimeoutException {
 
 		setupAuthenticatedContext(sessionUtils.getSession(request),
-				sessionUtils.getLocale(request), mountService);
+				sessionUtils.getLocale(request));
 
 		try {
 			return processDataTablesRequest(request,
@@ -148,7 +148,7 @@ public class FileResourceController extends ResourceController {
 			UnauthorizedException, SessionTimeoutException {
 
 		setupAuthenticatedContext(sessionUtils.getSession(request),
-				sessionUtils.getLocale(request), mountService);
+				sessionUtils.getLocale(request));
 
 		try {
 			return processDataTablesRequest(request,
@@ -188,7 +188,7 @@ public class FileResourceController extends ResourceController {
 			throws AccessDeniedException, UnauthorizedException, SessionTimeoutException {
 
 		setupAuthenticatedContext(sessionUtils.getSession(request),
-				sessionUtils.getLocale(request), mountService);
+				sessionUtils.getLocale(request));
 		try {
 
 			Realm realm = sessionUtils.getCurrentRealm(request);
@@ -242,7 +242,7 @@ public class FileResourceController extends ResourceController {
 			UnauthorizedException, SessionTimeoutException {
 
 		setupAuthenticatedContext(sessionUtils.getSession(request),
-				sessionUtils.getLocale(request), mountService);
+				sessionUtils.getLocale(request));
 		try {
 
 			FileResource resource = mountService.getResourceById(id);

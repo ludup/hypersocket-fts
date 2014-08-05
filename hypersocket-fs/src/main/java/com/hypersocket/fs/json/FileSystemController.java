@@ -63,7 +63,7 @@ public class FileSystemController extends AuthenticatedController {
 			UnauthorizedException, IOException, SessionTimeoutException {
 
 		setupAuthenticatedContext(sessionUtils.getSession(request),
-				sessionUtils.getLocale(request), mountService);
+				sessionUtils.getLocale(request));
 		try {
 			
 			return new ResourceStatus(mountService.deleteURIFile(
@@ -85,7 +85,7 @@ public class FileSystemController extends AuthenticatedController {
 			UnauthorizedException, IOException, SessionTimeoutException {
 
 		setupAuthenticatedContext(sessionUtils.getSession(request),
-				sessionUtils.getLocale(request), mountService);
+				sessionUtils.getLocale(request));
 		try {
 
 			String uri = URLDecoder.decode(request.getRequestURI(), "UTF-8");
@@ -121,7 +121,7 @@ public class FileSystemController extends AuthenticatedController {
 			UnauthorizedException, IOException, SessionTimeoutException {
 
 		setupAuthenticatedContext(sessionUtils.getSession(request),
-				sessionUtils.getLocale(request), mountService);
+				sessionUtils.getLocale(request));
 		try {
 
 			return new ResourceStatus(mountService.renameURIFile(
@@ -143,7 +143,7 @@ public class FileSystemController extends AuthenticatedController {
 			UnauthorizedException, SessionTimeoutException {
 
 		setupAuthenticatedContext(sessionUtils.getSession(request),
-				sessionUtils.getLocale(request), mountService);
+				sessionUtils.getLocale(request));
 		try {
 
 			String uri = URLDecoder.decode(request.getRequestURI(), "UTF-8");
@@ -172,7 +172,7 @@ public class FileSystemController extends AuthenticatedController {
 			throws AccessDeniedException, UnauthorizedException, IOException, SessionTimeoutException {
 
 		setupAuthenticatedContext(sessionUtils.getSession(request),
-				sessionUtils.getLocale(request), mountService);
+				sessionUtils.getLocale(request));
 
 		try {
 
@@ -202,7 +202,7 @@ public class FileSystemController extends AuthenticatedController {
 			
 			
 		} finally {
-			clearAuthenticatedContext(mountService);
+			clearAuthenticatedContext();
 		}
 	}
 	
@@ -216,7 +216,7 @@ public class FileSystemController extends AuthenticatedController {
 			UnauthorizedException, IOException, SessionTimeoutException {
 
 		setupAuthenticatedContext(sessionUtils.getSession(request),
-				sessionUtils.getLocale(request), mountService);
+				sessionUtils.getLocale(request));
 		try {
 
 			@SuppressWarnings("rawtypes")

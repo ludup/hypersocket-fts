@@ -52,8 +52,7 @@ public class ConnectorController extends AuthenticatedController {
 			final HttpServletResponse response, @PathVariable String resourceName) throws IOException, UnauthorizedException, SessionTimeoutException {
 
 		setupAuthenticatedContext(sessionUtils.getSession(request),
-				sessionUtils.getLocale(request),
-				fileResourceService);
+				sessionUtils.getLocale(request));
 
 		try {
 
@@ -112,7 +111,7 @@ public class ConnectorController extends AuthenticatedController {
 			}
 
 		} finally {
-			clearAuthenticatedContext(fileResourceService);
+			clearAuthenticatedContext();
 		}
 	}
 }
