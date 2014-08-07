@@ -1,5 +1,7 @@
 package com.hypersocket.fs;
 
+import static com.hypersocket.fs.FileResourceService.RESOURCE_BUNDLE;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -35,14 +37,12 @@ import com.hypersocket.fs.events.RenameEvent;
 import com.hypersocket.fs.events.UploadCompleteEvent;
 import com.hypersocket.fs.events.UploadStartedEvent;
 import com.hypersocket.i18n.I18NService;
-import com.hypersocket.menus.MenuEnablerService;
 import com.hypersocket.menus.MenuRegistration;
 import com.hypersocket.menus.MenuService;
 import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.permissions.PermissionCategory;
 import com.hypersocket.permissions.PermissionService;
 import com.hypersocket.permissions.PermissionType;
-import com.hypersocket.realm.Principal;
 import com.hypersocket.resource.AbstractAssignableResourceRepository;
 import com.hypersocket.resource.AbstractAssignableResourceServiceImpl;
 import com.hypersocket.server.HypersocketServer;
@@ -53,8 +53,7 @@ import com.hypersocket.util.FileUtils;
 @Service
 public class FileResourceServiceImpl extends
 		AbstractAssignableResourceServiceImpl<FileResource> implements
-		FileResourceService, DownloadEventProcessor, UploadEventProcessor,
-		MenuEnablerService {
+		FileResourceService, DownloadEventProcessor, UploadEventProcessor {
 
 	static Logger log = LoggerFactory.getLogger(FileResourceServiceImpl.class);
 
@@ -107,7 +106,11 @@ public class FileResourceServiceImpl extends
 				FileResourcePermission.DELETE), MenuService.MENU_RESOURCES);
 
 		menuService.registerMenu(new MenuRegistration(RESOURCE_BUNDLE,
-				"myFilesystems", "fa-folder-open", "myFilesystems", 200, this), MenuService.MENU_MY_RESOURCES);
+				"myFilesystems", "fa-folder-open", "myFilesystems", 200) {
+			public boolean canRead() {
+				return resourceRepository.getAssignableResourceCount(getCurrentPrincipal()) > 0;
+			}
+		}, MenuService.MENU_MY_RESOURCES);
 
 		
 		if (log.isInfoEnabled()) {
@@ -966,8 +969,4 @@ public class FileResourceServiceImpl extends
 		eventService.publishEvent(new FileResourceDeletedEvent(this, t, getCurrentSession(), resource));
 	}
 
-	@Override
-	public boolean enableMenu(String menu, Principal principal) {
-		return resourceRepository.getAssignableResourceCount(principal) > 0;
-	}
 }
