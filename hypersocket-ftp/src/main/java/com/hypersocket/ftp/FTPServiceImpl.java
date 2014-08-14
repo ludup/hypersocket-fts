@@ -7,6 +7,8 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.annotation.PostConstruct;
 
@@ -24,12 +26,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Service;
 
+import com.hypersocket.auth.AuthenticationSchemeRepository;
+import com.hypersocket.auth.UsernameAndPasswordAuthenticator;
 import com.hypersocket.certs.CertificateService;
 import com.hypersocket.config.ConfigurationChangedEvent;
 import com.hypersocket.config.ConfigurationService;
 import com.hypersocket.events.SystemEvent;
 import com.hypersocket.i18n.I18NService;
 import com.hypersocket.permissions.AccessDeniedException;
+import com.hypersocket.realm.Realm;
+import com.hypersocket.realm.RealmAdapter;
 import com.hypersocket.realm.RealmService;
 import com.hypersocket.server.events.ServerStartedEvent;
 import com.hypersocket.server.events.ServerStoppingEvent;
@@ -72,12 +78,48 @@ public class FTPServiceImpl implements FTPService,
 	@Autowired
 	I18NService i18nService;
 	
+	@Autowired
+	AuthenticationSchemeRepository schemeRepository;
+	
 	FtpServer ftpServer;
 	FtpServer ftpsServer;
 	
 	@PostConstruct
 	private void postConstruct() {
 		i18nService.registerBundle(RESOURCE_BUNDLE);
+		
+		setupRealms();
+	}
+	
+	private void setupRealms() {
+		for (Realm realm : realmService.allRealms(true)) {
+			if (schemeRepository.getSchemeByResourceKey(realm,
+					AUTHENTICATION_SCHEME_RESOURCE_KEY) == null) {
+				List<String> modules = new ArrayList<String>();
+				modules.add(UsernameAndPasswordAuthenticator.RESOURCE_KEY);
+				schemeRepository.createScheme(realm,
+						AUTHENTICATION_SCHEME_NAME, modules,
+						AUTHENTICATION_SCHEME_RESOURCE_KEY, true);
+			}
+		}
+
+		realmService.registerRealmListener(new RealmAdapter() {
+			public void onCreateRealm(Realm realm) {
+				
+				if (log.isInfoEnabled()) {
+					log.info("Creating " + AUTHENTICATION_SCHEME_NAME
+							+ " authentication scheme for realm "
+							+ realm.getName());
+				}
+				
+				List<String> modules = new ArrayList<String>();
+				modules.add(UsernameAndPasswordAuthenticator.RESOURCE_KEY);
+				schemeRepository.createScheme(realm,
+						AUTHENTICATION_SCHEME_NAME, modules,
+						AUTHENTICATION_SCHEME_RESOURCE_KEY, true);
+			}
+		});
+
 	}
 	
 	public void onApplicationEvent(SystemEvent event) {
