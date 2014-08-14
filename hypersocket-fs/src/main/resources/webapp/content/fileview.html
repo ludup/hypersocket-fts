@@ -23,7 +23,6 @@
 			$(document).ready(function() {
 				
 				$(document).localize();
-				debugger;
 				var urlregex = new RegExp(/(.[^\:]+)(\:\/\/)(.[^\/]+)(.[^\/]+)(.[^\/]+)(.[^\/]+)(.*)/);
 				var fileUrl = urlregex.exec(document.URL);
 				var controller = basePath + '/api/connector';
