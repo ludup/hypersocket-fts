@@ -36,7 +36,6 @@ public class TmbCommandExecutor extends AbstractCommandExecutor implements Comma
 		BufferedImage b = rop.filter(image, null);
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		ImageIO.write(b, "png", baos);
-		byte[] bytesOut = baos.toByteArray();
 		is.close();
 
 		response.setHeader("Last-Modified", DateUtils.addDays(Calendar.getInstance().getTime(), 2 * 360).toGMTString());

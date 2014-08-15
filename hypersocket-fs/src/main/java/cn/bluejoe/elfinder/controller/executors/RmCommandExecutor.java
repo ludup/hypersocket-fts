@@ -20,7 +20,7 @@ public class RmCommandExecutor extends AbstractJsonCommandExecutor implements Co
 			throws Exception
 	{
 		String[] targets = request.getParameterValues("targets[]");
-		String current = request.getParameter("current");
+//		String current = request.getParameter("current");
 		List<String> removed = new ArrayList<String>();
 
 		for (String target : targets)

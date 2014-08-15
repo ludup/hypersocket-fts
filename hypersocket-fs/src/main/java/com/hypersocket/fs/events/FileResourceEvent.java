@@ -3,7 +3,7 @@ package com.hypersocket.fs.events;
 import org.apache.commons.lang3.StringUtils;
 
 import com.hypersocket.fs.FileResource;
-import com.hypersocket.fs.FileResourceService;
+import com.hypersocket.fs.FileResourceServiceImpl;
 import com.hypersocket.resource.AssignableResourceEvent;
 import com.hypersocket.session.Session;
 
@@ -50,6 +50,6 @@ public class FileResourceEvent extends AssignableResourceEvent {
 	}
 	
 	public String getResourceBundle() {
-		return FileResourceService.RESOURCE_BUNDLE;
+		return FileResourceServiceImpl.RESOURCE_BUNDLE;
 	}
 }

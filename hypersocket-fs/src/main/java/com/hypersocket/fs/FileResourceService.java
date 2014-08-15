@@ -13,8 +13,6 @@ import com.hypersocket.resource.AbstractAssignableResourceService;
 
 public interface FileResourceService extends AbstractAssignableResourceService<FileResource> {
 
-	static final String RESOURCE_BUNDLE = "FileResourceService";
-	
 	FileResource getMountForURIPath(String host, String controllerPath, String path) throws FileNotFoundException;
 
 	boolean isURIFilesystemRoot(String path);

@@ -20,14 +20,14 @@ public class PasteCommandExecutor extends AbstractJsonCommandExecutor implements
 			throws Exception
 	{
 		String[] targets = request.getParameterValues("targets[]");
-		String src = request.getParameter("src");
+//		String src = request.getParameter("src");
 		String dst = request.getParameter("dst");
 		boolean cut = "1".equals(request.getParameter("cut"));
 
 		List<FsItemEx> added = new ArrayList<FsItemEx>();
 		List<FsItemEx> removed = new ArrayList<FsItemEx>();
 
-		FsItemEx fsrc = super.findItem(fsService, src);
+//		FsItemEx fsrc = super.findItem(fsService, src);
 		FsItemEx fdst = super.findItem(fsService, dst);
 
 		for (String target : targets)

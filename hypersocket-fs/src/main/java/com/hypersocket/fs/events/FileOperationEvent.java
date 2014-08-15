@@ -1,7 +1,7 @@
 package com.hypersocket.fs.events;
 
 import com.hypersocket.fs.FileResource;
-import com.hypersocket.fs.FileResourceService;
+import com.hypersocket.fs.FileResourceServiceImpl;
 import com.hypersocket.resource.ResourceSessionEvent;
 import com.hypersocket.session.Session;
 
@@ -30,7 +30,7 @@ public abstract class FileOperationEvent extends ResourceSessionEvent {
 	}
 	
 	public String getResourceBundle() {
-		return FileResourceService.RESOURCE_BUNDLE;
+		return FileResourceServiceImpl.RESOURCE_BUNDLE;
 	}
 
 	public FileResource getSourceResource() {
