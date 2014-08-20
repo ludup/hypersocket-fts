@@ -97,7 +97,7 @@ public class FileResourceServiceImpl extends
 				FileResourceServiceImpl.RESOURCE_BUNDLE, "category.fileResources");
 
 		for (FileResourcePermission p : FileResourcePermission.values()) {
-			permissionService.registerPermission(p.getResourceKey(), p.isSystem(), cat);
+			permissionService.registerPermission(p,cat);
 		}
 
 		menuService.registerMenu(new MenuRegistration(RESOURCE_BUNDLE,
