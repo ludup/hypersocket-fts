@@ -1,5 +1,6 @@
 package com.hypersocket.fs.json;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -203,11 +204,11 @@ public class FileResourceController extends ResourceController {
 			if (resource.getId() != null) {
 				r = mountService.getResourceById(resource.getId());
 				buildResource(realm, r, resource, roles);
-				mountService.updateResource(r);
+				mountService.updateResource(r, new HashMap<String,String>());
 			} else {
 				r = new FileResource();
 				buildResource(realm, r, resource, roles);
-				mountService.createResource(r);
+				mountService.createResource(r, new HashMap<String,String>());
 			}
 
 			return new ResourceStatus<FileResource>(r, I18N.getResource(
