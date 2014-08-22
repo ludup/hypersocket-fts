@@ -36,6 +36,7 @@ import com.hypersocket.i18n.I18NService;
 import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.realm.Realm;
 import com.hypersocket.realm.RealmAdapter;
+import com.hypersocket.realm.RealmRepository;
 import com.hypersocket.realm.RealmService;
 import com.hypersocket.server.events.ServerStartedEvent;
 import com.hypersocket.server.events.ServerStoppingEvent;
@@ -71,6 +72,9 @@ public class FTPServiceImpl implements FTPService,
 
 	@Autowired
 	CertificateService certificateService; 
+
+	@Autowired
+	RealmRepository realmRepository;
 	
 	@Autowired
 	RealmService realmService;
@@ -92,7 +96,7 @@ public class FTPServiceImpl implements FTPService,
 	}
 	
 	private void setupRealms() {
-		for (Realm realm : realmService.allRealms(true)) {
+		for (Realm realm : realmRepository.allRealms()) {
 			if (schemeRepository.getSchemeByResourceKey(realm,
 					AUTHENTICATION_SCHEME_RESOURCE_KEY) == null) {
 				List<String> modules = new ArrayList<String>();
