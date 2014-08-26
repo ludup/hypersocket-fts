@@ -197,7 +197,7 @@ public class FileResourceController extends ResourceController {
 
 			Set<Role> roles = new HashSet<Role>();
 			for (Long id : resource.getRoles()) {
-				roles.add(permissionService.getRoleById(id, realm));
+				roles.add(permissionRepository.getRoleById(id));
 			}
 
 			FileResource r;
