@@ -91,6 +91,8 @@ public class FileResourceServiceImpl extends
 			log.debug("Constructing FileResourceService");
 		}
 
+		resourceRepository.loadPropertyTemplates("fileResourceTemplate.xml");
+		
 		i18nService.registerBundle(FileResourceServiceImpl.RESOURCE_BUNDLE);
 
 		PermissionCategory cat = permissionService.registerPermissionCategory(
@@ -125,18 +127,18 @@ public class FileResourceServiceImpl extends
 			}
 		}
 
-		eventService.registerEvent(FileResourceCreatedEvent.class, RESOURCE_BUNDLE);
-		eventService.registerEvent(FileResourceUpdatedEvent.class, RESOURCE_BUNDLE);
-		eventService.registerEvent(FileResourceDeletedEvent.class, RESOURCE_BUNDLE);
+		eventService.registerEvent(FileResourceCreatedEvent.class, RESOURCE_BUNDLE, this);
+		eventService.registerEvent(FileResourceUpdatedEvent.class, RESOURCE_BUNDLE, this);
+		eventService.registerEvent(FileResourceDeletedEvent.class, RESOURCE_BUNDLE, this);
 		
-		eventService.registerEvent(DownloadStartedEvent.class, RESOURCE_BUNDLE);
-		eventService.registerEvent(DownloadCompleteEvent.class, RESOURCE_BUNDLE);
-		eventService.registerEvent(UploadStartedEvent.class, RESOURCE_BUNDLE);
-		eventService.registerEvent(UploadCompleteEvent.class, RESOURCE_BUNDLE);
-		eventService.registerEvent(CopyFileEvent.class, RESOURCE_BUNDLE);
-		eventService.registerEvent(CreateFolderEvent.class, RESOURCE_BUNDLE);
-		eventService.registerEvent(DeleteFileEvent.class, RESOURCE_BUNDLE);
-		eventService.registerEvent(RenameEvent.class, RESOURCE_BUNDLE);
+		eventService.registerEvent(DownloadStartedEvent.class, RESOURCE_BUNDLE, this);
+		eventService.registerEvent(DownloadCompleteEvent.class, RESOURCE_BUNDLE, this);
+		eventService.registerEvent(UploadStartedEvent.class, RESOURCE_BUNDLE, this);
+		eventService.registerEvent(UploadCompleteEvent.class, RESOURCE_BUNDLE, this);
+		eventService.registerEvent(CopyFileEvent.class, RESOURCE_BUNDLE, this);
+		eventService.registerEvent(CreateFolderEvent.class, RESOURCE_BUNDLE, this);
+		eventService.registerEvent(DeleteFileEvent.class, RESOURCE_BUNDLE, this);
+		eventService.registerEvent(RenameEvent.class, RESOURCE_BUNDLE, this);
 
 		registerScheme(new FileResourceScheme("file", false, false));
 		registerScheme(new FileResourceScheme("ftp", true, true));

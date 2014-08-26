@@ -96,18 +96,13 @@ public class FTPServiceImpl implements FTPService,
 	}
 	
 	private void setupRealms() {
-		for (Realm realm : realmRepository.allRealms()) {
-			if (schemeRepository.getSchemeByResourceKey(realm,
-					AUTHENTICATION_SCHEME_RESOURCE_KEY) == null) {
-				List<String> modules = new ArrayList<String>();
-				modules.add(UsernameAndPasswordAuthenticator.RESOURCE_KEY);
-				schemeRepository.createScheme(realm,
-						AUTHENTICATION_SCHEME_NAME, modules,
-						AUTHENTICATION_SCHEME_RESOURCE_KEY, true);
-			}
-		}
 
 		realmService.registerRealmListener(new RealmAdapter() {
+			
+			public boolean hasCreatedDefaultResources(Realm realm) {
+				return schemeRepository.getSchemeByResourceKey(realm,
+						AUTHENTICATION_SCHEME_RESOURCE_KEY) != null;
+			}
 			public void onCreateRealm(Realm realm) {
 				
 				if (log.isInfoEnabled()) {
