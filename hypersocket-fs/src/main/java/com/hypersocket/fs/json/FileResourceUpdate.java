@@ -2,8 +2,6 @@ package com.hypersocket.fs.json;
 
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 
-import com.hypersocket.properties.json.PropertyItem;
-
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class FileResourceUpdate {
 

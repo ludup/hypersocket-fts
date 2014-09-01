@@ -30,7 +30,7 @@ import com.hypersocket.auth.AuthenticationSchemeRepository;
 import com.hypersocket.auth.UsernameAndPasswordAuthenticator;
 import com.hypersocket.certs.CertificateService;
 import com.hypersocket.config.ConfigurationChangedEvent;
-import com.hypersocket.config.ConfigurationService;
+import com.hypersocket.config.SystemConfigurationService;
 import com.hypersocket.events.SystemEvent;
 import com.hypersocket.i18n.I18NService;
 import com.hypersocket.permissions.AccessDeniedException;
@@ -62,7 +62,7 @@ public class FTPServiceImpl implements FTPService,
 	FTPFileSystemFactory filesystemFactory;
 
 	@Autowired
-	ConfigurationService configurationService;
+	SystemConfigurationService configurationService;
 
 	@Autowired
 	SessionService sessionService;
