@@ -57,6 +57,8 @@ public class FileResourceServiceImpl extends
 
 	public static final String RESOURCE_BUNDLE = "FileResourceService";
 	
+	public static final String MENU_FILE_SYSTEMS = "fileSystems";
+	
 	@Autowired
 	HypersocketServer server;
 
@@ -103,9 +105,14 @@ public class FileResourceServiceImpl extends
 		}
 
 		menuService.registerMenu(new MenuRegistration(RESOURCE_BUNDLE,
-				"filesystems", "fa-folder-open", "filesystems", 200, FileResourcePermission.READ,
+				"fileSystems", "fa-folder-open", null, 200, FileResourcePermission.READ,
 				FileResourcePermission.CREATE, FileResourcePermission.UPDATE,
 				FileResourcePermission.DELETE), MenuService.MENU_RESOURCES);
+		
+		menuService.registerMenu(new MenuRegistration(RESOURCE_BUNDLE,
+				"fileResources", "fa-folder-open", "filesystems", 200, FileResourcePermission.READ,
+				FileResourcePermission.CREATE, FileResourcePermission.UPDATE,
+				FileResourcePermission.DELETE), MENU_FILE_SYSTEMS);
 
 		menuService.registerMenu(new MenuRegistration(RESOURCE_BUNDLE,
 				"myFilesystems", "fa-folder-open", "myFilesystems", 200) {
