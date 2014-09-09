@@ -22,6 +22,7 @@ import com.mortennobel.imagescaling.ResampleOp;
 
 public class TmbCommandExecutor extends AbstractCommandExecutor implements CommandExecutor
 {
+	@SuppressWarnings("deprecation")
 	@Override
 	public void execute(FsService fsService, HttpServletRequest request, HttpServletResponse response,
 			ServletContext servletContext) throws Exception
