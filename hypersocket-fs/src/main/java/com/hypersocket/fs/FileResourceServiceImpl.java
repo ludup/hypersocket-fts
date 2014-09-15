@@ -56,9 +56,9 @@ public class FileResourceServiceImpl extends
 	static Logger log = LoggerFactory.getLogger(FileResourceServiceImpl.class);
 
 	public static final String RESOURCE_BUNDLE = "FileResourceService";
-	
+
 	public static final String MENU_FILE_SYSTEMS = "fileSystems";
-	
+
 	@Autowired
 	HypersocketServer server;
 
@@ -94,34 +94,37 @@ public class FileResourceServiceImpl extends
 		}
 
 		resourceRepository.loadPropertyTemplates("fileResourceTemplate.xml");
-		
+
 		i18nService.registerBundle(FileResourceServiceImpl.RESOURCE_BUNDLE);
 
 		PermissionCategory cat = permissionService.registerPermissionCategory(
-				FileResourceServiceImpl.RESOURCE_BUNDLE, "category.fileResources");
+				FileResourceServiceImpl.RESOURCE_BUNDLE,
+				"category.fileResources");
 
 		for (FileResourcePermission p : FileResourcePermission.values()) {
-			permissionService.registerPermission(p,cat);
+			permissionService.registerPermission(p, cat);
 		}
 
 		menuService.registerMenu(new MenuRegistration(RESOURCE_BUNDLE,
-				"fileSystems", "fa-folder-open", null, 200, FileResourcePermission.READ,
-				FileResourcePermission.CREATE, FileResourcePermission.UPDATE,
-				FileResourcePermission.DELETE), MenuService.MENU_RESOURCES);
-		
+				"fileSystems", "fa-folder-open", null, 200,
+				FileResourcePermission.READ, FileResourcePermission.CREATE,
+				FileResourcePermission.UPDATE, FileResourcePermission.DELETE),
+				MenuService.MENU_RESOURCES);
+
 		menuService.registerMenu(new MenuRegistration(RESOURCE_BUNDLE,
-				"fileResources", "fa-folder-open", "filesystems", 200, FileResourcePermission.READ,
-				FileResourcePermission.CREATE, FileResourcePermission.UPDATE,
-				FileResourcePermission.DELETE), MENU_FILE_SYSTEMS);
+				"fileResources", "fa-folder-open", "filesystems", 200,
+				FileResourcePermission.READ, FileResourcePermission.CREATE,
+				FileResourcePermission.UPDATE, FileResourcePermission.DELETE),
+				MENU_FILE_SYSTEMS);
 
 		menuService.registerMenu(new MenuRegistration(RESOURCE_BUNDLE,
 				"myFilesystems", "fa-folder-open", "myFilesystems", 200) {
 			public boolean canRead() {
-				return resourceRepository.getAssignableResourceCount(getCurrentPrincipal()) > 0;
+				return resourceRepository
+						.getAssignableResourceCount(getCurrentPrincipal()) > 0;
 			}
 		}, MenuService.MENU_MY_RESOURCES);
 
-		
 		if (log.isInfoEnabled()) {
 			log.info("VFS reports the following schemes available");
 
@@ -134,17 +137,26 @@ public class FileResourceServiceImpl extends
 			}
 		}
 
-		eventService.registerEvent(FileResourceCreatedEvent.class, RESOURCE_BUNDLE, this);
-		eventService.registerEvent(FileResourceUpdatedEvent.class, RESOURCE_BUNDLE, this);
-		eventService.registerEvent(FileResourceDeletedEvent.class, RESOURCE_BUNDLE, this);
-		
-		eventService.registerEvent(DownloadStartedEvent.class, RESOURCE_BUNDLE, this);
-		eventService.registerEvent(DownloadCompleteEvent.class, RESOURCE_BUNDLE, this);
-		eventService.registerEvent(UploadStartedEvent.class, RESOURCE_BUNDLE, this);
-		eventService.registerEvent(UploadCompleteEvent.class, RESOURCE_BUNDLE, this);
+		eventService.registerEvent(FileResourceCreatedEvent.class,
+				RESOURCE_BUNDLE, this);
+		eventService.registerEvent(FileResourceUpdatedEvent.class,
+				RESOURCE_BUNDLE, this);
+		eventService.registerEvent(FileResourceDeletedEvent.class,
+				RESOURCE_BUNDLE, this);
+
+		eventService.registerEvent(DownloadStartedEvent.class, RESOURCE_BUNDLE,
+				this);
+		eventService.registerEvent(DownloadCompleteEvent.class,
+				RESOURCE_BUNDLE, this);
+		eventService.registerEvent(UploadStartedEvent.class, RESOURCE_BUNDLE,
+				this);
+		eventService.registerEvent(UploadCompleteEvent.class, RESOURCE_BUNDLE,
+				this);
 		eventService.registerEvent(CopyFileEvent.class, RESOURCE_BUNDLE, this);
-		eventService.registerEvent(CreateFolderEvent.class, RESOURCE_BUNDLE, this);
-		eventService.registerEvent(DeleteFileEvent.class, RESOURCE_BUNDLE, this);
+		eventService.registerEvent(CreateFolderEvent.class, RESOURCE_BUNDLE,
+				this);
+		eventService
+				.registerEvent(DeleteFileEvent.class, RESOURCE_BUNDLE, this);
 		eventService.registerEvent(RenameEvent.class, RESOURCE_BUNDLE, this);
 
 		registerScheme(new FileResourceScheme("file", false, false));
@@ -157,7 +169,7 @@ public class FileResourceServiceImpl extends
 		registerScheme(new FileResourceScheme("smb", true, true));
 
 		server.registerControllerPackage("cn.bluejoe.elfinder.controller");
-		
+
 		jQueryUIContentHandler
 				.addAlias("^/viewfs/.*$", "content/fileview.html");
 
@@ -257,8 +269,7 @@ public class FileResourceServiceImpl extends
 	@Override
 	public String resolveURIChildPath(FileResource resource,
 			String controllerPath, String path) throws IOException {
-		return resolveChildPath(resource,
-				server.resolvePath(controllerPath),
+		return resolveChildPath(resource, server.resolvePath(controllerPath),
 				path);
 	}
 
@@ -447,15 +458,14 @@ public class FileResourceServiceImpl extends
 				UploadStartedEvent evt;
 				long bytesIn = 0;
 
-				eventService.publishEvent(evt = new UploadStartedEvent(this,
-						getCurrentSession(), resource, childPath, protocol));
+				long startedTimestamp = uploadStarted(resource, childPath,
+						file, protocol);
 
 				try {
 
 					StreamUtils.copy(in, file.getContent().getOutputStream());
-					eventService.publishEvent(new UploadCompleteEvent(this,
-							getCurrentSession(), resource, childPath, bytesIn,
-							System.currentTimeMillis() - evt.getTimestamp(), protocol));
+					file.refresh();
+					uploadComplete(resource, childPath, file, bytesIn, System.currentTimeMillis() - startedTimestamp, protocol);
 
 				} catch (Exception e) {
 
@@ -508,6 +518,7 @@ public class FileResourceServiceImpl extends
 		DeleteFileResolver(String protocol) {
 			this.protocol = protocol;
 		}
+
 		@Override
 		Boolean onFileResolved(FileResource resource, String childPath,
 				FileObject file) throws IOException {
@@ -517,16 +528,20 @@ public class FileResourceServiceImpl extends
 					boolean deleted = file.delete();
 
 					eventService.publishEvent(new DeleteFileEvent(this,
-							deleted, getCurrentSession(), resource, childPath, protocol));
+							deleted, getCurrentSession(), resource, childPath,
+							protocol));
 
 					return deleted;
 				} else {
-					eventService.publishEvent(new DeleteFileEvent(this, false,
-							getCurrentSession(), resource, childPath, protocol));
+					eventService
+							.publishEvent(new DeleteFileEvent(this, false,
+									getCurrentSession(), resource, childPath,
+									protocol));
 				}
 			} catch (FileSystemException ex) {
 				eventService.publishEvent(new DeleteFileEvent(this, ex,
-						getCurrentSession(), resource.getName(), childPath, protocol));
+						getCurrentSession(), resource.getName(), childPath,
+						protocol));
 			}
 			return false;
 		}
@@ -545,8 +560,8 @@ public class FileResourceServiceImpl extends
 
 		// TODO verify rename permission on mount
 
-		return new RenameFileResolver(protocol).processRequest(host, controllerPath,
-				fromUri, toUri);
+		return new RenameFileResolver(protocol).processRequest(host,
+				controllerPath, fromUri, toUri);
 
 	}
 
@@ -556,17 +571,19 @@ public class FileResourceServiceImpl extends
 
 		// TODO verify rename permission on mount
 
-		return new RenameFileResolver(protocol).processRequest(fromPath, toPath);
+		return new RenameFileResolver(protocol)
+				.processRequest(fromPath, toPath);
 
 	}
 
 	class RenameFileResolver extends FilesResolver<Boolean> {
-		
+
 		String protocol;
-		
+
 		RenameFileResolver(String protocol) {
 			this.protocol = protocol;
 		}
+
 		@Override
 		Boolean onFilesResolved(FileResource fromResource,
 				String fromChildPath, FileObject fromFile,
@@ -587,7 +604,8 @@ public class FileResourceServiceImpl extends
 				}
 				eventService.publishEvent(new RenameEvent(this, e,
 						getCurrentSession(), fromResource.getName(),
-						fromChildPath, toResource.getName(), toChildPath, protocol));
+						fromChildPath, toResource.getName(), toChildPath,
+						protocol));
 
 				return false;
 			}
@@ -609,14 +627,14 @@ public class FileResourceServiceImpl extends
 
 		// TODO verify rename permission on mount
 
-		return new CopyFileResolver(protocol).processRequest(host, controllerPath,
-				fromUri, toUri);
+		return new CopyFileResolver(protocol).processRequest(host,
+				controllerPath, fromUri, toUri);
 
 	}
 
 	@Override
-	public boolean copyFile(String fromPath, String toPath, String protocol) throws IOException,
-			AccessDeniedException {
+	public boolean copyFile(String fromPath, String toPath, String protocol)
+			throws IOException, AccessDeniedException {
 
 		// TODO verify rename permission on mount
 
@@ -625,12 +643,13 @@ public class FileResourceServiceImpl extends
 	}
 
 	class CopyFileResolver extends FilesResolver<Boolean> {
-		
+
 		String protocol;
-		
+
 		CopyFileResolver(String protocol) {
 			this.protocol = protocol;
 		}
+
 		@Override
 		Boolean onFilesResolved(FileResource fromResource,
 				String fromChildPath, FileObject fromFile,
@@ -665,7 +684,8 @@ public class FileResourceServiceImpl extends
 				}
 				eventService.publishEvent(new CopyFileEvent(this, e,
 						getCurrentSession(), fromResource.getName(),
-						fromChildPath, toResource.getName(), toChildPath, protocol));
+						fromChildPath, toResource.getName(), toChildPath,
+						protocol));
 
 				return false;
 			}
@@ -707,35 +727,39 @@ public class FileResourceServiceImpl extends
 
 	@Override
 	public FileObject createURIFolder(String host, String controllerPath,
-			String parentUri, String protocol) throws IOException, AccessDeniedException {
+			String parentUri, String protocol) throws IOException,
+			AccessDeniedException {
 		return createURIFolder(host, controllerPath, parentUri, null, protocol);
 	}
 
 	@Override
 	public FileObject createURIFolder(String host, String controllerPath,
-			String parentUri, final String newName, String protocol) throws IOException,
-			AccessDeniedException {
+			String parentUri, final String newName, String protocol)
+			throws IOException, AccessDeniedException {
 
-		FileResolver<FileObject> resolver = new CreateFolderFileResolver(newName, protocol);
+		FileResolver<FileObject> resolver = new CreateFolderFileResolver(
+				newName, protocol);
 
 		return resolver.processURIRequest(host, controllerPath, parentUri);
 
 	}
 
 	@Override
-	public FileObject createFolder(String parentPath, final String newName, String protocol) throws IOException,
-			AccessDeniedException {
+	public FileObject createFolder(String parentPath, final String newName,
+			String protocol) throws IOException, AccessDeniedException {
 
-		FileResolver<FileObject> resolver = new CreateFolderFileResolver(newName, protocol);
+		FileResolver<FileObject> resolver = new CreateFolderFileResolver(
+				newName, protocol);
 
 		return resolver.processRequest(parentPath);
 
 	}
-	
+
 	class CreateFolderFileResolver extends FileResolver<FileObject> {
 
 		String newName;
 		String protocol;
+
 		CreateFolderFileResolver(String newName, String protocol) {
 			this.newName = newName;
 			this.protocol = protocol;
@@ -764,7 +788,8 @@ public class FileResourceServiceImpl extends
 			boolean created = newFile.exists();
 
 			eventService.publishEvent(new CreateFolderEvent(this, !exists
-					&& created, getCurrentSession(), resource, childPath, protocol));
+					&& created, getCurrentSession(), resource, childPath,
+					protocol));
 
 			return newFile;
 		}
@@ -935,10 +960,9 @@ public class FileResourceServiceImpl extends
 	@Override
 	public void downloadComplete(FileResource resource, String childPath,
 			FileObject file, long bytesOut, long timeMillis, String protocol) {
-		eventService
-				.publishEvent(new DownloadCompleteEvent(this,
-						getCurrentSession(), resource, childPath, bytesOut,
-						timeMillis, protocol));
+		eventService.publishEvent(new DownloadCompleteEvent(this,
+				getCurrentSession(), resource, childPath, bytesOut, timeMillis,
+				protocol));
 	}
 
 	@Override
@@ -950,32 +974,38 @@ public class FileResourceServiceImpl extends
 
 	@Override
 	protected void fireResourceCreationEvent(FileResource resource) {
-		eventService.publishEvent(new FileResourceCreatedEvent(this, getCurrentSession(), resource));
+		eventService.publishEvent(new FileResourceCreatedEvent(this,
+				getCurrentSession(), resource));
 	}
 
 	@Override
 	protected void fireResourceCreationEvent(FileResource resource, Throwable t) {
-		eventService.publishEvent(new FileResourceCreatedEvent(this, t, getCurrentSession(), resource));
+		eventService.publishEvent(new FileResourceCreatedEvent(this, t,
+				getCurrentSession(), resource));
 	}
 
 	@Override
 	protected void fireResourceUpdateEvent(FileResource resource) {
-		eventService.publishEvent(new FileResourceUpdatedEvent(this, getCurrentSession(), resource));
+		eventService.publishEvent(new FileResourceUpdatedEvent(this,
+				getCurrentSession(), resource));
 	}
 
 	@Override
 	protected void fireResourceUpdateEvent(FileResource resource, Throwable t) {
-		eventService.publishEvent(new FileResourceUpdatedEvent(this, t, getCurrentSession(), resource));
+		eventService.publishEvent(new FileResourceUpdatedEvent(this, t,
+				getCurrentSession(), resource));
 	}
 
 	@Override
 	protected void fireResourceDeletionEvent(FileResource resource) {
-		eventService.publishEvent(new FileResourceDeletedEvent(this, getCurrentSession(), resource));
+		eventService.publishEvent(new FileResourceDeletedEvent(this,
+				getCurrentSession(), resource));
 	}
 
 	@Override
 	protected void fireResourceDeletionEvent(FileResource resource, Throwable t) {
-		eventService.publishEvent(new FileResourceDeletedEvent(this, t, getCurrentSession(), resource));
+		eventService.publishEvent(new FileResourceDeletedEvent(this, t,
+				getCurrentSession(), resource));
 	}
 
 }
