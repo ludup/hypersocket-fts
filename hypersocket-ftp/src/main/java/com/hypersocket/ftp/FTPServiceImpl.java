@@ -28,7 +28,7 @@ import org.springframework.stereotype.Service;
 
 import com.hypersocket.auth.AuthenticationSchemeRepository;
 import com.hypersocket.auth.UsernameAndPasswordAuthenticator;
-import com.hypersocket.certs.CertificateService;
+import com.hypersocket.certificates.CertificateResourceService;
 import com.hypersocket.config.ConfigurationChangedEvent;
 import com.hypersocket.config.SystemConfigurationService;
 import com.hypersocket.events.SystemEvent;
@@ -38,6 +38,7 @@ import com.hypersocket.realm.Realm;
 import com.hypersocket.realm.RealmAdapter;
 import com.hypersocket.realm.RealmRepository;
 import com.hypersocket.realm.RealmService;
+import com.hypersocket.resource.ResourceCreationException;
 import com.hypersocket.server.events.ServerStartedEvent;
 import com.hypersocket.server.events.ServerStoppingEvent;
 import com.hypersocket.session.SessionService;
@@ -71,7 +72,7 @@ public class FTPServiceImpl implements FTPService,
 	SessionUtils sessionUtils;
 
 	@Autowired
-	CertificateService certificateService; 
+	CertificateResourceService certificateService; 
 
 	@Autowired
 	RealmRepository realmRepository;
@@ -274,7 +275,7 @@ public class FTPServiceImpl implements FTPService,
 	}
 	
 	
-	private void startFTPS() throws CertificateException, AccessDeniedException, IOException, KeyStoreException, NoSuchAlgorithmException {
+	private void startFTPS() throws CertificateException, AccessDeniedException, IOException, KeyStoreException, NoSuchAlgorithmException, ResourceCreationException {
 		
 		
 		FtpServerFactory serverFactory = new FtpServerFactory();
