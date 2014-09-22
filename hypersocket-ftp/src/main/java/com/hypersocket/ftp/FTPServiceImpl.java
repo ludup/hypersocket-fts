@@ -4,9 +4,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,12 +25,11 @@ import org.springframework.stereotype.Service;
 
 import com.hypersocket.auth.AuthenticationSchemeRepository;
 import com.hypersocket.auth.UsernameAndPasswordAuthenticator;
-import com.hypersocket.certs.CertificateService;
+import com.hypersocket.certificates.CertificateResourceService;
 import com.hypersocket.config.ConfigurationChangedEvent;
 import com.hypersocket.config.SystemConfigurationService;
 import com.hypersocket.events.SystemEvent;
 import com.hypersocket.i18n.I18NService;
-import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.realm.Realm;
 import com.hypersocket.realm.RealmAdapter;
 import com.hypersocket.realm.RealmRepository;
@@ -73,7 +69,7 @@ public class FTPServiceImpl implements FTPService,
 	SessionUtils sessionUtils;
 
 	@Autowired
-	CertificateService certificateService; 
+	CertificateResourceService certificateService; 
 
 	@Autowired
 	RealmRepository realmRepository;

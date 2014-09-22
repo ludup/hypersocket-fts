@@ -455,7 +455,6 @@ public class FileResourceServiceImpl extends
 
 				file.createFile();
 
-				UploadStartedEvent evt;
 				long bytesIn = 0;
 
 				long startedTimestamp = uploadStarted(resource, childPath,
