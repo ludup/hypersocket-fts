@@ -5,10 +5,10 @@ import com.hypersocket.realm.RolePermission;
 
 public enum FileResourcePermission implements PermissionType {
 
-	CREATE("mount.create"),
 	READ("mount.read", RolePermission.READ),
-	UPDATE("mount.update"),
-	DELETE("mount.delete");
+	CREATE("mount.create", READ),
+	UPDATE("mount.update", READ),
+	DELETE("mount.delete", READ);
 	
 	private final String val;
 	
