@@ -41,6 +41,8 @@ import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.permissions.PermissionCategory;
 import com.hypersocket.permissions.PermissionService;
 import com.hypersocket.permissions.PermissionType;
+import com.hypersocket.realm.Realm;
+import com.hypersocket.realm.RealmService;
 import com.hypersocket.resource.AbstractAssignableResourceRepository;
 import com.hypersocket.resource.AbstractAssignableResourceServiceImpl;
 import com.hypersocket.server.HypersocketServer;
@@ -79,6 +81,9 @@ public class FileResourceServiceImpl extends
 
 	@Autowired
 	EventService eventService;
+	
+	@Autowired
+	RealmService realmService;
 
 	Map<String, FileResourceScheme> schemes = new HashMap<String, FileResourceScheme>();
 
@@ -233,7 +238,7 @@ public class FileResourceServiceImpl extends
 			String mountPath = FileUtils.stripParentPath(rootPath, path);
 			String mountName = FileUtils.firstPathElement(mountPath);
 
-			for (FileResource r : getPersonalResources(getCurrentPrincipal())) {
+			for (FileResource r :allResources()) {
 				if (r.getName().equals(mountName)) {
 					return r;
 				}
