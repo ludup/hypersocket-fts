@@ -41,7 +41,6 @@ import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.permissions.PermissionCategory;
 import com.hypersocket.permissions.PermissionService;
 import com.hypersocket.permissions.PermissionType;
-import com.hypersocket.realm.Realm;
 import com.hypersocket.realm.RealmService;
 import com.hypersocket.resource.AbstractAssignableResourceRepository;
 import com.hypersocket.resource.AbstractAssignableResourceServiceImpl;
@@ -238,7 +237,7 @@ public class FileResourceServiceImpl extends
 			String mountPath = FileUtils.stripParentPath(rootPath, path);
 			String mountName = FileUtils.firstPathElement(mountPath);
 
-			for (FileResource r :allResources()) {
+			for (FileResource r : getPersonalResources(getCurrentPrincipal())) {
 				if (r.getName().equals(mountName)) {
 					return r;
 				}
@@ -346,7 +345,7 @@ public class FileResourceServiceImpl extends
 
 				return new ContentInputStream(resource, childPath, file,
 						position, file.getContent().getSize() - position,
-						FileResourceServiceImpl.this, started, protocol);
+						FileResourceServiceImpl.this, started, protocol, getCurrentSession());
 			}
 
 			@Override
@@ -963,17 +962,17 @@ public class FileResourceServiceImpl extends
 
 	@Override
 	public void downloadComplete(FileResource resource, String childPath,
-			FileObject file, long bytesOut, long timeMillis, String protocol) {
+			FileObject file, long bytesOut, long timeMillis, String protocol, Session session) {
 		eventService.publishEvent(new DownloadCompleteEvent(this,
-				getCurrentSession(), resource, childPath, bytesOut, timeMillis,
+				session, resource, childPath, bytesOut, timeMillis,
 				protocol));
 	}
 
 	@Override
 	public void downloadFailed(FileResource resource, String childPath,
-			FileObject file, Throwable t, String protocol) {
+			FileObject file, Throwable t, String protocol, Session session) {
 		eventService.publishEvent(new DownloadCompleteEvent(this, t,
-				getCurrentSession(), resource.getName(), childPath, protocol));
+				session, resource.getName(), childPath, protocol));
 	}
 
 	@Override

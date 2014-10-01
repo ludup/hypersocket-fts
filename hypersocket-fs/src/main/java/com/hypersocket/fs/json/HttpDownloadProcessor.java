@@ -16,6 +16,7 @@ import com.hypersocket.fs.ContentInputStream;
 import com.hypersocket.fs.DownloadEventProcessor;
 import com.hypersocket.fs.DownloadProcessor;
 import com.hypersocket.fs.FileResource;
+import com.hypersocket.session.Session;
 
 public class HttpDownloadProcessor implements DownloadProcessor {
 
@@ -28,16 +29,18 @@ public class HttpDownloadProcessor implements DownloadProcessor {
 	long start;
 	long length;
 	String protocol;
+	Session session;
 
 	static MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
 
 	public HttpDownloadProcessor(HttpServletRequest request,
-			HttpServletResponse response, long start, long length, String protocol) {
+			HttpServletResponse response, long start, long length, String protocol, Session session) {
 		this.request = request;
 		this.response = response;
 		this.start = start;
 		this.length = length;
 		this.protocol = protocol;
+		this.session = session;
 	}
 
 	@Override
@@ -73,15 +76,15 @@ public class HttpDownloadProcessor implements DownloadProcessor {
 				}
 
 				downloadEventProcessor.downloadComplete(resource, childPath,
-						file, length, System.currentTimeMillis() - started, protocol);
+						file, length, System.currentTimeMillis() - started, protocol, session);
 
 			} else {
 				request.setAttribute(CONTENT_INPUTSTREAM,
 						new ContentInputStream(resource, childPath, file,
-								start, length, downloadEventProcessor, started, protocol));
+								start, length, downloadEventProcessor, started, protocol, session));
 			}
 		} catch (IOException e) {
-			downloadEventProcessor.downloadFailed(resource, childPath, file, e, protocol);
+			downloadEventProcessor.downloadFailed(resource, childPath, file, e, protocol, session);
 		}
 
 	}

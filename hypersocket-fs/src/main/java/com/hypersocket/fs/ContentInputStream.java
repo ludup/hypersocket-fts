@@ -8,6 +8,8 @@ import org.apache.commons.vfs2.FileObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.hypersocket.session.Session;
+
 public class ContentInputStream extends InputStream {
 
 	static Logger log = LoggerFactory.getLogger(ContentInputStream.class);
@@ -21,17 +23,20 @@ public class ContentInputStream extends InputStream {
 	FileObject file;
 	InputStream in;
 	String protocol;
+	Session session;
 
 	public ContentInputStream(FileResource resource, String childPath,
 			FileObject file, long start, long length,
 			DownloadEventProcessor eventProcessor, long timeStarted,
-			String protocol) throws IOException {
+			String protocol,
+			Session session) throws IOException {
 		this.eventProcessor = eventProcessor;
 		this.resource = resource;
 		this.timeStarted = timeStarted;
 		this.childPath = childPath;
 		this.file = file;
 		this.protocol = protocol;
+		this.session = session;
 		this.in = new BufferedInputStream(file.getContent().getInputStream());
 		this.remaining = in.available();
 		if (start > 0) {
@@ -92,7 +97,7 @@ public class ContentInputStream extends InputStream {
 		if(in!=null) {
 			eventProcessor.downloadComplete(resource, childPath, file,
 					totalBytesOut, System.currentTimeMillis() - timeStarted,
-					protocol);
+					protocol, session);
 			in = null;
 			remaining = 0;
 		}
