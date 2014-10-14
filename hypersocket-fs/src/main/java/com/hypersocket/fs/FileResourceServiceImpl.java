@@ -292,17 +292,17 @@ public class FileResourceServiceImpl extends
 
 	public String resolveChildPath(String mountName, String path)
 			throws IOException {
-		return FileUtils.stripParentPath(
+		return FileUtils.checkEndsWithNoSlash(FileUtils.stripParentPath(
 				FileUtils.checkEndsWithSlash("/" + mountName),
-				FileUtils.checkEndsWithSlash(path));
+				FileUtils.checkEndsWithSlash(path)));
 	}
 
 	public String resolveURIChildPath(String mountName, String controllerPath,
 			String path) throws IOException {
-		return FileUtils
+		return FileUtils.checkEndsWithNoSlash(FileUtils
 				.stripParentPath(FileUtils.checkEndsWithSlash(server
 						.resolvePath(controllerPath + "/" + mountName)),
-						FileUtils.checkEndsWithSlash(path));
+						FileUtils.checkEndsWithSlash(path)));
 	}
 
 	public String resolveURIMountName(String controllerPath, String path)
@@ -530,17 +530,18 @@ public class FileResourceServiceImpl extends
 				if (file.exists()) {
 					boolean deleted = file.delete();
 
-					eventService.publishEvent(new DeleteFileEvent(this,
+					if(deleted) {
+						eventService.publishEvent(new DeleteFileEvent(this,
 							deleted, getCurrentSession(), resource, childPath,
 							protocol));
-
-					return deleted;
-				} else {
-					eventService
-							.publishEvent(new DeleteFileEvent(this, false,
+						return true;
+					}
+				} 
+				
+				eventService.publishEvent(new DeleteFileEvent(this, false,
 									getCurrentSession(), resource, childPath,
 									protocol));
-				}
+				
 			} catch (FileSystemException ex) {
 				eventService.publishEvent(new DeleteFileEvent(this, ex,
 						getCurrentSession(), resource.getName(), childPath,
