@@ -1,11 +1,15 @@
 package com.hypersocket.fs;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlTransient;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.plexus.util.StringUtils;
 
 import com.hypersocket.resource.AssignableResource;
 import com.hypersocket.util.FileUtils;
@@ -115,42 +119,47 @@ public class FileResource extends AssignableResource {
 	}
 	
 	public String getUrl() {
-		return getUrl(true);
+		return getUrl(true, null, null);
 	}
 	
 	@JsonIgnore
 	@XmlTransient
-	public String getPrivateUrl() {
-		return getUrl(false);
+	public String getPrivateUrl(String username, String password) {
+		return getUrl(false, username, password);
 	}
 	
-	private String getUrl(boolean friendly) {
-		StringBuffer buf = new StringBuffer();
-		buf.append(scheme);
-		buf.append("://");
-		if(username!=null && !username.equals("")) {
-			buf.append(username);
-			if(password!=null && !password.equals("")) {
-				buf.append(":");
-				if(friendly) {
-					buf.append("***");
-				} else {
-					buf.append(password);
+	private String getUrl(boolean friendly, String currentUsername, String currentPassword) {
+		try {
+			StringBuffer buf = new StringBuffer();
+			buf.append(scheme);
+			buf.append("://");
+			
+			if(StringUtils.isNotBlank(username)) {
+				buf.append(URLEncoder.encode(username.equals("${principalName}") ? currentUsername : username, "UTF-8"));
+				if(StringUtils.isNotBlank(password)) {
+					buf.append(":");
+					if(friendly) {
+						buf.append("***");
+					} else {
+						buf.append(URLEncoder.encode(password.equals("${password}") ? currentPassword : password, "UTF-8"));
+					}
+				}
+				buf.append("@");
+			} 
+			
+			if(server!=null && !server.equals("")) {
+				buf.append(server);
+				if(port!=null) {
+					buf.append(":");
+					buf.append(port);
 				}
 			}
-			buf.append("@");
-		}
-		
-		if(server!=null && !server.equals("")) {
-			buf.append(server);
-			if(port!=null) {
-				buf.append(":");
-				buf.append(port);
-			}
-		}
 
-		buf.append(FileUtils.checkStartsWithSlash(Utils.checkNull(path)));
-		return buf.toString();
+			buf.append(FileUtils.checkStartsWithSlash(Utils.checkNull(path)));
+			return buf.toString();
+		} catch (UnsupportedEncodingException e) {
+			throw new IllegalStateException("The system does not appear to support UTF-8!");
+		}
 	}
 
 	

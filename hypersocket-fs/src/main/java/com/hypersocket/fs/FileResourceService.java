@@ -7,6 +7,7 @@ import java.io.OutputStream;
 import java.util.List;
 
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
 
 import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.resource.AbstractAssignableResourceService;
@@ -67,5 +68,7 @@ public interface FileResourceService extends AbstractAssignableResourceService<F
 
 	FileObject createFolder(String parentPath, String newName, String protocol)
 			throws IOException, AccessDeniedException;
+
+	boolean testVFSUri(String privateUrl) throws FileSystemException;
 
 }

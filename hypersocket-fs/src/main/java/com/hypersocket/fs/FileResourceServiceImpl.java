@@ -327,7 +327,7 @@ public class FileResourceServiceImpl extends
 
 		// TODO verify permissions
 
-		return VFS.getManager().resolveFile(resource.getPrivateUrl());
+		return VFS.getManager().resolveFile(resource.getPrivateUrl(getCurrentUsername(), getCurrentPassword()));
 	}
 
 	@Override
@@ -854,7 +854,7 @@ public class FileResourceServiceImpl extends
 				FileResource mountResource = assertMountAccess(mountName);
 
 				FileObject fromFile = VFS.getManager().resolveFile(
-						processTokens(mountResource.getPrivateUrl()));
+						processTokens(mountResource.getPrivateUrl(getCurrentUsername(), getCurrentPassword())));
 
 				fromFile = fromFile.resolveFile(childPath);
 
@@ -914,14 +914,14 @@ public class FileResourceServiceImpl extends
 				FileResource fromResource = assertMountAccess(fromMountName);
 
 				FileObject fromFile = VFS.getManager().resolveFile(
-						fromResource.getPrivateUrl());
+						fromResource.getPrivateUrl(getCurrentUsername(), getCurrentPassword()));
 
 				fromFile = fromFile.resolveFile(fromChildPath);
 
 				FileResource toResource = assertMountAccess(toMountName);
 
 				FileObject toFile = VFS.getManager().resolveFile(
-						toResource.getPrivateUrl());
+						toResource.getPrivateUrl(getCurrentUsername(), getCurrentPassword()));
 
 				toFile = toFile.resolveFile(toChildPath);
 
@@ -1010,6 +1010,14 @@ public class FileResourceServiceImpl extends
 	protected void fireResourceDeletionEvent(FileResource resource, Throwable t) {
 		eventService.publishEvent(new FileResourceDeletedEvent(this, t,
 				getCurrentSession(), resource));
+	}
+
+	@Override
+	public boolean testVFSUri(String privateUrl) throws FileSystemException {
+		
+			FileObject file = VFS.getManager().resolveFile(privateUrl);
+			return file.exists();
+			
 	}
 
 }
