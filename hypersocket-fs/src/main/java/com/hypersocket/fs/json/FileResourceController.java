@@ -1,5 +1,6 @@
 package com.hypersocket.fs.json;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -168,7 +169,7 @@ public class FileResourceController extends ResourceController {
 						}
 
 						@Override
-						public List<?> getPage(String searchPattern, int start,
+						public Collection<?> getPage(String searchPattern, int start,
 								int length, ColumnSort[] sorting)
 								throws UnauthorizedException,
 								AccessDeniedException {
