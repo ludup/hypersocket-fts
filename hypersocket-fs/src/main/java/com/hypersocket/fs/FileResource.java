@@ -135,7 +135,11 @@ public class FileResource extends AssignableResource {
 			buf.append("://");
 			
 			if(StringUtils.isNotBlank(username)) {
-				buf.append(URLEncoder.encode(username.equals("${principalName}") ? currentUsername : username, "UTF-8"));
+				if(friendly) {
+					buf.append(username);
+				} else {
+					buf.append(URLEncoder.encode(username.equals("${principalName}") ? StringUtils.clean(currentUsername) : username, "UTF-8"));
+				}
 				if(StringUtils.isNotBlank(password)) {
 					buf.append(":");
 					if(friendly) {
@@ -155,7 +159,11 @@ public class FileResource extends AssignableResource {
 				}
 			}
 
-			buf.append(FileUtils.checkStartsWithSlash(Utils.checkNull(path)));
+			String thisPath = path;
+			if(!friendly) {
+				thisPath = thisPath.replace("${principalName}", currentUsername);
+			}
+			buf.append(FileUtils.checkStartsWithSlash(Utils.checkNull(thisPath)));
 			return buf.toString();
 		} catch (UnsupportedEncodingException e) {
 			throw new IllegalStateException("The system does not appear to support UTF-8!");

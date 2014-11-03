@@ -213,7 +213,7 @@ public class FileResourceServiceImpl extends
 	}
 
 	public FileResource getMountForURIPath(String host, String controllerPath,
-			String path) {
+			String path) throws AccessDeniedException {
 
 		if (isURIFilesystemRoot(path)) {
 			throw new IllegalArgumentException(
@@ -227,11 +227,11 @@ public class FileResourceServiceImpl extends
 	}
 
 	@Override
-	public FileResource getMountForPath(String path) {
+	public FileResource getMountForPath(String path) throws AccessDeniedException {
 		return getMountForPath("/", path);
 	}
 
-	private FileResource getMountForPath(String rootPath, String path) {
+	private FileResource getMountForPath(String rootPath, String path) throws AccessDeniedException {
 
 		try {
 			String mountPath = FileUtils.stripParentPath(rootPath, path);

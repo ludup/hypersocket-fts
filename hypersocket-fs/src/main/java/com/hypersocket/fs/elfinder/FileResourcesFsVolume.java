@@ -135,7 +135,7 @@ public class FileResourcesFsVolume implements FsVolume {
 						relativePath);
 				FileObject file = mountFile.resolveFile(childPath);
 				return new FileResourceFsItem(this, file, mount, mountFile);
-			} catch (IOException e) {
+			} catch (Exception e) {
 				log.error("Failed to create FsItem for " + relativePath, e);
 			}
 			return null;

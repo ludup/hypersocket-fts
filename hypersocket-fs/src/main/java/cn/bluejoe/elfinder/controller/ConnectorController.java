@@ -2,6 +2,7 @@ package cn.bluejoe.elfinder.controller;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.annotation.Resource;
@@ -27,6 +28,7 @@ import com.hypersocket.auth.json.AuthenticationRequired;
 import com.hypersocket.auth.json.UnauthorizedException;
 import com.hypersocket.fs.FileResource;
 import com.hypersocket.fs.FileResourceService;
+import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.session.json.SessionTimeoutException;
 import com.hypersocket.session.json.SessionUtils;
 
@@ -49,7 +51,10 @@ public class ConnectorController extends AuthenticatedController {
 	@AuthenticationRequired
 	@RequestMapping(value = "connector/{resourceName}", method = { RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT })
 	public void connector(HttpServletRequest request,
-			final HttpServletResponse response, @PathVariable String resourceName) throws IOException, UnauthorizedException, SessionTimeoutException {
+			final HttpServletResponse response,
+			@PathVariable String resourceName) throws IOException,
+			UnauthorizedException, SessionTimeoutException,
+			AccessDeniedException {
 
 		setupAuthenticatedContext(sessionUtils.getSession(request),
 				sessionUtils.getLocale(request));
@@ -57,7 +62,7 @@ public class ConnectorController extends AuthenticatedController {
 		try {
 
 			
-			List<FileResource> resources = fileResourceService.getPersonalResources(sessionUtils.getPrincipal(request));
+			Collection<FileResource> resources = fileResourceService.getPersonalResources(sessionUtils.getPrincipal(request));
 			
 			FileResource targetResource = null;
 			for(FileResource resource : resources) {

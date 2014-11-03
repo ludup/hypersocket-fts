@@ -54,8 +54,7 @@
 						<div class="propertyItem form-group">
 							<label class="col-md-3 control-label" localize="mount.path.label"></label>
 							<div class="propertyValue col-md-9">
-								<input type="text" class="form-control propertyInput"
-									placeholder="" id="path" maxlength="" name="path" value="">
+								<div id="pathField"></div>
 								<div>
 									<span class="help-block" localize="mount.path.info"></span>
 								</div>
@@ -67,8 +66,7 @@
 						<div class="propertyItem form-group credsDiv">
 							<label class="col-md-3 control-label" localize="mount.username.label"></label>
 							<div class="propertyValue col-md-9">
-								<input type="text" class="form-control propertyInput"
-									placeholder="" id="username" maxlength="" name="username" value="">
+								<div id="usernameField"></div>
 								<div>
 									<span class="help-block" localize="mount.username.info"></span>
 								</div>
@@ -77,10 +75,9 @@
 						<div class="propertyItem form-group credsDiv">
 							<label class="col-md-3 control-label" localize="mount.password.label"></label>
 							<div class="propertyValue col-md-9">
-								<input type="password" class="form-control propertyInput"
-									placeholder="" id="password" maxlength="" name="password" value="">
+								<div id="passwordField"></div>
 								<div>
-									<span class="help-block" localize="mount.username.info"></span>
+									<span class="help-block" localize="mount.password.info"></span>
 								</div>
 							</div>
 						</div>	
@@ -134,7 +131,23 @@
 <script type="text/javascript">
 	$(document).ready(function() {
 				$('#tabMounts').localize();
-					
+				
+				$('#usernameField').textInputWithVariables({
+					id: 'username',
+					variables: ['principalName']
+				});
+				
+				$('#pathField').textInputWithVariables({
+					id: 'path',
+					variables: ['principalName']
+				});
+				
+				$('#passwordField').textInputWithVariables({
+					id: 'password',
+					type: 'password',
+					variables: ['password']
+				});
+				
 				$('#schemeButton').selectButton({
 					id: 'scheme',
 					url: 'mounts/schemes',

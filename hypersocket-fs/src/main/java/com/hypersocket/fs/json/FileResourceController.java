@@ -308,31 +308,31 @@ public class FileResourceController extends ResourceController {
 
 		resource.setRoles(roles);
 
-		try {
-			if (!mountService.testVFSUri(resource.getPrivateUrl(username,
-					password))) {
-				if (creating) {
-					throw new ResourceCreationException(
-							FileResourceServiceImpl.RESOURCE_BUNDLE,
-							"error.fileDoesNotExist", resource.getUrl());
-				} else {
-					throw new ResourceChangeException(
-							FileResourceServiceImpl.RESOURCE_BUNDLE,
-							"error.fileDoesNotExist", resource.getUrl());
-				}
-			}
-		} catch (FileSystemException e) {
-			log.error("Failed to access " + resource.getUrl(), e);
-			if (creating) {
-				throw new ResourceCreationException(
-						FileResourceServiceImpl.RESOURCE_BUNDLE,
-						"error.failedToAccessFile", e.getMessage());
-			} else {
-				throw new ResourceChangeException(
-						FileResourceServiceImpl.RESOURCE_BUNDLE,
-						"error.failedToAccessFile", e.getMessage());
-			}
-		}
+//		try {
+//			if (!mountService.testVFSUri(resource.getPrivateUrl(username,
+//					password))) {
+//				if (creating) {
+//					throw new ResourceCreationException(
+//							FileResourceServiceImpl.RESOURCE_BUNDLE,
+//							"error.fileDoesNotExist", resource.getUrl());
+//				} else {
+//					throw new ResourceChangeException(
+//							FileResourceServiceImpl.RESOURCE_BUNDLE,
+//							"error.fileDoesNotExist", resource.getUrl());
+//				}
+//			}
+//		} catch (FileSystemException e) {
+//			log.error("Failed to access " + resource.getUrl(), e);
+//			if (creating) {
+//				throw new ResourceCreationException(
+//						FileResourceServiceImpl.RESOURCE_BUNDLE,
+//						"error.failedToAccessFile", e.getMessage());
+//			} else {
+//				throw new ResourceChangeException(
+//						FileResourceServiceImpl.RESOURCE_BUNDLE,
+//						"error.failedToAccessFile", e.getMessage());
+//			}
+//		}
 	}
 
 }

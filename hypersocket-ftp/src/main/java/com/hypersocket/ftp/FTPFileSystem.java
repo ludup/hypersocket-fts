@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hypersocket.fs.FileResource;
+import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.util.FileUtils;
 
 public class FTPFileSystem implements FileSystemView {
@@ -72,10 +73,13 @@ public class FTPFileSystem implements FileSystemView {
 			}
 		}
 
-		// Resolve the file from the working directory
-		FileResource mount = factory.getFileResourceService().getMountForPath(path);
+
 
 		try {
+			
+			// Resolve the file from the working directory
+			FileResource mount = factory.getFileResourceService().getMountForPath(path);
+			
 			FileObject mountFile = factory.getFileResourceService().resolveMountFile(mount);
 
 			String childPath = factory.getFileResourceService()
@@ -91,6 +95,9 @@ public class FTPFileSystem implements FileSystemView {
 
 			}
 		} catch (FileSystemException e) {
+			log.error("Failed to resolve file " + path, e);
+			throw new FtpException(e);
+		} catch (AccessDeniedException e) {
 			log.error("Failed to resolve file " + path, e);
 			throw new FtpException(e);
 		} catch (IOException e) {

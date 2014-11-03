@@ -147,7 +147,6 @@ public class FileSystemController extends AuthenticatedController {
 		try {
 
 			String uri = URLDecoder.decode(request.getRequestURI(), "UTF-8");
-			
 			mountService.downloadURIFile(request.getHeader("Host"), 
 					"api/fs/download", uri, new HttpDownloadProcessor(request, response, 0, Long.MAX_VALUE, HTTP_PROTOCOL, sessionUtils.getActiveSession(request)), HTTP_PROTOCOL);
 			

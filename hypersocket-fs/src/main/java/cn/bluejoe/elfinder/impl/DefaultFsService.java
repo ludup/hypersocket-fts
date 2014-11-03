@@ -102,6 +102,7 @@ public class DefaultFsService implements FsService
 			return volumes;
 			
 		} catch (Exception e) {
+			e.printStackTrace();
 		}
 		return null;
 	}

@@ -14,7 +14,8 @@ import com.hypersocket.resource.AbstractAssignableResourceService;
 
 public interface FileResourceService extends AbstractAssignableResourceService<FileResource> {
 
-	FileResource getMountForURIPath(String host, String controllerPath, String path) throws FileNotFoundException;
+	FileResource getMountForURIPath(String host, String controllerPath,
+			String path) throws FileNotFoundException, AccessDeniedException;
 
 	boolean isURIFilesystemRoot(String path);
 
@@ -47,7 +48,7 @@ public interface FileResourceService extends AbstractAssignableResourceService<F
 	void uploadURIFile(String host, String controllerPath, String uri,
 			InputStream in, UploadProcessor<?> processor, String protocol) throws IOException, AccessDeniedException;
 
-	FileResource getMountForPath(String path);
+	FileResource getMountForPath(String path) throws AccessDeniedException;
 
 	String resolveChildPath(FileResource resource, String path)
 			throws IOException;
