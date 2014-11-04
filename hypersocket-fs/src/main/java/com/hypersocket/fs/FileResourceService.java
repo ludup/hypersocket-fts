@@ -10,6 +10,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 
 import com.hypersocket.permissions.AccessDeniedException;
+import com.hypersocket.realm.UserVariableReplacement;
 import com.hypersocket.resource.AbstractAssignableResourceService;
 
 public interface FileResourceService extends AbstractAssignableResourceService<FileResource> {
@@ -71,5 +72,7 @@ public interface FileResourceService extends AbstractAssignableResourceService<F
 			throws IOException, AccessDeniedException;
 
 	boolean testVFSUri(String privateUrl) throws FileSystemException;
+
+	UserVariableReplacement getUserVariableReplacement();
 
 }

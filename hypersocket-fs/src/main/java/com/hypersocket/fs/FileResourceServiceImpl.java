@@ -42,6 +42,8 @@ import com.hypersocket.permissions.PermissionCategory;
 import com.hypersocket.permissions.PermissionService;
 import com.hypersocket.permissions.PermissionType;
 import com.hypersocket.realm.RealmService;
+import com.hypersocket.realm.UserVariableReplacement;
+import com.hypersocket.realm.VariableReplacement;
 import com.hypersocket.resource.AbstractAssignableResourceRepository;
 import com.hypersocket.resource.AbstractAssignableResourceServiceImpl;
 import com.hypersocket.server.HypersocketServer;
@@ -84,6 +86,9 @@ public class FileResourceServiceImpl extends
 	@Autowired
 	RealmService realmService;
 
+	@Autowired 
+	UserVariableReplacement userVariableReplacement;
+	
 	Map<String, FileResourceScheme> schemes = new HashMap<String, FileResourceScheme>();
 
 	public FileResourceServiceImpl() {
@@ -327,7 +332,7 @@ public class FileResourceServiceImpl extends
 
 		// TODO verify permissions
 
-		return VFS.getManager().resolveFile(resource.getPrivateUrl(getCurrentUsername(), getCurrentPassword()));
+		return VFS.getManager().resolveFile(resource.getPrivateUrl(getCurrentPrincipal(), userVariableReplacement));
 	}
 
 	@Override
@@ -854,7 +859,7 @@ public class FileResourceServiceImpl extends
 				FileResource mountResource = assertMountAccess(mountName);
 
 				FileObject fromFile = VFS.getManager().resolveFile(
-						processTokens(mountResource.getPrivateUrl(getCurrentUsername(), getCurrentPassword())));
+						processTokens(mountResource.getPrivateUrl(getCurrentPrincipal(), userVariableReplacement)));
 
 				fromFile = fromFile.resolveFile(childPath);
 
@@ -914,14 +919,14 @@ public class FileResourceServiceImpl extends
 				FileResource fromResource = assertMountAccess(fromMountName);
 
 				FileObject fromFile = VFS.getManager().resolveFile(
-						fromResource.getPrivateUrl(getCurrentUsername(), getCurrentPassword()));
+						fromResource.getPrivateUrl(getCurrentPrincipal(), userVariableReplacement));
 
 				fromFile = fromFile.resolveFile(fromChildPath);
 
 				FileResource toResource = assertMountAccess(toMountName);
 
 				FileObject toFile = VFS.getManager().resolveFile(
-						toResource.getPrivateUrl(getCurrentUsername(), getCurrentPassword()));
+						toResource.getPrivateUrl(getCurrentPrincipal(), userVariableReplacement));
 
 				toFile = toFile.resolveFile(toChildPath);
 
@@ -1018,6 +1023,11 @@ public class FileResourceServiceImpl extends
 			FileObject file = VFS.getManager().resolveFile(privateUrl);
 			return file.exists();
 			
+	}
+
+	@Override
+	public UserVariableReplacement getUserVariableReplacement() {
+		return userVariableReplacement;
 	}
 
 }

@@ -11,6 +11,8 @@ import javax.xml.bind.annotation.XmlTransient;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.plexus.util.StringUtils;
 
+import com.hypersocket.realm.Principal;
+import com.hypersocket.realm.UserVariableReplacement;
 import com.hypersocket.resource.AssignableResource;
 import com.hypersocket.util.FileUtils;
 import com.hypersocket.util.Utils;
@@ -124,11 +126,11 @@ public class FileResource extends AssignableResource {
 	
 	@JsonIgnore
 	@XmlTransient
-	public String getPrivateUrl(String username, String password) {
-		return getUrl(false, username, password);
+	public String getPrivateUrl(Principal principal, UserVariableReplacement replacementService) {
+		return getUrl(false, principal, replacementService);
 	}
 	
-	private String getUrl(boolean friendly, String currentUsername, String currentPassword) {
+	private String getUrl(boolean friendly, Principal principal, UserVariableReplacement replacementService) {
 		try {
 			StringBuffer buf = new StringBuffer();
 			buf.append(scheme);
@@ -138,14 +140,14 @@ public class FileResource extends AssignableResource {
 				if(friendly) {
 					buf.append(username);
 				} else {
-					buf.append(URLEncoder.encode(username.equals("${principalName}") ? StringUtils.clean(currentUsername) : username, "UTF-8"));
+					buf.append(URLEncoder.encode(replacementService.replaceVariables(principal, username), "UTF-8"));
 				}
 				if(StringUtils.isNotBlank(password)) {
 					buf.append(":");
 					if(friendly) {
 						buf.append("***");
 					} else {
-						buf.append(URLEncoder.encode(password.equals("${password}") ? currentPassword : password, "UTF-8"));
+						buf.append(URLEncoder.encode(replacementService.replaceVariables(principal, password), "UTF-8"));
 					}
 				}
 				buf.append("@");
@@ -161,7 +163,7 @@ public class FileResource extends AssignableResource {
 
 			String thisPath = path;
 			if(!friendly) {
-				thisPath = thisPath.replace("${principalName}", currentUsername);
+				thisPath = replacementService.replaceVariables(principal, thisPath);
 			}
 			buf.append(FileUtils.checkStartsWithSlash(Utils.checkNull(thisPath)));
 			return buf.toString();

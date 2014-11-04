@@ -134,12 +134,12 @@
 				
 				$('#usernameField').textInputWithVariables({
 					id: 'username',
-					variables: ['principalName']
+					url: 'realms/realm/userVariables/' + $(document).data('session').currentRealm.id
 				});
 				
 				$('#pathField').textInputWithVariables({
 					id: 'path',
-					variables: ['principalName']
+					url: 'realms/realm/userVariables/' + $(document).data('session').currentRealm.id
 				});
 				
 				$('#passwordField').textInputWithVariables({

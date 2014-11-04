@@ -1,11 +1,13 @@
 package com.hypersocket.fs;
 
 import com.hypersocket.permissions.PermissionType;
+import com.hypersocket.realm.ProfilePermission;
+import com.hypersocket.realm.RealmPermission;
 import com.hypersocket.realm.RolePermission;
 
 public enum FileResourcePermission implements PermissionType {
 
-	READ("mount.read", RolePermission.READ),
+	READ("mount.read", RolePermission.READ, RealmPermission.READ),
 	CREATE("mount.create", READ),
 	UPDATE("mount.update", READ),
 	DELETE("mount.delete", READ);
