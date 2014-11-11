@@ -89,9 +89,9 @@ public class FTPFileSystem implements FileSystemView {
 				return new SessionContextFtpFileAdapter(new MountFile(user.getSession(), factory, mount, mountFile), factory);
 			} else {
 				FileObject file = mountFile.resolveFile(childPath);
-				return new FileObjectFile(user.getSession(), factory, mount, file, "/"
+				return new SessionContextFtpFileAdapter(new FileObjectFile(user.getSession(), factory, mount, file, "/"
 						+ FileUtils.checkEndsWithSlash(mount.getName())
-						+ childPath);
+						+ childPath), factory);
 
 			}
 		} catch (FileSystemException e) {

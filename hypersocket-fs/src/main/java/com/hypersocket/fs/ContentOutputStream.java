@@ -6,6 +6,8 @@ import java.io.OutputStream;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 
+import com.hypersocket.session.Session;
+
 public class ContentOutputStream extends OutputStream {
 
 	OutputStream out;
@@ -16,7 +18,7 @@ public class ContentOutputStream extends OutputStream {
 	UploadEventProcessor eventProcessor;
 	long bytesIn = 0;
 	String protocol;
-
+	
 	public ContentOutputStream(FileResource resource, String childPath,
 			FileObject file, long position, long started,
 			UploadEventProcessor eventProcessor, String protocol)
