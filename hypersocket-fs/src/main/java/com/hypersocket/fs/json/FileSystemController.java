@@ -194,6 +194,7 @@ public class FileSystemController extends AuthenticatedController {
 				}
 				
 			};
+			
 			mountService.uploadURIFile(request.getHeader("Host"), 
 					"api/fs/upload", uri, file.getInputStream(), processor, HTTP_PROTOCOL);
 			

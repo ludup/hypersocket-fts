@@ -482,10 +482,12 @@ public class FileResourceServiceImpl extends
 				long startedTimestamp = uploadStarted(resource, childPath,
 						file, protocol);
 
+				OutputStream out = file.getContent().getOutputStream();
 				try {
-
-					StreamUtils.copy(in, file.getContent().getOutputStream());
+					
+					StreamUtils.copy(in, out);
 					file.refresh();
+					
 					uploadComplete(resource, childPath, file, bytesIn,
 							System.currentTimeMillis() - startedTimestamp,
 							protocol);
@@ -495,6 +497,9 @@ public class FileResourceServiceImpl extends
 					eventService.publishEvent(new UploadCompleteEvent(this,
 							getCurrentSession(), e, resource.getName(),
 							childPath, protocol));
+				} finally {
+					FileUtils.closeQuietly(in);
+					FileUtils.closeQuietly(out);
 				}
 
 				processor.processUpload(resource, resolveMountFile(resource),
