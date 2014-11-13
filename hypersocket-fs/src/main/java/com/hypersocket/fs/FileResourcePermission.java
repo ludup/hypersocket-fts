@@ -1,7 +1,6 @@
 package com.hypersocket.fs;
 
 import com.hypersocket.permissions.PermissionType;
-import com.hypersocket.realm.ProfilePermission;
 import com.hypersocket.realm.RealmPermission;
 import com.hypersocket.realm.RolePermission;
 

@@ -6,7 +6,6 @@ import java.io.OutputStream;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 
-import com.hypersocket.session.Session;
 import com.hypersocket.util.FileUtils;
 
 public class ContentOutputStream extends OutputStream {
