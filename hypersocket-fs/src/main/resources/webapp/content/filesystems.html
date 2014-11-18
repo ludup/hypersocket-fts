@@ -132,17 +132,17 @@
 	$(document).ready(function() {
 				$('#tabMounts').localize();
 				
-				$('#usernameField').textInputWithVariables({
+				$('#usernameField').textInput({
 					id: 'username',
 					url: 'realms/realm/userVariables/' + $(document).data('session').currentRealm.id
 				});
 				
-				$('#pathField').textInputWithVariables({
+				$('#pathField').textInput({
 					id: 'path',
 					url: 'realms/realm/userVariables/' + $(document).data('session').currentRealm.id
 				});
 				
-				$('#passwordField').textInputWithVariables({
+				$('#passwordField').textInput({
 					id: 'password',
 					type: 'password',
 					variables: ['password']
@@ -157,6 +157,9 @@
 					resourceKeyTemplate: 'mount.{0}.label',
 					name: 'file',
 					value: 'file',
+					getUrlData: function(data) {
+						return data.resources;
+					},
 					changed: function(scheme) {
 						if(scheme.remote) {
 							$('.remoteDiv').show();

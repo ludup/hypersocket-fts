@@ -9,8 +9,8 @@
 		<property resourceKey="ftp.port" inputType="number"
 			minValue="1" maxValue="65535" weight="200" defaultValue="21" developmentValue="2221" />
 		
-		<property resourceKey="ftp.idleTimeout" inputType="slider" stepValue="1" labelResourceKey="seconds.label"
-			minValue="0" maxValue="3600" weight="300" defaultValue="360" />
+		<property resourceKey="ftp.idleTimeout" inputType="slider" step="1" labelResourceKey="seconds.label"
+			min="0" max="3600" weight="300" defaultValue="360" />
 		
 		<property resourceKey="ftp.interfaces" inputType="multipleSelect"
 			restart="true" url="server/networkInterfaces" selectAllIfEmpty="true"
@@ -27,8 +27,8 @@
 		<property resourceKey="ftps.port" inputType="number"
 			minValue="1" maxValue="65535" weight="200" defaultValue="990" developmentValue="9990" />
 		
-		<property resourceKey="ftps.idleTimeout" inputType="slider" stepValue="1" labelResourceKey="seconds.label"
-			minValue="0" maxValue="3600" weight="300" defaultValue="360" />
+		<property resourceKey="ftps.idleTimeout" inputType="slider" step="1" labelResourceKey="seconds.label"
+			min="0" max="3600" weight="300" defaultValue="360" />
 		
 		<property resourceKey="ftps.interfaces" inputType="multipleSelect"
 			restart="true" url="server/networkInterfaces" selectAllIfEmpty="true"
