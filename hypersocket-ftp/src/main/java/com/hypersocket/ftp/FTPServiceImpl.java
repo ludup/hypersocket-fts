@@ -120,7 +120,7 @@ public class FTPServiceImpl implements FTPService,
 				modules.add(UsernameAndPasswordAuthenticator.RESOURCE_KEY);
 				schemeRepository.createScheme(realm,
 						AUTHENTICATION_SCHEME_NAME, modules,
-						AUTHENTICATION_SCHEME_RESOURCE_KEY, true);
+						AUTHENTICATION_SCHEME_RESOURCE_KEY);
 			}
 		});
 
