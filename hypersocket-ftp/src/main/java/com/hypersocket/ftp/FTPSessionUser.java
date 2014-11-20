@@ -19,7 +19,7 @@ public class FTPSessionUser implements User {
 	}
 	
 	public Principal getPrincipal() {
-		return session.getPrincipal();
+		return session.getCurrentPrincipal();
 	}
 
 	public AuthorizationRequest authorize(AuthorizationRequest arg0) {
@@ -47,7 +47,7 @@ public class FTPSessionUser implements User {
 	}
 
 	public String getName() {
-		return session.getPrincipal().getPrincipalName();
+		return session.getCurrentPrincipal().getPrincipalName();
 	}
 
 	public String getPassword() {

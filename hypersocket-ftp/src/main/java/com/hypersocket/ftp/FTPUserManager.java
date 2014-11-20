@@ -85,7 +85,7 @@ public class FTPUserManager implements UserManager {
 					}
 					// We have authenticated!
 					if(log.isDebugEnabled()) {
-						log.debug(state.getSession().getPrincipal().getName() + " has authenticated via FTP authentication");
+						log.debug(state.getSession().getCurrentPrincipal().getName() + " has authenticated via FTP authentication");
 					}
 					
 					return new FTPSessionUser(state.getSession(), pwd.getPassword());

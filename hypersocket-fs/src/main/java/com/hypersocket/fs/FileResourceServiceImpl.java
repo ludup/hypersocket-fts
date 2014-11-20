@@ -844,7 +844,9 @@ public class FileResourceServiceImpl extends
 
 	protected String processTokens(String url) {
 		Session session = getCurrentSession();
-		url = url.replace("${username}", session.getPrincipal()
+		url = url.replace("${username}", session.getCurrentPrincipal()
+				.getPrincipalName());
+		url = url.replace("${principalName}", session.getCurrentPrincipal()
 				.getPrincipalName());
 		url = url.replace("${password}", "");
 		return url;

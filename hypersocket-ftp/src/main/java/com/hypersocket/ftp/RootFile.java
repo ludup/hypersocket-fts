@@ -53,7 +53,7 @@ public class RootFile implements FtpFile {
 	}
 
 	public String getGroupName() {
-		return session.getPrincipal().getPrincipalName();
+		return session.getCurrentPrincipal().getPrincipalName();
 	}
 
 	public long getLastModified() {
@@ -69,7 +69,7 @@ public class RootFile implements FtpFile {
 	}
 
 	public String getOwnerName() {
-		return session.getPrincipal().getPrincipalName();
+		return session.getCurrentPrincipal().getPrincipalName();
 	}
 
 	public long getSize() {
@@ -104,7 +104,7 @@ public class RootFile implements FtpFile {
 		List<FtpFile> ret = new ArrayList<FtpFile>();
 		try {
 			for (FileResource resource : factory.getFileResourceService()
-					.getResources(session.getPrincipal())) {
+					.getResources(session.getCurrentPrincipal())) {
 				try {
 					ret.add(new MountFile(session, factory, resource, factory.getFileResourceService().resolveMountFile(resource)));
 				} catch (IOException e) {
