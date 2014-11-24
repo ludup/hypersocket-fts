@@ -105,8 +105,8 @@ public class FTPServiceImpl implements FTPService,
 		realmService.registerRealmListener(new RealmAdapter() {
 			
 			public boolean hasCreatedDefaultResources(Realm realm) {
-				return schemeRepository.getSchemeByResourceKey(realm,
-						AUTHENTICATION_SCHEME_RESOURCE_KEY) != null;
+				return schemeRepository.getSchemeByResourceKeyCount(realm,
+						AUTHENTICATION_SCHEME_RESOURCE_KEY) > 0;
 			}
 			public void onCreateRealm(Realm realm) {
 				
