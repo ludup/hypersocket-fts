@@ -132,23 +132,23 @@
 	$(document).ready(function() {
 				$('#tabMounts').localize();
 				
-				$('#usernameField').textInput({
+				var usernameInput = $('#usernameField').textInput({
 					id: 'username',
 					url: 'realms/realm/userVariables/' + $(document).data('session').currentRealm.id
 				});
 				
-				$('#pathField').textInput({
+				var pathInput = $('#pathField').textInput({
 					id: 'path',
 					url: 'realms/realm/userVariables/' + $(document).data('session').currentRealm.id
 				});
 				
-				$('#passwordField').textInput({
+				var passwordInput = $('#passwordField').textInput({
 					id: 'password',
 					type: 'password',
 					variables: ['password']
 				});
 				
-				$('#schemeButton').selectButton({
+				var schemeButton = $('#schemeButton').selectButton({
 					id: 'scheme',
 					url: 'mounts/schemes',
 					nameAttr: 'scheme',
@@ -160,7 +160,8 @@
 					getUrlData: function(data) {
 						return data.resources;
 					},
-					changed: function(scheme) {
+					changed: function(widget) {
+						var scheme = widget.getSelectedObject();
 						if(scheme.remote) {
 							$('.remoteDiv').show();
 							
@@ -188,7 +189,6 @@
 						}
 					}
 				});
-
 				
 				if(currentMenu.canCreate || currentMenu.canUpdate) {
 					getJSON('roles/list', null, function(data) {
@@ -270,18 +270,18 @@
 							},
 							clearDialog : function() {
 								
-								$('#scheme').prop('disabled', false);
-								$('#scheme').val('file');
-								$('#scheme').trigger('change');
+								schemeButton.enable();
+								schemeButton.setValue('file');
+
 								$('#resourceId').val('');
 								$('#resourceName').val('');
 								
 								$('#serverName').val('');
 								$('#port').val('');
-								$('#path').val('');
 								
-								$('#username').val('');
-								$('#password').val('');
+								pathInput.setValue('');
+								usernameInput.setValue('');
+								passwordInput.setValue('');
 								
 								$('#readOnly').prop('checked', false);
 								$('#showHidden').prop('checked', false);
@@ -293,12 +293,12 @@
 								resource = new Object();
 								resource.id = $('#resourceId').val();
 								resource.name = $('#resourceName').val();
-								resource.scheme = $('#scheme').val();
+								resource.scheme = schemeButton.getValue();
 								resource.server = $('#serverName').val();
 								resource.port = $('#port').val();
-								resource.path = $('#path').val();
-								resource.username = $('#username').val();
-								resource.password = $('#password').val();
+								resource.path = pathInput.getValue();
+								resource.username = usernameInput.getValue();
+								resource.password = passwordInput.getValue();
 								resource.readOnly = $('#readOnly').prop('checked') ? true : false;
 								resource.showHidden = $('#showHidden').prop('checked') ? true : false;
 								resource.showFolders = $('#showFolders').prop('checked') ? true : false;
@@ -311,14 +311,13 @@
 								
 								$('#resourceId').val(resource.id);
 								$('#resourceName').val(resource.name);
-								$('#scheme').val(resource.scheme);
-								$('#scheme').trigger('change');
-								$('#scheme').prop('disabled', true);
+								schemeButton.setValue(resource.scheme);
+								schemeButton.disable();
 								$('#serverName').val(resource.server);
 								$('#port').val(resource.port);
-								$('#path').val(resource.path);
-								$('#username').val(resource.username);
-								$('#password').val(resource.password);
+								pathInput.setValue(resource.path);
+								usernameInput.setValue(resource.username);
+								passwordInput.setValue(resource.password);
 								if(resource.readOnly) {
 									$('#readOnly').prop('checked', true);
 								}

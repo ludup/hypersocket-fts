@@ -46,6 +46,7 @@ import com.hypersocket.tables.Column;
 import com.hypersocket.tables.ColumnSort;
 import com.hypersocket.tables.DataTablesResult;
 import com.hypersocket.tables.json.DataTablesPageProcessor;
+import com.hypersocket.util.FileUtils;
 
 @Controller
 public class FileResourceController extends ResourceController {
@@ -297,7 +298,7 @@ public class FileResourceController extends ResourceController {
 		resource.setScheme(update.getScheme());
 		resource.setServer(update.getServer());
 		resource.setPort(update.getPort());
-		resource.setPath(update.getPath());
+		resource.setPath(FileUtils.convertBackslashToForwardSlash(update.getPath()));
 		resource.setUsername(update.getUsername());
 		resource.setPassword(update.getPassword());
 
