@@ -272,7 +272,8 @@
 								
 								schemeButton.enable();
 								schemeButton.setValue('file');
-
+								schemeButton.changed();
+								
 								$('#resourceId').val('');
 								$('#resourceName').val('');
 								
@@ -313,6 +314,7 @@
 								$('#resourceName').val(resource.name);
 								schemeButton.setValue(resource.scheme);
 								schemeButton.disable();
+								schemeButton.changed();
 								$('#serverName').val(resource.server);
 								$('#port').val(resource.port);
 								pathInput.setValue(resource.path);
