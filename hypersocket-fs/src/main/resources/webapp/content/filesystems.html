@@ -134,12 +134,18 @@
 				
 				var usernameInput = $('#usernameField').textInput({
 					id: 'username',
-					url: 'realms/realm/userVariables/' + $(document).data('session').currentRealm.id
+					url: 'realms/realm/userVariables/' + $(document).data('session').currentRealm.id,
+					getUrlData: function(data) {
+						return data.resources;
+					}
 				});
 				
 				var pathInput = $('#pathField').textInput({
 					id: 'path',
-					url: 'realms/realm/userVariables/' + $(document).data('session').currentRealm.id
+					url: 'realms/realm/userVariables/' + $(document).data('session').currentRealm.id,
+					getUrlData: function(data) {
+						return data.resources;
+					}
 				});
 				
 				var passwordInput = $('#passwordField').textInput({
