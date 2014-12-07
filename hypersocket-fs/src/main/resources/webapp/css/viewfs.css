@@ -1,0 +1,79 @@
+body {
+	height: auto;
+}
+
+#header {
+	height: 60px;
+	width: 100%;
+	background-color: #212c43;
+	padding-right: 10px;
+}
+
+#header img {
+	padding: 20px;
+}
+
+#navigation {
+	height: 25px;
+	width: 100%;
+}
+
+#table {
+	background: white;
+}
+
+.tableAction {
+	cursor: pointer;
+	margin-right: 10px;1 
+}
+
+.fileIcon {
+	margin-right: 10px;
+}
+
+.fixed-table-toolbar {
+	margin-top: 10px;
+	padding-right: 10px;
+}
+
+.fixed-table-pagination {
+	position: fixed;
+	width: 100%;
+	bottom: 0;
+	/* Set the fixed height of the footer here */
+	height: 60px;
+	background-color: #212c43;
+	color: #fff;
+	bottom: 0;
+	z-index: 99999;
+	padding-right: 10px;
+	padding-left: 10px;
+}
+
+.notifyjs-foo-base {
+  width: 400px;
+  background: #F5F5F5;
+  padding: 5px;
+}
+
+.notifyjs-foo-base .title {
+  width: 300px;
+  float: left;
+  margin: 10px 0 0 10px;
+  text-align: right;
+}
+
+.notifyjs-foo-base .buttons {
+  width: 70px;
+  float: right;
+  font-size: 9px;
+  padding: 5px;
+  margin: 2px;
+}
+
+.notifyjs-foo-base button {
+  font-size: 9px;
+  padding: 5px;
+  margin: 2px;
+  width: 60px;
+}

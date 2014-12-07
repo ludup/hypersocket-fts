@@ -1,52 +1,260 @@
-<!DOCTYPE html>
 <html>
-	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-		<title localize="fileResources.title"></title>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>File View</title>
+<link rel="shortcut icon" href="${uiPath}${brandIcon}">
+<link rel="icon" type="image/png"
+	href="${uiPath}/images/shield_16x16.png">
+<link href="${uiPath}/css/bootstrap.min.css" rel="stylesheet">
+<link href="${uiPath}/css/font-awesome.min.css" rel="stylesheet">
+<link rel="stylesheet" type="text/css"
+	href="${uiPath}/css/bootstrap-table.min.css" media="screen" />
+<link rel="stylesheet" type="text/css"
+	href="${uiPath}/css/bootstrap-editable.css" media="screen" />
+<link href="${uiPath}/css/viewfs.css" rel="stylesheet">
 
-		<!-- jQuery and jQuery UI (REQUIRED) -->
-		<link rel="stylesheet" type="text/css" media="screen" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/themes/smoothness/jquery-ui.css">
-		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/jquery-ui.min.js"></script>
+<script src="${uiPath}/js/jquery.min.js"></script>
+<script src="${uiPath}/js/jquery-ui.min.js"></script>
+<script src="${uiPath}/js/bootstrap.min.js"></script>
+<script src="${uiPath}/js/bootbox.min.js"></script>
+<script src="${uiPath}/js/jquery.min.js"></script>
+<script src="${uiPath}/js/jquery-ui.min.js"></script>
+<script src="${uiPath}/js/bootstrap.min.js"></script>
+<script src="${uiPath}/js/bootbox.min.js"></script>
+<script src="${uiPath}/js/jquery.bootpag.min.js"></script>
+<script src="${uiPath}/js/jquery.dataTables.min.js"></script>
+<script src="${uiPath}/js/dataTables.bootstrap.js"></script>
+<script src="${uiPath}/js/dataTables.tableTools.js"></script>
+<script src="${uiPath}/js/spin-min.js"></script>
+<script src="${uiPath}/js/jquery.hotkeys.js"></script>
+<script src="${uiPath}/js/bootstrap-wysiwyg.js"></script>
+<script src="${uiPath}/js/codemirror.js"></script>
+<script src="${uiPath}/js/bootstrap-slider.min.js"></script>
+<script src="${uiPath}/js/bootstrap-datepicker.js"></script>
+<script src="${uiPath}/js/notify.min.js"></script>
+<script src="${uiPath}/js/hypersocket-utils.js"></script>
+<script src="${uiPath}/js/hypersocket-widgets.js"></script>
+<script src="${uiPath}/js/hypersocket-properties.js"></script>
+<script src="${uiPath}/js/hypersocket-core.js"></script>
+<script type="text/javascript" src="${uiPath}/js/bootstrap-table.min.js"></script>
+<script type="text/javascript" src="${uiPath}/js/bootstrap-editable.min.js"></script>
+<script type="text/javascript">
+	var regex = new RegExp(
+			/(.[^\:]+)(\:\/\/)(.[^\/]+)(.[^\/]+)(.*\/viewfs\/)(.*)/);
 
-		<!-- elFinder CSS (REQUIRED) -->
-		<link rel="stylesheet" type="text/css" media="screen" href="${uiPath}/css/elfinder.min.css">
-		<link rel="stylesheet" type="text/css" media="screen" href="${uiPath}/css/theme.css">
-
-		<!-- elFinder JS (REQUIRED) -->
-		<script type="text/javascript" src="${uiPath}/js/elfinder.min.js"></script>
-
-		<script type="text/javascript" src="${uiPath}/js/hypersocket-utils.js"></script>
-
-		<!-- elFinder initialization (REQUIRED) -->
-		<script type="text/javascript" charset="utf-8">
-			$(document).ready(function() {
-				
-				$(document).localize();
-				var urlregex = new RegExp(/(.[^\:]+)(\:\/\/)(.[^\/]+)(.[^\/]+)(.[^\/]+)(.[^\/]+)(.*)/);
-				var fileUrl = urlregex.exec(document.URL);
-				var controller = basePath + '/api/connector';
-				if(!fileUrl[fileUrl.length-1].startsWith('/viewfs')) {
-					controller += fileUrl[fileUrl.length-1];
-				}
-				
-		    	$('#elfinder').elfinder({
-		        	url : controller,
-		        	height: 800,
-		        	dragUploadAllow: true
-		    	});
-		    	$(window).resize(function(){
-		    	    $('#elfinder').height($(window).height()-20); 
-		    	});
-			});
-		</script>
-	</head>
-	<body>
-
-		<!-- Element where elFinder will be created (REQUIRED) -->
-		<div id="elfinder"></div>
-
-	</body>
-</html>
-
+	var url = regex.exec(document.URL);
+	var baseURL = url[1] + url[2] + url[3] + url[4];
+	var basePath = url[4];
+	var mountPath = url[6];
+	if(!mountPath.endsWith('/')) {
+		mountPath += '/';
+	}
+	var viewfsPath = basePath + url[5];
+	var cwd = mountPath;
 	
+	$.fn.editable.defaults.mode = 'inline';
+	
+	function actionFormatter(value, row, index) {
+		
+		var actionHtml = '<a class="delete tableAction btn btn-danger"><i class="fa fa-trash"></i></a>';
+		
+		if(row.type != "Folder") {
+			actionHtml +=  '<a class="download tableAction btn btn-success"><i class="fa fa-download"></i></a>';
+		} else {
+			actionHtml += '<a href="#"><i class="fa" style="width: 15px;"></i></a>';
+		}
+
+		return actionHtml;
+	}
+	
+	function nameFormatter(value, row, index) {
+		
+		var outputHtml = '';
+		if(row.type != 'Folder') {
+			
+			var className = "fa-file-o";
+			var canOpen = true;
+			if(row.type == 'application/zip') {
+				className = "fa-file-zip-o";
+				canOpen = false;
+			} else if(row.type == 'image/jpeg') {
+				className = "fa-file-image-o";	
+			} else if(row.type == 'image/x-png') {
+				className = "fa-file-image-o";	
+			} else if(row.type == 'application/pdf') {
+				className = "fa-file-pdf-o";
+			} else {
+				canOpen = false;
+			}
+			
+			if(canOpen) {
+				outputHtml += '<a href="' + baseURL + '/api/fs/download/' + mountPath + row.label + '?forceDownload=false">';
+			}
+			outputHtml += '<i class="fileIcon fa ' + className + '"></i>';
+			
+			if(canOpen) {
+				outputHtml += '</a>';
+			}
+			
+			outputHtml += '<span class="fileLabel" data-original="' + row.label + '">' + row.label + '</span>';
+			
+		} else {
+			outputHtml += '<a href="' + viewfsPath + mountPath + row.label + '/"><i class="fileIcon fa fa-folder-open"></i></a><span class="fileLabel" data-original="' + row.label + '">' + row.label + '</span>';
+		}
+		
+		return outputHtml;
+	}
+
+	window.actionEvents = {
+		'click .download' : function(e, value, row, index) {
+				window.location = baseURL + '/api/fs/download/' + mountPath + row.label + '?forceDownload=true';
+		},
+		'click .delete' : function(e, value, row, index) {
+			
+			$('.notifyjs-foo-base .no').trigger('click');
+			$(document).data('deleteRow', row);
+			$(e.target).closest('a').notify({
+				  title: getResource("text.confirmDelete").format(row.label),
+				  button: getResource("text.delete")
+				}, { 
+				  style: 'foo',
+				  position: 'left middle',
+				  autoHide: false,
+				  clickToHide: false,
+				  showDuration: 100
+				});
+		}
+	};
+	$(document)
+			.ready(
+					function() {
+
+						loadResources(function() {
+
+							$.notify.addStyle('foo', {
+								  html: 
+								    "<div>" +
+								      "<div class='clearfix'>" +
+								        "<div class='title' data-notify-html='title'/>" +
+								        "<div class='buttons'>" +
+								          "<button class='btn btn-primary no'>Cancel</button>" +
+								          "<button class='btn btn-danger yes' data-notify-text='button'></button>" +
+								        "</div>" +
+								      "</div>" +
+								    "</div>"
+							});
+							
+							$(document).on('click', '.notifyjs-foo-base .no', function() {
+							  $(this).trigger('notify-hide');
+							});
+							
+							$(document).on('click', '.notifyjs-foo-base .yes', function() {
+
+								var row = $(document).data('deleteRow');
+					 			getJSON('fs/delete/' + mountPath + row.label, null, function(data) {
+					 				if(data.success) {
+					 					showInformation(getResource('text.deleted').format(row.label));
+					 					$('#table').bootstrapTable('refresh');
+					 				} else {
+					 					showError(getResource('text.deleteFailed').format(row.label));
+					 				}
+				 				});
+							  	$(this).trigger('notify-hide');
+							});
+							
+							var breadcrumbs = mountPath.split('/');
+							if(breadcrumbs[breadcrumbs.length-1]=='') {
+								breadcrumbs.pop();
+							}
+							var currentPath = '';
+							$.each(breadcrumbs, function(idx, obj) {
+								currentPath += obj + '/';
+								if(idx < breadcrumbs.length - 1) {
+									$('#breadcrumbs').append('<li><a href="' + viewfsPath + currentPath + '">' + obj + '</a></li>');
+								} else {
+									$('#breadcrumbs').append('<li class="active">' + obj + '</li>');
+									
+								}
+								
+							});
+						
+							$('#table').bootstrapTable({
+								url : basePath + '/api/fs/search/' + mountPath,
+								pagination : true,
+								page : 1,
+								pageSize : 10,
+								pageList : [ 10, 20, 50, 100 ],
+								clickToSelect : false,
+								search : true,
+								showColumns: true,
+								showRefresh : true,
+								showToggle : true,
+								sidePagination : 'server',
+								onLoadSuccess: function(data) {
+									$('.fileLabel').editable({
+									    type: 'text',
+									    title: 'Enter new filename',
+									    showbuttons: false,
+									    validate: function(value) {
+										    if($.trim(value) == '') {
+										        return getResource('text.filenameCannotBeEmpty');
+										    }
+										},
+										url: function(params) {
+											debugger;
+										    var d = new $.Deferred;
+									    	var original = $(this).data('original');
+										    $.post(basePath + '/api/fs/rename/' + mountPath + original, 
+										    		"toUri=" + basePath + '/api/fs/rename/' + mountPath + params.value, 
+										    		function(data) {
+												    	debugger;
+												    	if(data.success) {
+												    		d.resolve();
+												    	} else {
+												    		d.reject(data.error);
+												    	}
+										    }, "json").fail(function(e) {
+										    	d.reject(e);
+										    });
+										    
+									        return d.promise();
+										    
+										}
+									});
+								}
+							});
+
+						});
+					});
+</script>
+</head>
+<body>
+	<div id="viewfs">
+		<div id="header">
+			<img src="${uiPath}${brandImage}"></img>
+		</div>
+		<div id="navigation">
+			<ol id="breadcrumbs" class="breadcrumb">
+				
+			</ol>
+		</div>
+		<div id="viewfsContent">
+			<table id="table">
+				<thead>
+					<tr>
+						<th data-field="state" data-checkbox="true"></th>
+						<th data-field="label" data-formatter="nameFormatter">Name</th>
+						<th data-field="type">Type</th>
+						<th data-field="lastModified">Last Modified</th>
+						<th data-field="size">Size</th>
+						<th data-field="action" data-formatter="actionFormatter"
+							data-events="actionEvents">Action</th>
+					</tr>
+				</thead>
+			</table>
+
+		</div>
+	</div>
+
+</body>
+</html>

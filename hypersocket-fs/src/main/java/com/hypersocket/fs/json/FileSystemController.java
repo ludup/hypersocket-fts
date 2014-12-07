@@ -3,11 +3,15 @@ package com.hypersocket.fs.json;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.ListIterator;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
@@ -37,6 +41,7 @@ import com.hypersocket.json.ResourceStatus;
 import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.session.json.SessionTimeoutException;
 import com.hypersocket.session.json.SessionUtils;
+import com.hypersocket.tables.BootstrapTablesResult;
 import com.hypersocket.util.FileUtils;
 
 @Controller
@@ -258,4 +263,98 @@ public class FileSystemController extends AuthenticatedController {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
+	@AuthenticationRequired
+	@RequestMapping(value = "fs/search/**", method = RequestMethod.GET, produces = { "application/json" })
+	@ResponseBody
+	@ResponseStatus(value = HttpStatus.OK)
+	public BootstrapTablesResult search(HttpServletRequest request,
+			HttpServletResponse response) throws AccessDeniedException,
+			UnauthorizedException, IOException, SessionTimeoutException {
+
+		setupAuthenticatedContext(sessionUtils.getSession(request),
+				sessionUtils.getLocale(request));
+		try {
+
+			int offset = Integer.parseInt(request.getParameter("offset"));
+			int limit = Integer.parseInt(request.getParameter("limit"));
+			String order = request.getParameter("order");
+			String search = request.getParameter("search");
+			
+			List<FileObject> folders = new ArrayList<FileObject>();
+			String uri = URLDecoder.decode(request.getRequestURI(), "UTF-8");
+			FileResource resource = mountService.getMountForURIPath(
+					request.getHeader("Host"), "api/fs/search",
+					uri);
+
+			FileObject mountFile = mountService.resolveMountFile(resource);
+
+			String childPath = mountService.resolveURIChildPath(resource,
+					"api/fs/search", uri);
+
+			long totalRecords = 0;
+			
+			FileObject file = mountFile.resolveFile(childPath);
+
+			for (FileObject f : file.getChildren()) {
+				if (f.getType() == FileType.FOLDER
+						&& (!f.isHidden() || resource.isShowHidden())) {
+					if(StringUtils.isNotBlank(search) && f.getName().getBaseName().indexOf(search) == -1) {
+						continue;
+					}
+					folders.add(f);
+					totalRecords++;
+					
+				}
+			}
+
+			for (FileObject f : file.getChildren()) {
+				if (f.getType() == FileType.FILE
+						&& (!f.isHidden() || resource.isShowHidden())) {
+					if(StringUtils.isNotBlank(search) && f.getName().getBaseName().indexOf(search) == -1) {
+						continue;
+					}
+					folders.add(f);
+					totalRecords++;
+				}
+			}
+
+			Collections.sort(folders, new Comparator<FileObject>() {
+
+				@Override
+				public int compare(FileObject o1, FileObject o2) {
+					try {
+						return (o1.getType()==FileType.FILE ? 10000 : 0) + o1.getName().getBaseName().compareTo(o2.getName().getBaseName());
+					} catch (FileSystemException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+						return 0;
+					}
+				}
+			});
+			
+			@SuppressWarnings("rawtypes")
+			List result = new ArrayList();
+			
+			ListIterator<FileObject> itr = folders.listIterator(offset);
+			while(itr.hasNext() && limit > 0) {
+				FileObject f = itr.next();
+				if(f.getType()==FileType.FOLDER) {
+					result.add(new TreeFolder(f, mountFile, resource));
+				} else {
+					result.add(new TreeFile(f, mountFile));
+				}
+				limit--;
+			}
+			
+			return new BootstrapTablesResult(result, totalRecords);
+
+		} catch (FileSystemException e) {
+			throw e;
+		} catch (IOException e) {
+			throw e;
+		} finally {
+			clearAuthenticatedContext();
+		}
+	}
 }
