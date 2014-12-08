@@ -5,32 +5,19 @@
 <link rel="shortcut icon" href="${uiPath}${brandIcon}">
 <link rel="icon" type="image/png"
 	href="${uiPath}/images/shield_16x16.png">
-<link href="${uiPath}/css/bootstrap.min.css" rel="stylesheet">
-<link href="${uiPath}/css/font-awesome.min.css" rel="stylesheet">
-<link rel="stylesheet" type="text/css"
-	href="${uiPath}/css/bootstrap-table.min.css" media="screen" />
-<link rel="stylesheet" type="text/css"
-	href="${uiPath}/css/bootstrap-editable.css" media="screen" />
-<link href="${uiPath}/css/viewfs.css" rel="stylesheet">
+<link href="${uiPath}/css/bootstrap.min.css" type="text/css" rel="stylesheet">
+<link href="${uiPath}/css/font-awesome.min.css" type="text/css" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="${uiPath}/css/bootstrap-editable.css" media="screen" />
+<link rel="stylesheet" type="text/css" href="${uiPath}/css/bootstrap-table.min.css" media="screen" />
+<link href="${uiPath}/css/viewfs.css" type="text/css" rel="stylesheet">
 
 <script src="${uiPath}/js/jquery.min.js"></script>
 <script src="${uiPath}/js/jquery-ui.min.js"></script>
 <script src="${uiPath}/js/bootstrap.min.js"></script>
 <script src="${uiPath}/js/bootbox.min.js"></script>
 <script src="${uiPath}/js/jquery.min.js"></script>
-<script src="${uiPath}/js/jquery-ui.min.js"></script>
-<script src="${uiPath}/js/bootstrap.min.js"></script>
-<script src="${uiPath}/js/bootbox.min.js"></script>
-<script src="${uiPath}/js/jquery.bootpag.min.js"></script>
-<script src="${uiPath}/js/jquery.dataTables.min.js"></script>
-<script src="${uiPath}/js/dataTables.bootstrap.js"></script>
-<script src="${uiPath}/js/dataTables.tableTools.js"></script>
 <script src="${uiPath}/js/spin-min.js"></script>
 <script src="${uiPath}/js/jquery.hotkeys.js"></script>
-<script src="${uiPath}/js/bootstrap-wysiwyg.js"></script>
-<script src="${uiPath}/js/codemirror.js"></script>
-<script src="${uiPath}/js/bootstrap-slider.min.js"></script>
-<script src="${uiPath}/js/bootstrap-datepicker.js"></script>
 <script src="${uiPath}/js/notify.min.js"></script>
 <script src="${uiPath}/js/hypersocket-utils.js"></script>
 <script src="${uiPath}/js/hypersocket-widgets.js"></script>
@@ -57,6 +44,7 @@
 	function actionFormatter(value, row, index) {
 		
 		var actionHtml = '<a class="delete tableAction btn btn-danger"><i class="fa fa-trash"></i></a>';
+		actionHtml += '<a class="edit tableAction btn btn-primary"><i class="fa fa-edit"></i></a>';
 		
 		if(row.type != "Folder") {
 			actionHtml +=  '<a class="download tableAction btn btn-success"><i class="fa fa-download"></i></a>';
@@ -108,6 +96,10 @@
 	window.actionEvents = {
 		'click .download' : function(e, value, row, index) {
 				window.location = baseURL + '/api/fs/download/' + mountPath + row.label + '?forceDownload=true';
+		},
+		'click .edit' : function(e, value, row, index) {
+			e.stopPropagation();
+			$('tr[data-index="'+index+'"]').find('.fileLabel').editable('toggle');
 		},
 		'click .delete' : function(e, value, row, index) {
 			
@@ -195,6 +187,7 @@
 									    type: 'text',
 									    title: 'Enter new filename',
 									    showbuttons: false,
+									    toggle: 'manual',
 									    validate: function(value) {
 										    if($.trim(value) == '') {
 										        return getResource('text.filenameCannotBeEmpty');
