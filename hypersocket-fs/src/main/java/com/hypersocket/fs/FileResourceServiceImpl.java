@@ -167,14 +167,14 @@ public class FileResourceServiceImpl extends
 				.registerEvent(DeleteFileEvent.class, RESOURCE_BUNDLE, this);
 		eventService.registerEvent(RenameEvent.class, RESOURCE_BUNDLE, this);
 
-		registerScheme(new FileResourceScheme("file", false, false));
-		registerScheme(new FileResourceScheme("ftp", true, true));
-		registerScheme(new FileResourceScheme("ftps", true, true));
-		registerScheme(new FileResourceScheme("http", true, true));
-		registerScheme(new FileResourceScheme("https", true, true));
-		registerScheme(new FileResourceScheme("webdav", true, true));
-		registerScheme(new FileResourceScheme("tmp", false, false));
-		registerScheme(new FileResourceScheme("smb", true, true));
+		registerScheme(new FileResourceScheme("file", false, false, false));
+		registerScheme(new FileResourceScheme("ftp", true, true, true));
+		registerScheme(new FileResourceScheme("ftps", true, true, true));
+		registerScheme(new FileResourceScheme("http", true, true, true));
+		registerScheme(new FileResourceScheme("https", true, true, true));
+		registerScheme(new FileResourceScheme("webdav", true, true, true));
+		registerScheme(new FileResourceScheme("tmp", false, false, false));
+		registerScheme(new FileResourceScheme("smb", true, true, false));
 
 		server.registerControllerPackage("cn.bluejoe.elfinder.controller");
 

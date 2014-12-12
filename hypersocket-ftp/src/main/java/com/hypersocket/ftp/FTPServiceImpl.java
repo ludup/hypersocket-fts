@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Service;
 
+import com.hypersocket.auth.AuthenticationModuleType;
 import com.hypersocket.auth.AuthenticationSchemeRepository;
 import com.hypersocket.auth.UsernameAndPasswordAuthenticator;
 import com.hypersocket.certificates.CertificateResourceService;
@@ -120,7 +121,10 @@ public class FTPServiceImpl implements FTPService,
 				modules.add(UsernameAndPasswordAuthenticator.RESOURCE_KEY);
 				schemeRepository.createScheme(realm,
 						AUTHENTICATION_SCHEME_NAME, modules,
-						AUTHENTICATION_SCHEME_RESOURCE_KEY);
+						AUTHENTICATION_SCHEME_RESOURCE_KEY, 
+						false, 
+						1, 
+						AuthenticationModuleType.BASIC);
 			}
 		});
 

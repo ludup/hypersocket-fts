@@ -8,9 +8,9 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlTransient;
 
-import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.plexus.util.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.hypersocket.realm.Principal;
 import com.hypersocket.realm.UserVariableReplacement;
 import com.hypersocket.resource.AssignableResource;

@@ -2,9 +2,9 @@ package com.hypersocket.fs.tree;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.codehaus.jackson.annotate.JsonProperty;
 import org.springframework.mail.javamail.ConfigurableMimeFileTypeMap;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.hypersocket.util.FileUtils;
 
 public class TreeFile {

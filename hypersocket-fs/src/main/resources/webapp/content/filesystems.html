@@ -32,7 +32,7 @@
 							</div>
 						</div>
 						<div class="propertyItem form-group remoteDiv">
-							<label class="col-md-3 control-label" localize="mount.server.label"></label>
+							<label for="server" class="col-md-3 control-label" localize="mount.server.label"></label>
 							<div class="propertyValue col-md-9">
 								<input type="text" class="form-control"
 									placeholder="" id="serverName" maxlength="" name="server" value="">
@@ -41,7 +41,7 @@
 								</div>
 							</div>
 						</div>
-						<div class="propertyItem form-group remoteDiv">
+						<div class="propertyItem form-group remoteDiv portDiv">
 							<label class="col-md-3 control-label" localize="mount.port.label"></label>
 							<div class="propertyValue col-md-9">
 								<input type="text" class="form-control"
@@ -64,7 +64,7 @@
 					<div id="tabAuth" class="dialogTab">
 					
 						<div class="propertyItem form-group credsDiv">
-							<label class="col-md-3 control-label" localize="mount.username.label"></label>
+							<label for="username" class="col-md-3 control-label" localize="mount.username.label"></label>
 							<div class="propertyValue col-md-9">
 								<div id="usernameField"></div>
 								<div>
@@ -73,7 +73,7 @@
 							</div>
 						</div>	
 						<div class="propertyItem form-group credsDiv">
-							<label class="col-md-3 control-label" localize="mount.password.label"></label>
+							<label for="password" class="col-md-3 control-label" localize="mount.password.label"></label>
 							<div class="propertyValue col-md-9">
 								<div id="passwordField"></div>
 								<div>
@@ -169,14 +169,21 @@
 					changed: function(widget) {
 						var scheme = widget.getSelectedObject();
 						if(scheme.remote) {
+							if(getResourceNoDefault(scheme.scheme + '.server.label')!=null) {
+								$("label[for='server']").text(getResource(scheme.scheme + '.server.label'));
+							} else {
+								$("label[for='server']").text(getResource('mount.server.label'));
+							}
 							$('.remoteDiv').show();
-							
+							if(!scheme.showPort) {
+								$('.portDiv').hide();
+							}
 						} else {
 							$('.remoteDiv').hide();
 							$('#serverName').val('');
 							$('#port').val('');
 						}
-						if(scheme.supportsCredentials) {
+						if(scheme.supportsCredentials) {								
 							if(getResourceNoDefault(scheme.scheme + '.username.label')!=null) {
 								$("label[for='username']").text(getResource(scheme.scheme + '.username.label'));
 							} else {
