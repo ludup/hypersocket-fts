@@ -281,7 +281,7 @@ public class FileSystemController extends AuthenticatedController {
 			String order = request.getParameter("order");
 			String search = request.getParameter("search");
 			
-			List<FileObject> folders = new ArrayList<FileObject>();
+			List<FileObject> filesAndFolders = new ArrayList<FileObject>();
 			String uri = URLDecoder.decode(request.getRequestURI(), "UTF-8");
 			FileResource resource = mountService.getMountForURIPath(
 					request.getHeader("Host"), "api/fs/search",
@@ -297,29 +297,16 @@ public class FileSystemController extends AuthenticatedController {
 			FileObject file = mountFile.resolveFile(childPath);
 
 			for (FileObject f : file.getChildren()) {
-				if (f.getType() == FileType.FOLDER
-						&& (!f.isHidden() || resource.isShowHidden())) {
-					if(StringUtils.isNotBlank(search) && f.getName().getBaseName().indexOf(search) == -1) {
-						continue;
-					}
-					folders.add(f);
-					totalRecords++;
-					
+				if(StringUtils.isNotBlank(search) && f.getName().getBaseName().indexOf(search) == -1) {
+					continue;
 				}
+				if (!f.isHidden() || resource.isShowHidden()) {
+					filesAndFolders.add(f);
+					totalRecords++;
+				} 
 			}
 
-			for (FileObject f : file.getChildren()) {
-				if (f.getType() == FileType.FILE
-						&& (!f.isHidden() || resource.isShowHidden())) {
-					if(StringUtils.isNotBlank(search) && f.getName().getBaseName().indexOf(search) == -1) {
-						continue;
-					}
-					folders.add(f);
-					totalRecords++;
-				}
-			}
-
-			Collections.sort(folders, new Comparator<FileObject>() {
+			Collections.sort(filesAndFolders, new Comparator<FileObject>() {
 
 				@Override
 				public int compare(FileObject o1, FileObject o2) {
@@ -336,7 +323,7 @@ public class FileSystemController extends AuthenticatedController {
 			@SuppressWarnings("rawtypes")
 			List result = new ArrayList();
 			
-			ListIterator<FileObject> itr = folders.listIterator(offset);
+			ListIterator<FileObject> itr = filesAndFolders.listIterator(offset);
 			while(itr.hasNext() && limit > 0) {
 				FileObject f = itr.next();
 				if(f.getType()==FileType.FOLDER) {
