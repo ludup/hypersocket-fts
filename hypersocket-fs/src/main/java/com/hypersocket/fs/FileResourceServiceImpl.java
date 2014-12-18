@@ -213,7 +213,17 @@ public class FileResourceServiceImpl extends
 					+ " isRemote=" + scheme.isRemote()
 					+ " supportsCredentials=" + scheme.isSupportsCredentials());
 		}
-		schemes.put(scheme.getScheme(), scheme);
+		
+		try {
+			
+			if(scheme.getProvider()!=null) {
+				VFS.getManager().addOperationProvider(scheme.getScheme(), scheme.getProvider().newInstance());
+			}
+			schemes.put(scheme.getScheme(), scheme);
+		} catch(Throwable e) {
+			log.error("Failed to add scheme " + scheme.getScheme(), e);
+		}
+		
 	}
 
 	public FileResource getMountForURIPath(String host, String controllerPath,
