@@ -1,6 +1,6 @@
 package com.hypersocket.fs;
 
-import org.apache.commons.vfs2.operations.FileOperationProvider;
+import org.apache.commons.vfs2.provider.FileProvider;
 
 public class FileResourceScheme {
 
@@ -8,7 +8,7 @@ public class FileResourceScheme {
 	boolean isRemote;
 	boolean supportsCredentials;
 	boolean showPort;
-	Class<? extends FileOperationProvider> provider;
+	Class<? extends FileProvider> provider;
 	
 	public FileResourceScheme() {
 	}
@@ -17,7 +17,7 @@ public class FileResourceScheme {
 		this(scheme, isRemote, supportsCredentials, showPort, null);
 	}
 	
-	public FileResourceScheme(String scheme, boolean isRemote, boolean supportsCredentials, boolean showPort, Class<? extends FileOperationProvider> provider) {
+	public FileResourceScheme(String scheme, boolean isRemote, boolean supportsCredentials, boolean showPort, Class<? extends FileProvider> provider) {
 		this.scheme = scheme;
 		this.isRemote = isRemote;
 		this.showPort = showPort;
@@ -29,7 +29,7 @@ public class FileResourceScheme {
 		return scheme;
 	}
 
-	public Class<? extends FileOperationProvider> getProvider() {
+	public Class<? extends FileProvider> getProvider() {
 		return provider;
 	}
 	

@@ -15,6 +15,7 @@ import org.apache.commons.vfs2.FileSelectInfo;
 import org.apache.commons.vfs2.FileSelector;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.VFS;
+import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.apache.log4j.lf5.util.StreamUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -172,7 +173,8 @@ public class FileResourceServiceImpl extends
 		registerScheme(new FileResourceScheme("ftps", true, true, true));
 		registerScheme(new FileResourceScheme("http", true, true, true));
 		registerScheme(new FileResourceScheme("https", true, true, true));
-		registerScheme(new FileResourceScheme("webdav", true, true, true));
+//		registerScheme(new FileResourceScheme("webdav", true, true, true));
+//		registerScheme(new FileResourceScheme("webdavs", true, true, true));
 		registerScheme(new FileResourceScheme("tmp", false, false, false));
 		registerScheme(new FileResourceScheme("smb", true, true, false));
 
@@ -203,7 +205,7 @@ public class FileResourceServiceImpl extends
 		if (schemes.containsKey(scheme.getScheme())) {
 			throw new IllegalArgumentException(scheme.getScheme()
 					+ " is already a registerd scheme");
-		} else if (!isVFSScheme(scheme.getScheme())) {
+		} else if (scheme.getProvider()==null && !isVFSScheme(scheme.getScheme())) {
 			throw new IllegalArgumentException(scheme.getScheme()
 					+ " is not a valid VFS scheme");
 		}
@@ -217,8 +219,13 @@ public class FileResourceServiceImpl extends
 		try {
 			
 			if(scheme.getProvider()!=null) {
-				VFS.getManager().addOperationProvider(scheme.getScheme(), scheme.getProvider().newInstance());
+				((DefaultFileSystemManager)VFS.getManager()).addProvider(scheme.getScheme(), scheme.getProvider().newInstance());
+				if(!isVFSScheme(scheme.getScheme())) {
+					log.error("Scheme is still not reported as registred!");
+					return;
+				}
 			}
+			
 			schemes.put(scheme.getScheme(), scheme);
 		} catch(Throwable e) {
 			log.error("Failed to add scheme " + scheme.getScheme(), e);
