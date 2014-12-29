@@ -1,6 +1,7 @@
 package com.hypersocket.fs.json;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,11 +38,16 @@ import com.hypersocket.fs.UploadProcessor;
 import com.hypersocket.fs.tree.TreeFile;
 import com.hypersocket.fs.tree.TreeFolder;
 import com.hypersocket.fs.tree.TreeList;
+import com.hypersocket.i18n.I18N;
 import com.hypersocket.json.ResourceStatus;
 import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.session.json.SessionTimeoutException;
 import com.hypersocket.session.json.SessionUtils;
 import com.hypersocket.tables.BootstrapTablesResult;
+import com.hypersocket.upload.FileUpload;
+import com.hypersocket.upload.FileUploadService;
+import com.hypersocket.upload.FileUploadServiceImpl;
+import com.hypersocket.upload.FileUploadStore;
 import com.hypersocket.util.FileUtils;
 
 @Controller
@@ -57,6 +63,9 @@ public class FileSystemController extends AuthenticatedController {
 
 	@Autowired
 	SessionUtils sessionUtils;
+	
+	@Autowired
+	FileUploadService fileUploadService; 
 	
 	@SuppressWarnings("rawtypes")
 	@AuthenticationRequired
@@ -85,7 +94,7 @@ public class FileSystemController extends AuthenticatedController {
 	@RequestMapping(value = "fs/createFolder/**", method = RequestMethod.GET, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
-	public ResourceStatus<TreeList> createFolder(HttpServletRequest request,
+	public ResourceStatus<TreeFolder> createFolder(HttpServletRequest request,
 			HttpServletResponse response) throws AccessDeniedException,
 			UnauthorizedException, IOException, SessionTimeoutException {
 
@@ -101,14 +110,11 @@ public class FileSystemController extends AuthenticatedController {
 
 			FileObject mountFile = mountService.resolveMountFile(resource);
 			
-			List folders = new ArrayList();
-			
 			FileObject newFile = mountService.createURIFolder(
 					request.getHeader("Host"), "api/fs/createFolder",
 					uri, HTTP_PROTOCOL);
-			
-			folders.add(new TreeFolder(newFile, mountFile, resource));
-			return new ResourceStatus(new TreeList(folders), "");
+
+			return new ResourceStatus(new TreeFolder(newFile, mountFile, resource), "");
 
 		} finally {
 			clearAuthenticatedContext();
@@ -170,9 +176,9 @@ public class FileSystemController extends AuthenticatedController {
 	@RequestMapping(value = "fs/upload/**", method = RequestMethod.POST, produces = {"application/json" })
 	@ResponseStatus(value = HttpStatus.OK)
 	@ResponseBody
-	public ResourceStatus<TreeFile> uploadFile(HttpServletRequest request,
+	public ResourceStatus<FileUpload> uploadFile(final HttpServletRequest request,
 			HttpServletResponse response,
-			@RequestPart(value = "file") MultipartFile file)
+			final @RequestPart(value = "file") MultipartFile file)
 			throws AccessDeniedException, UnauthorizedException, IOException, SessionTimeoutException {
 
 		setupAuthenticatedContext(sessionUtils.getSession(request),
@@ -182,28 +188,9 @@ public class FileSystemController extends AuthenticatedController {
 
 			String uri = FileUtils.checkEndsWithSlash(URLDecoder.decode(request.getRequestURI(), "UTF-8"));
 			uri += FileUtils.lastPathElement(file.getOriginalFilename());
-			
-			UploadProcessor<TreeFile> processor = new UploadProcessor<TreeFile>() {
 
-				TreeFile treeFile;
-				@Override
-				public void processUpload(FileResource resource,
-						FileObject mountFile,
-						String childPath, FileObject file) throws FileSystemException {
-					treeFile = new TreeFile(file,  mountFile);
-				}
-
-				@Override
-				public TreeFile getResult() {
-					return treeFile;
-				}
-				
-			};
-			
-			mountService.uploadURIFile(request.getHeader("Host"), 
-					"api/fs/upload", uri, file.getInputStream(), processor, HTTP_PROTOCOL);
-			
-			return new ResourceStatus<TreeFile>(processor.getResult());
+			return new ResourceStatus<FileUpload>(mountService.uploadURIFile(request.getHeader("Host"), 
+					"api/fs/upload", uri, file.getInputStream(), null, HTTP_PROTOCOL));
 			
 			
 		} finally {
@@ -311,10 +298,12 @@ public class FileSystemController extends AuthenticatedController {
 				@Override
 				public int compare(FileObject o1, FileObject o2) {
 					try {
-						return (o1.getType()==FileType.FILE ? 10000 : 0) + o1.getName().getBaseName().compareTo(o2.getName().getBaseName());
+						if(o1.getType() == FileType.FILE) {
+							return 10000 + o1.getName().getBaseName().compareToIgnoreCase(o2.getName().getBaseName());
+						} else {
+							return o1.getName().getBaseName().compareToIgnoreCase(o2.getName().getBaseName());
+						}
 					} catch (FileSystemException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
 						return 0;
 					}
 				}

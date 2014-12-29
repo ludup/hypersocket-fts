@@ -10,12 +10,14 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSelectInfo;
 import org.apache.commons.vfs2.FileSelector;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.VFS;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
+import org.apache.derby.impl.io.vfmem.PathUtil;
 import org.apache.log4j.lf5.util.StreamUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,9 +48,13 @@ import com.hypersocket.realm.RealmService;
 import com.hypersocket.realm.UserVariableReplacement;
 import com.hypersocket.resource.AbstractAssignableResourceRepository;
 import com.hypersocket.resource.AbstractAssignableResourceServiceImpl;
+import com.hypersocket.resource.ResourceCreationException;
 import com.hypersocket.server.HypersocketServer;
 import com.hypersocket.session.Session;
 import com.hypersocket.ui.UserInterfaceContentHandler;
+import com.hypersocket.upload.FileUpload;
+import com.hypersocket.upload.FileUploadService;
+import com.hypersocket.upload.FileUploadStore;
 import com.hypersocket.util.FileUtils;
 
 @Service
@@ -86,6 +92,9 @@ public class FileResourceServiceImpl extends
 	@Autowired
 	RealmService realmService;
 
+	@Autowired
+	FileUploadService uploadService; 
+	
 	@Autowired
 	UserVariableReplacement userVariableReplacement;
 
@@ -481,47 +490,37 @@ public class FileResourceServiceImpl extends
 	}
 
 	@Override
-	public void uploadURIFile(String host, String controllerPath, String uri,
+	public FileUpload uploadURIFile(String host, String controllerPath, String uri,
 			final InputStream in, final UploadProcessor<?> processor,
 			final String protocol) throws IOException, AccessDeniedException {
 
 		// TODO verify download permission on mount
 
-		FileResolver<Object> resolver = new FileResolver<Object>() {
+		FileResolver<FileUpload> resolver = new FileResolver<FileUpload>() {
 			@Override
-			FileObject onFileResolved(FileResource resource, String childPath,
+			FileUpload onFileResolved(FileResource resource, String childPath,
 					FileObject file) throws IOException {
 
 				file.createFile();
 
-				long bytesIn = 0;
-
-				long startedTimestamp = uploadStarted(resource, childPath,
-						file, protocol);
-
-				OutputStream out = file.getContent().getOutputStream();
+				FileUpload upload;
 				try {
+					upload = uploadService.createFile(in, PathUtil.getBaseName(childPath),
+							getCurrentRealm(), false, new FileObjectUploadStore(file, resource, childPath, protocol));
 					
-					StreamUtils.copy(in, out);
-					file.refresh();
+					if(processor!=null) {
+						processor.processUpload(resource, resolveMountFile(resource),
+							childPath, file);
+					}
+					return upload;
 					
-					uploadComplete(resource, childPath, file, bytesIn,
-							System.currentTimeMillis() - startedTimestamp,
-							protocol);
-
-				} catch (Exception e) {
-
-					eventService.publishEvent(new UploadCompleteEvent(this,
-							getCurrentSession(), e, resource.getName(),
-							childPath, protocol));
-				} finally {
-					FileUtils.closeQuietly(in);
-					FileUtils.closeQuietly(out);
+				} catch (ResourceCreationException e) {
+					throw new IOException(e);
+				} catch (AccessDeniedException e) {
+					throw new IOException(e);
 				}
-
-				processor.processUpload(resource, resolveMountFile(resource),
-						childPath, file);
-				return null;
+				
+				
 			}
 
 			@Override
@@ -531,7 +530,8 @@ public class FileResourceServiceImpl extends
 						getCurrentSession(), mountName, childPath, protocol));
 			}
 		};
-		resolver.processURIRequest(host, controllerPath, uri);
+		
+		return resolver.processURIRequest(host, controllerPath, uri);
 
 	}
 
@@ -1074,4 +1074,54 @@ public class FileResourceServiceImpl extends
 		return userVariableReplacement;
 	}
 
+	class FileObjectUploadStore implements FileUploadStore {
+
+		FileObject file;
+		FileResource resource;
+		String childPath;
+		String protocol;
+		
+		FileObjectUploadStore(FileObject file,
+				FileResource resource, 
+				String childPath,
+				String protocol) {
+			this.file = file;
+			this.resource = resource;
+			this.childPath = childPath;
+			this.protocol = protocol;
+		}
+		
+		@Override
+		public long writeFile(String uuid, InputStream in)
+				throws IOException {
+			
+			long bytesIn = 0;
+
+			long startedTimestamp = uploadStarted(resource, childPath,
+					file, protocol);
+			
+			OutputStream out = file.getContent().getOutputStream();
+			try {
+				
+				bytesIn = IOUtils.copyLarge(in, out);
+				file.refresh();
+				
+				uploadComplete(resource, childPath, file, bytesIn,
+						System.currentTimeMillis() - startedTimestamp,
+						protocol);
+
+			} catch (Exception e) {
+
+				eventService.publishEvent(new UploadCompleteEvent(this,
+						getCurrentSession(), e, resource.getName(),
+						childPath, protocol));
+			} finally {
+				FileUtils.closeQuietly(in);
+				FileUtils.closeQuietly(out);
+			}
+			
+			return bytesIn;
+		}
+		
+	}
 }

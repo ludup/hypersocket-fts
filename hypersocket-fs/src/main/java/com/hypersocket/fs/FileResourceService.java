@@ -12,6 +12,7 @@ import org.apache.commons.vfs2.FileSystemException;
 import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.realm.UserVariableReplacement;
 import com.hypersocket.resource.AbstractAssignableResourceService;
+import com.hypersocket.upload.FileUpload;
 
 public interface FileResourceService extends AbstractAssignableResourceService<FileResource> {
 
@@ -46,7 +47,7 @@ public interface FileResourceService extends AbstractAssignableResourceService<F
 	boolean copyURIFile(String host, String controllerPath, String fromUri,
 			String toUri, String protocol) throws IOException, AccessDeniedException;
 
-	void uploadURIFile(String host, String controllerPath, String uri,
+	FileUpload uploadURIFile(String host, String controllerPath, String uri,
 			InputStream in, UploadProcessor<?> processor, String protocol) throws IOException, AccessDeniedException;
 
 	FileResource getMountForPath(String path) throws AccessDeniedException;
