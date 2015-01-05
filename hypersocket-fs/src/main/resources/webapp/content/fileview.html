@@ -147,7 +147,7 @@
 						}
 					},
 					url : function(params) {
-						debugger;
+						
 						var d = new $.Deferred;
 						var original = $(this).data('original');
 						$.post(
@@ -156,7 +156,7 @@
 								"toUri=" + basePath + '/api/fs/rename/'
 										+ mountPath + params.value,
 								function(data) {
-									debugger;
+									
 									if (data.success) {
 										d.resolve();
 									} else {
@@ -209,7 +209,7 @@
 							$(document).on('click',
 											'.notifyjs-confirm-base .yes',
 											function() {
-												debugger;
+												
 												var row = $(document).data('deleteRow');
 												getJSON('fs/delete/' + mountPath + row.label,
 														null,
@@ -292,7 +292,7 @@
 
 							$('#newFolderButton').click(
 									function(e) {
-										debugger;
+										
 										getJSON('fs/createFolder/'
 												+ currentPath, null, function(
 												data) {
