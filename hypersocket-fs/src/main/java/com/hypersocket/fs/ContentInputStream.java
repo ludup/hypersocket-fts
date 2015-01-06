@@ -38,8 +38,8 @@ public class ContentInputStream extends InputStream {
 		this.file = file;
 		this.protocol = protocol;
 		this.session = session;
-		this.in = new BufferedInputStream(file.getContent().getInputStream());
-		this.remaining = in.available();
+		this.in = file.getContent().getInputStream();
+		this.remaining = file.getContent().getSize();
 		if (start > 0) {
 			if (log.isDebugEnabled()) {
 				log.debug("content range will start at position " + start
