@@ -4,6 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,6 +96,7 @@ public class ContentInputStream extends InputStream {
 	
 	private synchronized void internalClose() {
 		if(in!=null) {
+			IOUtils.closeQuietly(in);
 			eventProcessor.downloadComplete(resource, childPath, file,
 					totalBytesOut, System.currentTimeMillis() - timeStarted,
 					protocol, session);
