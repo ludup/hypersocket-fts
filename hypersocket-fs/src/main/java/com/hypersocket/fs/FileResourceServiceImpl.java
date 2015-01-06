@@ -317,9 +317,9 @@ public class FileResourceServiceImpl extends
 
 	private String resolveChildPath(FileResource resource, String rootPath,
 			String path) throws IOException {
-		return FileUtils.stripParentPath(FileUtils.checkEndsWithSlash(rootPath)
+		return FileUtils.checkEndsWithNoSlash(FileUtils.stripParentPath(FileUtils.checkEndsWithSlash(rootPath)
 				+ FileUtils.checkEndsWithSlash(resource.getName()),
-				FileUtils.checkStartsWithSlash(path));
+				FileUtils.checkStartsWithSlash(path)));
 	}
 
 	public String resolveChildPath(String mountName, String path)
