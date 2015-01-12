@@ -278,6 +278,7 @@ public class FileSystemController extends AuthenticatedController {
 			
 			List<FileObject> filesAndFolders = new ArrayList<FileObject>();
 			String uri = URLDecoder.decode(request.getRequestURI(), "UTF-8");
+			
 			FileResource resource = mountService.getMountForURIPath(
 					request.getHeader("Host"), "api/fs/search",
 					uri);
@@ -295,7 +296,7 @@ public class FileSystemController extends AuthenticatedController {
 				if(StringUtils.isNotBlank(search) && f.getName().getBaseName().indexOf(search) == -1) {
 					continue;
 				}
-				if (!f.isHidden() || resource.isShowHidden()) {
+				if ((!f.isHidden() && !f.getName().getBaseName().startsWith(".")) || resource.isShowHidden()) {
 					filesAndFolders.add(f);
 					totalRecords++;
 				} 
