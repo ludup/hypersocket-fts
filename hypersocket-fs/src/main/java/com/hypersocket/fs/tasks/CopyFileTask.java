@@ -23,21 +23,21 @@ import com.hypersocket.triggers.TriggerResourceService;
 import com.hypersocket.triggers.ValidationException;
 
 @Component
-public class CreateFileTask extends AbstractTaskProvider {
+public class CopyFileTask extends AbstractTaskProvider {
 
-	static Logger log = LoggerFactory.getLogger(CreateFileTask.class);
+	static Logger log = LoggerFactory.getLogger(CopyFileTask.class);
 
-	public static final String PROTOCOL = "file";
+	public static final String PROTOCOL = "SFTP";
 
 	public static final String RESOURCE_BUNDLE = "FileTask";
 
-	public static final String ACTION_MKDIR = "mkdir";
-	public static final String ACTION_DELETE_FILE = "deleteFile";
-	public static final String ACTION_TRUNCATE_FILE = "truncateFile";
-	public static final String ACTION_TOUCH_FILE = "touchFile";
+	public static final String ACTION_COPY_FILE = "copyFile";
+	public static final String ACTION_COPY_DIR = "copyDir";
+	public static final String ACTION_MOVE = "move";
+	public static final String ACTION_RENAME = "rename";
 
 	@Autowired
-	CreateFileTaskRepository repository;
+	CopyFileTaskRepository repository;
 
 	@Autowired
 	FileResourceService service;
@@ -65,15 +65,18 @@ public class CreateFileTask extends AbstractTaskProvider {
 
 	@Override
 	public String[] getResourceKeys() {
-		return new String[] { ACTION_MKDIR, ACTION_DELETE_FILE,
-				ACTION_TRUNCATE_FILE, ACTION_TOUCH_FILE };
+		return new String[] { ACTION_COPY_FILE, ACTION_COPY_DIR, ACTION_MOVE,
+				ACTION_RENAME };
 	}
 
 	@Override
 	public void validate(Task task, Map<String, String> parameters)
 			throws ValidationException {
-		if (parameters.containsKey("file.path")) {
-			throw new ValidationException("Path required");
+		if (parameters.containsKey("origin.path")) {
+			throw new ValidationException("Origin path required");
+		}
+		if (parameters.containsKey("destination.path")) {
+			throw new ValidationException("Destination path required");
 		}
 	}
 
@@ -81,37 +84,39 @@ public class CreateFileTask extends AbstractTaskProvider {
 	public TaskResult execute(Task task, SystemEvent event)
 			throws ValidationException {
 
-		String path = repository.getValue(task, "file.path");
+		String originPath = repository.getValue(task, "origin.path");
+		String destinationPath = repository.getValue(task, "destination.path");
 
 		if (log.isInfoEnabled()) {
-			log.info("Path " + path);
+			log.info("Origin path " + originPath);
+			log.info("Destination path " + destinationPath);
 		}
 		try {
-			int index = path.lastIndexOf("/");
-			String parentPath = path.substring(0, index);
-			String name = path.substring(index + 1, path.length());
+			// int index = originPath.lastIndexOf("/");
+			// String parentPath = path.substring(0, index);
+			// String name = path.substring(index, path.length());
 
-			if (task.getResourceKey().equals(ACTION_MKDIR)) {
+			if (task.getResourceKey().equals(ACTION_COPY_FILE)) {
+				service.copyFile(originPath, destinationPath, PROTOCOL);
 
-				service.createFolder(parentPath, name, PROTOCOL);
-
-			} else if (task.getResourceKey().equals(ACTION_DELETE_FILE)) {
-				service.deleteFile(path, PROTOCOL);
-			} else if (task.getResourceKey().equals(ACTION_TRUNCATE_FILE)) {
-				// service.
-			} else if (task.getResourceKey().equals(ACTION_TOUCH_FILE)) {
+			} else if (task.getResourceKey().equals(ACTION_COPY_DIR)) {
+				// service.c
+			} else if (task.getResourceKey().equals(ACTION_MOVE)) {
+				// service.getMountForPath(path)
+			} else if (task.getResourceKey().equals(ACTION_RENAME)) {
 				// service.createResource(resource, properties);
 			} else {
 				throw new ValidationException(
 						"Invalid resource key for file task");
 			}
 
-			return new CreateFileTaskResult(this, event.getCurrentRealm(),
-					task, path);
+			return new CopyFileTaskResult(this, event.getCurrentRealm(), task,
+					originPath, destinationPath);
 		} catch (IOException | AccessDeniedException e) {
-			log.error("Failed to fully process file request for " + path, e);
-			return new CreateFileTaskResult(this, e, event.getCurrentRealm(),
-					task, path);
+			log.error("Failed to fully process file request for origin: "
+					+ originPath + ", destination: " + destinationPath, e);
+			return new CopyFileTaskResult(this, e, event.getCurrentRealm(),
+					task, originPath, destinationPath);
 		}
 	}
 
