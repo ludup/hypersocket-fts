@@ -1,5 +1,6 @@
 package com.hypersocket.fs.events;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.hypersocket.fs.FileResource;
@@ -10,6 +11,8 @@ import com.hypersocket.session.Session;
 public class FileResourceEvent extends AssignableResourceEvent {
 
 	private static final long serialVersionUID = -8366174502219193895L;
+	
+	public static final String EVENT_RESOURCE_KEY = "file.event";
 	
 	public static final String ATTR_FILE_PATH = "attr.filePath";
 	public static final String ATTR_PROTOCOL = "attr.protocol";
@@ -51,5 +54,9 @@ public class FileResourceEvent extends AssignableResourceEvent {
 	
 	public String getResourceBundle() {
 		return FileResourceServiceImpl.RESOURCE_BUNDLE;
+	}
+
+	public String[] getResourceKeys() {
+		return ArrayUtils.add(super.getResourceKeys(), EVENT_RESOURCE_KEY);
 	}
 }

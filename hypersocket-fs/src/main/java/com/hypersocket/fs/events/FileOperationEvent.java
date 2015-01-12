@@ -1,5 +1,7 @@
 package com.hypersocket.fs.events;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import com.hypersocket.fs.FileResource;
 import com.hypersocket.fs.FileResourceServiceImpl;
 import com.hypersocket.resource.ResourceSessionEvent;
@@ -10,6 +12,8 @@ public abstract class FileOperationEvent extends ResourceSessionEvent {
 
 	private static final long serialVersionUID = 2710591456847473963L;
 
+	public static final String EVENT_RESOURCE_KEY = "fileOperation.event";
+	
 	public static final String ATTR_FILE_PATH = "attr.filePath";
 	public static final String ATTR_FILE_NAME = "attr.fileName";
 	public static final String ATTR_PROTOCOL = "attr.protocol";
@@ -49,7 +53,10 @@ public abstract class FileOperationEvent extends ResourceSessionEvent {
 	public String getFilename() {
 		return filename;
 	}
-	
+
+	public String[] getResourceKeys() {
+		return ArrayUtils.add(super.getResourceKeys(), EVENT_RESOURCE_KEY);
+	}
 	
 
 }
