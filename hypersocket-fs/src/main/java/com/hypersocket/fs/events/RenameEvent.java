@@ -1,5 +1,7 @@
 package com.hypersocket.fs.events;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import com.hypersocket.fs.FileResource;
 import com.hypersocket.session.Session;
 
@@ -30,4 +32,7 @@ public class RenameEvent extends FileOperationEvent {
 		addAttribute(ATTR_TO_FILE_PATH, toChildPath);
 	}
 
+	public String[] getResourceKeys() {
+		return ArrayUtils.add(super.getResourceKeys(), EVENT_RESOURCE_KEY);
+	}
 }

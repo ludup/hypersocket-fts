@@ -18,7 +18,6 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.VFS;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.apache.derby.impl.io.vfmem.PathUtil;
-import org.apache.log4j.lf5.util.StreamUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +32,7 @@ import com.hypersocket.fs.events.DownloadStartedEvent;
 import com.hypersocket.fs.events.FileOperationEvent;
 import com.hypersocket.fs.events.FileResourceCreatedEvent;
 import com.hypersocket.fs.events.FileResourceDeletedEvent;
+import com.hypersocket.fs.events.FileResourceEvent;
 import com.hypersocket.fs.events.FileResourceUpdatedEvent;
 import com.hypersocket.fs.events.RenameEvent;
 import com.hypersocket.fs.events.UploadCompleteEvent;
@@ -155,6 +155,8 @@ public class FileResourceServiceImpl extends
 			}
 		}
 
+		eventService.registerEvent(FileResourceEvent.class,
+				RESOURCE_BUNDLE, this);
 		eventService.registerEvent(FileResourceCreatedEvent.class,
 				RESOURCE_BUNDLE, this);
 		eventService.registerEvent(FileResourceUpdatedEvent.class,
@@ -162,6 +164,8 @@ public class FileResourceServiceImpl extends
 		eventService.registerEvent(FileResourceDeletedEvent.class,
 				RESOURCE_BUNDLE, this);
 
+		eventService.registerEvent(FileOperationEvent.class, RESOURCE_BUNDLE,
+				this);
 		eventService.registerEvent(DownloadStartedEvent.class, RESOURCE_BUNDLE,
 				this);
 		eventService.registerEvent(DownloadCompleteEvent.class,
