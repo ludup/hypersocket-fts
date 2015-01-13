@@ -44,6 +44,7 @@ import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.permissions.PermissionCategory;
 import com.hypersocket.permissions.PermissionService;
 import com.hypersocket.permissions.PermissionType;
+import com.hypersocket.permissions.SystemPermission;
 import com.hypersocket.realm.RealmService;
 import com.hypersocket.realm.UserVariableReplacement;
 import com.hypersocket.resource.AbstractAssignableResourceRepository;
@@ -268,17 +269,21 @@ public class FileResourceServiceImpl extends
 
 	private FileResource getMountForPath(String rootPath, String path)
 			throws AccessDeniedException {
-
+		String mountPath = "";
+		String mountName = "";
 		try {
-			String mountPath = FileUtils.stripParentPath(rootPath, path);
-			String mountName = FileUtils.firstPathElement(mountPath);
-
+			mountPath = FileUtils.stripParentPath(rootPath, path);
+			mountName = FileUtils.firstPathElement(mountPath);
+			
+			assertAnyPermission(SystemPermission.SYSTEM, SystemPermission.SYSTEM_ADMINISTRATION);
+			return getResourceByName(mountName);
+			
+		} catch (Exception e) {
 			for (FileResource r : getPersonalResources(getCurrentPrincipal())) {
 				if (r.getName().equals(mountName)) {
 					return r;
 				}
 			}
-		} catch (IOException e) {
 			log.error("Failed to resolve mount for path " + path);
 		}
 		return null;
@@ -854,13 +859,21 @@ public class FileResourceServiceImpl extends
 
 	protected FileResource assertMountAccess(String name)
 			throws AccessDeniedException {
-		for (FileResource r : getResources(getCurrentPrincipal())) {
-			if (r.getName().equalsIgnoreCase(name)) {
-				return r;
+		
+		try {
+			assertAnyPermission(SystemPermission.SYSTEM, SystemPermission.SYSTEM_ADMINISTRATION);
+			return getResourceByName(name);
+		} catch (Exception e) {
+			for (FileResource r : getResources(getCurrentPrincipal())) {
+				if (r.getName().equalsIgnoreCase(name)) {
+					return r;
+				}
 			}
+			throw new AccessDeniedException(getCurrentPrincipal()
+					+ " does not have access to " + name);
 		}
-		throw new AccessDeniedException(getCurrentPrincipal()
-				+ " does not have access to " + name);
+		
+		
 	}
 
 	protected String processTokens(String url) {

@@ -1,19 +1,19 @@
 package com.hypersocket.fs.tasks;
 
-import java.io.IOException;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.vfs2.FileObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.hypersocket.events.SystemEvent;
+import com.hypersocket.fs.FileResource;
 import com.hypersocket.fs.FileResourceService;
 import com.hypersocket.i18n.I18NService;
-import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.properties.ResourceTemplateRepository;
 import com.hypersocket.tasks.AbstractTaskProvider;
 import com.hypersocket.tasks.Task;
@@ -27,7 +27,7 @@ public class CopyFileTask extends AbstractTaskProvider {
 
 	static Logger log = LoggerFactory.getLogger(CopyFileTask.class);
 
-	public static final String PROTOCOL = "SFTP";
+	public static final String PROTOCOL = "TASK";
 
 	public static final String RESOURCE_BUNDLE = "FileTask";
 
@@ -92,19 +92,32 @@ public class CopyFileTask extends AbstractTaskProvider {
 			log.info("Destination path " + destinationPath);
 		}
 		try {
-			// int index = originPath.lastIndexOf("/");
-			// String parentPath = path.substring(0, index);
-			// String name = path.substring(index, path.length());
 
-			if (task.getResourceKey().equals(ACTION_COPY_FILE)) {
+			if (task.getResourceKey().equals(ACTION_COPY_FILE)
+					|| task.getResourceKey().equals(ACTION_COPY_DIR)) {
+
 				service.copyFile(originPath, destinationPath, PROTOCOL);
-
-			} else if (task.getResourceKey().equals(ACTION_COPY_DIR)) {
-				// service.c
 			} else if (task.getResourceKey().equals(ACTION_MOVE)) {
-				// service.getMountForPath(path)
+				
+				FileResource resource = service.getMountForPath(originPath);
+				String originChildPath = service.resolveChildPath(resource,
+						originPath);
+				FileObject originFile = service.resolveMountFile(resource);
+				originFile = originFile.resolveFile(originChildPath);
+				if (originFile.exists()) {
+					String destinationChildPath = service.resolveChildPath(
+							resource, destinationPath);
+					FileObject destinationFile = service
+							.resolveMountFile(resource);
+					destinationFile = destinationFile
+							.resolveFile(destinationChildPath);
+					originFile.moveTo(destinationFile);
+				} else {
+					throw new Exception("File " + originPath
+							+ " does not exist");
+				}
 			} else if (task.getResourceKey().equals(ACTION_RENAME)) {
-				// service.createResource(resource, properties);
+				service.renameFile(originPath, destinationPath, PROTOCOL);
 			} else {
 				throw new ValidationException(
 						"Invalid resource key for file task");
@@ -112,7 +125,7 @@ public class CopyFileTask extends AbstractTaskProvider {
 
 			return new CopyFileTaskResult(this, event.getCurrentRealm(), task,
 					originPath, destinationPath);
-		} catch (IOException | AccessDeniedException e) {
+		} catch (Exception e) {
 			log.error("Failed to fully process file request for origin: "
 					+ originPath + ", destination: " + destinationPath, e);
 			return new CopyFileTaskResult(this, e, event.getCurrentRealm(),

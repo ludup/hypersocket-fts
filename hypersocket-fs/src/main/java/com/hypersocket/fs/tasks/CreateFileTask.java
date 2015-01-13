@@ -1,19 +1,19 @@
 package com.hypersocket.fs.tasks;
 
-import java.io.IOException;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.vfs2.FileObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.hypersocket.events.SystemEvent;
+import com.hypersocket.fs.FileResource;
 import com.hypersocket.fs.FileResourceService;
 import com.hypersocket.i18n.I18NService;
-import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.properties.ResourceTemplateRepository;
 import com.hypersocket.tasks.AbstractTaskProvider;
 import com.hypersocket.tasks.Task;
@@ -27,7 +27,7 @@ public class CreateFileTask extends AbstractTaskProvider {
 
 	static Logger log = LoggerFactory.getLogger(CreateFileTask.class);
 
-	public static final String PROTOCOL = "file";
+	public static final String PROTOCOL = "TASK";
 
 	public static final String RESOURCE_BUNDLE = "FileTask";
 
@@ -94,13 +94,33 @@ public class CreateFileTask extends AbstractTaskProvider {
 			if (task.getResourceKey().equals(ACTION_MKDIR)) {
 
 				service.createFolder(parentPath, name, PROTOCOL);
-
 			} else if (task.getResourceKey().equals(ACTION_DELETE_FILE)) {
+
 				service.deleteFile(path, PROTOCOL);
-			} else if (task.getResourceKey().equals(ACTION_TRUNCATE_FILE)) {
-				// service.
-			} else if (task.getResourceKey().equals(ACTION_TOUCH_FILE)) {
-				// service.createResource(resource, properties);
+			} else if (task.getResourceKey().equals(ACTION_TRUNCATE_FILE)
+					|| task.getResourceKey().equals(ACTION_TOUCH_FILE)) {
+
+				FileResource resource = service.getMountForPath(path);
+				String childPath = service.resolveChildPath(resource, path);
+				FileObject file = service.resolveMountFile(resource);
+				file = file.resolveFile(childPath);
+				
+				if (task.getResourceKey().equals(ACTION_TRUNCATE_FILE)
+						&& file.exists()) {
+					service.deleteFile(path, PROTOCOL);
+					file.createFile();
+					
+				} else if (task.getResourceKey().equals(ACTION_TRUNCATE_FILE)
+						&& !file.exists()) {
+					throw new Exception("File " + path + " does not exist");
+					
+				} else if (task.getResourceKey().equals(ACTION_TOUCH_FILE)
+						&& !file.exists()) {
+					file.createFile();
+					
+				} else {
+					throw new Exception("File " + path + " already exists");
+				}
 			} else {
 				throw new ValidationException(
 						"Invalid resource key for file task");
@@ -108,7 +128,7 @@ public class CreateFileTask extends AbstractTaskProvider {
 
 			return new CreateFileTaskResult(this, event.getCurrentRealm(),
 					task, path);
-		} catch (IOException | AccessDeniedException e) {
+		} catch (Exception e) {
 			log.error("Failed to fully process file request for " + path, e);
 			return new CreateFileTaskResult(this, e, event.getCurrentRealm(),
 					task, path);
