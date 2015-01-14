@@ -54,13 +54,13 @@
 
 	function actionFormatter(value, row, index) {
 
-		var actionHtml = '<a class="delete tableAction btn btn-danger"><i class="fa fa-trash"></i></a>';
-		actionHtml += '<a class="edit tableAction btn btn-primary"><i class="fa fa-edit"></i></a>';
+		var actionHtml = '<a class="delete tableAction btn btn-danger"><i class="fa fa-trash fa-fw"></i></a>';
+		actionHtml += '<a class="edit tableAction btn btn-primary"><i class="fa fa-edit fa-fw"></i></a>';
 
 		if (row.type != "Folder") {
-			actionHtml += '<a class="download tableAction btn btn-success"><i class="fa fa-download"></i></a>';
+			actionHtml += '<a class="download tableAction btn btn-success"><i class="fa fa-download fa-fw"></i></a>';
 		} else {
-			actionHtml += '<a href="#"><i class="fa" style="width: 15px;"></i></a>';
+			actionHtml += '<a href="#"><i class="fa fa-fw" style="width: 15px;"></i></a>';
 		}
 
 		return actionHtml;
@@ -120,7 +120,9 @@
 		'click .delete' : function(e, value, row, index) {
 
 			$('.notifyjs-confirm-base .no').trigger('click');
-			$(document).data('deleteRow', row);
+			var arr = new Array();
+			arr.push(row);
+			$(document).data('deleteRow', arr);
 			$(e.target).closest('a').notify({
 				title : getResource("text.confirmDelete").format(row.label),
 				button : getResource("text.delete")
@@ -177,29 +179,27 @@
 
 						loadResources(function() {
 
-							$.notify
-									.addStyle(
-											'confirm',
-											{
-												html : "<div>"
-														+ "<div class='clearfix'>"
-														+ "<div class='title' data-notify-html='title'/>"
-														+ "<div class='buttons'>"
-														+ "<button class='btn btn-primary no'>Cancel</button>"
-														+ "<button class='btn btn-danger yes' data-notify-text='button'></button>"
-														+ "</div>" + "</div>"
-														+ "</div>"
-											});
+							$.notify.addStyle(
+								'confirm',
+								{
+									html : "<div>"
+											+ "<div class='clearfix'>"
+											+ "<div class='title' data-notify-html='title'/>"
+											+ "<div class='buttons'>"
+											+ "<button class='btn btn-primary no'>Cancel</button>"
+											+ "<button class='btn btn-danger yes' data-notify-text='button'></button>"
+											+ "</div>" + "</div>"
+											+ "</div>"
+								});
 
-							$.notify
-									.addStyle(
-											'upload',
-											{
-												html : "<div>"
-														+ "<div class='clearfix'>"
-														+ "<div class='title' data-notify-html='title'/>"
-														+ "</div>" + "</div>"
-											});
+							$.notify.addStyle(
+								'upload',
+								{
+									html : "<div>"
+											+ "<div class='clearfix'>"
+											+ "<div class='title' data-notify-html='title'/>"
+											+ "</div>" + "</div>"
+								});
 
 							$(document).on('click',
 									'.notifyjs-confirm-base .no', function() {
@@ -211,16 +211,20 @@
 											function() {
 												
 												var row = $(document).data('deleteRow');
-												getJSON('fs/delete/' + mountPath + row.label,
-														null,
-														function(data) {
-															if (data.success) {
-																showInformation(getResource('text.deleted').format(row.label));
-																$('#table').bootstrapTable('refresh');
-															} else {
-																showError(getResource('text.deleteFailed').format(row.label));
-															}
-														});
+												
+												$.each(row, function(idx, row) {
+													getJSON('fs/delete/' + mountPath + row.label,
+															null,
+															function(data) {
+																if (data.success) {
+																	showInformation(getResource('text.deleted').format(row.label));
+																	$('#table').bootstrapTable('refresh');
+																} else {
+																	showError(getResource('text.deleteFailed').format(row.label));
+																}
+															});
+												});
+												
 												$(this).trigger('notify-hide');
 											});
 
@@ -237,10 +241,10 @@
 								if (idx < breadcrumbs.length - 1) {
 									$('#breadcrumbs').append(
 											'<li><a href="' + viewfsPath + currentPath + '">'
-													+ obj + '</a></li>');
+													+ decodeURIComponent(obj) + '</a></li>');
 								} else {
 									$('#breadcrumbs').append(
-											'<li class="active">' + obj
+											'<li class="active">' + decodeURIComponent(obj)
 													+ '</li>');
 
 								}
@@ -249,6 +253,7 @@
 							
 							$('#listingButton').click(function(e) {
 
+								$('#table').bootstrapTable('refresh');
 								$('#tableWrapper').show();
 								$('#uploadWrapper').hide();
 								$('#uploadWrapper').empty();
@@ -258,7 +263,7 @@
 							$('#uploadFileButton').click(function(e) {
 
 								$('#tableWrapper').hide();
-								
+								$('#uploadWrapper').empty();
 
 								$('#uploadWrapper').multipleFileUpload({
 									  showDownloadButton: false,
@@ -288,21 +293,40 @@
 								}
 							});
 							
+							$('.fixed-table-toolbar').find('.btn-group').first().prepend('<button id="multipleDelete" class="btn btn-default" type="button" name="multipleDelete" title="Delete"><i class="fa fa-trash"></i></button>');
 							$('.fixed-table-toolbar').find('.btn-group').first().prepend('<button id="newFolderButton" class="btn btn-default" type="button" name="newFolder" title="New Folder"><i class="fa fa-folder-open"></i></button>');
 
+							$('#multipleDelete').click(
+									function(e) {
+								
+										var arr = $('#table').bootstrapTable('getSelections');
+										if(arr.length > 0) {
+											$(document).data('deleteRow', arr);
+											$('#multipleDelete').notify({
+												title : getResource("text.confirmMultipleDelete").format(arr.length),
+												button : getResource("text.delete")
+											}, {
+												style : 'confirm',
+												position : 'left middle',
+												autoHide : false,
+												clickToHide : false,
+												showDuration : 100
+											});
+										}
+							});
+							
 							$('#newFolderButton').click(
 									function(e) {
 										
 										getJSON('fs/createFolder/'
-												+ currentPath, null, function(
-												data) {
+												+ currentPath, null, function(data) {
 											$('#table').bootstrapTable(
 													'append', data.resource);
 											rebindEditable();
 											$('.fileLabel').last().editable(
 													'toggle');
 										});
-									});
+							});
 						});
 					});
 </script>

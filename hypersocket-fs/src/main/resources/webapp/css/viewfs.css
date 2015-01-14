@@ -79,7 +79,7 @@ body {
 
 .navicon {
 	display: inline;
-	padding: 5px 20px 5px 0px;
+	padding: 5px 5px 5px 0px;
 	margin: auto;
 	height: 100%;
 	position: relative;
@@ -92,6 +92,7 @@ body {
 	border-radius: 2px;
 	text-shadow: none;
 	min-height: 28px;
+	padding: 6px;
 }
 
 .btn i {
@@ -100,6 +101,7 @@ body {
 
 .btn {
 	margin-right: 5px;
+	margin-top: 5px;
 }
 
 .btn-primary {
