@@ -37,6 +37,10 @@ import com.hypersocket.fs.events.FileResourceUpdatedEvent;
 import com.hypersocket.fs.events.RenameEvent;
 import com.hypersocket.fs.events.UploadCompleteEvent;
 import com.hypersocket.fs.events.UploadStartedEvent;
+import com.hypersocket.fs.tasks.CopyFileTaskResult;
+import com.hypersocket.fs.tasks.CreateFileTask;
+import com.hypersocket.fs.tasks.CreateFileTaskResult;
+import com.hypersocket.fs.tasks.DeleteFolderTaskResult;
 import com.hypersocket.i18n.I18NService;
 import com.hypersocket.menus.MenuRegistration;
 import com.hypersocket.menus.MenuService;
@@ -44,6 +48,7 @@ import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.permissions.PermissionCategory;
 import com.hypersocket.permissions.PermissionService;
 import com.hypersocket.permissions.PermissionType;
+import com.hypersocket.permissions.SystemPermission;
 import com.hypersocket.realm.RealmService;
 import com.hypersocket.realm.UserVariableReplacement;
 import com.hypersocket.resource.AbstractAssignableResourceRepository;
@@ -181,6 +186,10 @@ public class FileResourceServiceImpl extends
 				.registerEvent(DeleteFileEvent.class, RESOURCE_BUNDLE, this);
 		eventService.registerEvent(RenameEvent.class, RESOURCE_BUNDLE, this);
 
+		eventService.registerEvent(CopyFileTaskResult.class, CreateFileTask.RESOURCE_BUNDLE);
+		eventService.registerEvent(CreateFileTaskResult.class, CreateFileTask.RESOURCE_BUNDLE);
+		eventService.registerEvent(DeleteFolderTaskResult.class, CreateFileTask.RESOURCE_BUNDLE);
+		
 		registerScheme(new FileResourceScheme("file", false, false, false));
 		registerScheme(new FileResourceScheme("ftp", true, true, true));
 		registerScheme(new FileResourceScheme("ftps", true, true, true));
@@ -191,7 +200,6 @@ public class FileResourceServiceImpl extends
 		registerScheme(new FileResourceScheme("tmp", false, false, false));
 		registerScheme(new FileResourceScheme("smb", true, true, false));
 
-		server.registerControllerPackage("cn.bluejoe.elfinder.controller");
 
 		jQueryUIContentHandler
 				.addAlias("^/viewfs/.*$", "content/fileview.html");
@@ -268,17 +276,21 @@ public class FileResourceServiceImpl extends
 
 	private FileResource getMountForPath(String rootPath, String path)
 			throws AccessDeniedException {
-
+		String mountPath = "";
+		String mountName = "";
 		try {
-			String mountPath = FileUtils.stripParentPath(rootPath, path);
-			String mountName = FileUtils.firstPathElement(mountPath);
-
+			mountPath = FileUtils.stripParentPath(rootPath, path);
+			mountName = FileUtils.firstPathElement(mountPath);
+			
+			assertAnyPermission(SystemPermission.SYSTEM, SystemPermission.SYSTEM_ADMINISTRATION);
+			return getResourceByName(mountName);
+			
+		} catch (Exception e) {
 			for (FileResource r : getPersonalResources(getCurrentPrincipal())) {
 				if (r.getName().equals(mountName)) {
 					return r;
 				}
 			}
-		} catch (IOException e) {
 			log.error("Failed to resolve mount for path " + path);
 		}
 		return null;
@@ -854,13 +866,21 @@ public class FileResourceServiceImpl extends
 
 	protected FileResource assertMountAccess(String name)
 			throws AccessDeniedException {
-		for (FileResource r : getResources(getCurrentPrincipal())) {
-			if (r.getName().equalsIgnoreCase(name)) {
-				return r;
+		
+		try {
+			assertAnyPermission(SystemPermission.SYSTEM, SystemPermission.SYSTEM_ADMINISTRATION);
+			return getResourceByName(name);
+		} catch (Exception e) {
+			for (FileResource r : getResources(getCurrentPrincipal())) {
+				if (r.getName().equalsIgnoreCase(name)) {
+					return r;
+				}
 			}
+			throw new AccessDeniedException(getCurrentPrincipal()
+					+ " does not have access to " + name);
 		}
-		throw new AccessDeniedException(getCurrentPrincipal()
-				+ " does not have access to " + name);
+		
+		
 	}
 
 	protected String processTokens(String url) {

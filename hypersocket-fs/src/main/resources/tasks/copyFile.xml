@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+<propertyTemplates context="fileTask">
+	<propertyCategory resourceKey="category.file"
+		resourceBundle="TriggerResourceService" weight="1000">
+		<property resourceKey="origin.path" inputType="text" 
+			defaultValue="" weight="100"/>
+		<property resourceKey="destination.path" inputType="text" 
+			defaultValue="" weight="200"/>
+	</propertyCategory>
+</propertyTemplates>
