@@ -1,7 +1,6 @@
 package com.hypersocket.fs.json;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,11 +33,9 @@ import com.hypersocket.auth.json.AuthenticationRequired;
 import com.hypersocket.auth.json.UnauthorizedException;
 import com.hypersocket.fs.FileResource;
 import com.hypersocket.fs.FileResourceService;
-import com.hypersocket.fs.UploadProcessor;
 import com.hypersocket.fs.tree.TreeFile;
 import com.hypersocket.fs.tree.TreeFolder;
 import com.hypersocket.fs.tree.TreeList;
-import com.hypersocket.i18n.I18N;
 import com.hypersocket.json.ResourceStatus;
 import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.session.json.SessionTimeoutException;
@@ -46,8 +43,6 @@ import com.hypersocket.session.json.SessionUtils;
 import com.hypersocket.tables.BootstrapTablesResult;
 import com.hypersocket.upload.FileUpload;
 import com.hypersocket.upload.FileUploadService;
-import com.hypersocket.upload.FileUploadServiceImpl;
-import com.hypersocket.upload.FileUploadStore;
 import com.hypersocket.util.FileUtils;
 
 @Controller
@@ -273,7 +268,7 @@ public class FileSystemController extends AuthenticatedController {
 
 			int offset = Integer.parseInt(request.getParameter("offset"));
 			int limit = Integer.parseInt(request.getParameter("limit"));
-			String order = request.getParameter("order");
+//			String order = request.getParameter("order");
 			String search = request.getParameter("search");
 			
 			List<FileObject> filesAndFolders = new ArrayList<FileObject>();
