@@ -9,12 +9,10 @@
 					<h4 class="modal-title"></h4>
 				</div>
 				<div class="modal-body">
-					<div class="dialogError"></div>
-
 						<div class="propertyItem form-group">
 							<label class="col-md-3 control-label" localize="mount.name.label"></label>
 							<div class="propertyValue col-md-9">
-								<input type="text" class="form-control propertyInput"
+								<input type="text" class="form-control"
 									placeholder="" id="resourceName" maxlength="" name="resourceName" value="">
 								<div>
 									<span class="help-block" localize="mount.name.info"></span>
@@ -34,19 +32,19 @@
 							</div>
 						</div>
 						<div class="propertyItem form-group remoteDiv">
-							<label class="col-md-3 control-label" localize="mount.server.label"></label>
+							<label for="server" class="col-md-3 control-label" localize="mount.server.label"></label>
 							<div class="propertyValue col-md-9">
-								<input type="text" class="form-control propertyInput"
-									placeholder="" id="server" maxlength="" name="server" value="">
+								<input type="text" class="form-control"
+									placeholder="" id="serverName" maxlength="" name="server" value="">
 								<div>
 									<span class="help-block" localize="mount.server.info"></span>
 								</div>
 							</div>
 						</div>
-						<div class="propertyItem form-group remoteDiv">
+						<div class="propertyItem form-group remoteDiv portDiv">
 							<label class="col-md-3 control-label" localize="mount.port.label"></label>
 							<div class="propertyValue col-md-9">
-								<input type="text" class="form-control propertyInput"
+								<input type="text" class="form-control"
 									placeholder="" id="port" maxlength="" name="port" value="">
 								<div>
 									<span class="help-block" localize="mount.port.info"></span>
@@ -56,8 +54,7 @@
 						<div class="propertyItem form-group">
 							<label class="col-md-3 control-label" localize="mount.path.label"></label>
 							<div class="propertyValue col-md-9">
-								<input type="text" class="form-control propertyInput"
-									placeholder="" id="path" maxlength="" name="path" value="">
+								<div id="pathField"></div>
 								<div>
 									<span class="help-block" localize="mount.path.info"></span>
 								</div>
@@ -67,22 +64,20 @@
 					<div id="tabAuth" class="dialogTab">
 					
 						<div class="propertyItem form-group credsDiv">
-							<label class="col-md-3 control-label" localize="mount.username.label"></label>
+							<label for="username" class="col-md-3 control-label" localize="mount.username.label"></label>
 							<div class="propertyValue col-md-9">
-								<input type="text" class="form-control propertyInput"
-									placeholder="" id="username" maxlength="" name="username" value="">
+								<div id="usernameField"></div>
 								<div>
 									<span class="help-block" localize="mount.username.info"></span>
 								</div>
 							</div>
 						</div>	
 						<div class="propertyItem form-group credsDiv">
-							<label class="col-md-3 control-label" localize="mount.password.label"></label>
+							<label for="password" class="col-md-3 control-label" localize="mount.password.label"></label>
 							<div class="propertyValue col-md-9">
-								<input type="password" class="form-control propertyInput"
-									placeholder="" id="password" maxlength="" name="password" value="">
+								<div id="passwordField"></div>
 								<div>
-									<span class="help-block" localize="mount.username.info"></span>
+									<span class="help-block" localize="mount.password.info"></span>
 								</div>
 							</div>
 						</div>	
@@ -136,26 +131,59 @@
 <script type="text/javascript">
 	$(document).ready(function() {
 				$('#tabMounts').localize();
-					
-				$('#schemeButton').selectButton({
+				
+				var usernameInput = $('#usernameField').textInput({
+					id: 'username',
+					url: 'realms/realm/userVariables/' + $(document).data('session').currentRealm.id,
+					getUrlData: function(data) {
+						return data.resources;
+					}
+				});
+				
+				var pathInput = $('#pathField').textInput({
+					id: 'path',
+					url: 'realms/realm/userVariables/' + $(document).data('session').currentRealm.id,
+					getUrlData: function(data) {
+						return data.resources;
+					}
+				});
+				
+				var passwordInput = $('#passwordField').textInput({
+					id: 'password',
+					type: 'password',
+					variables: ['password']
+				});
+				
+				var schemeButton = $('#schemeButton').selectButton({
 					id: 'scheme',
-					url: 'schemes',
+					url: 'mounts/schemes',
 					nameAttr: 'scheme',
 					valueAttr: 'scheme',
 					nameIsResourceKey: true,
 					resourceKeyTemplate: 'mount.{0}.label',
 					name: 'file',
 					value: 'file',
-					changed: function(scheme) {
+					getUrlData: function(data) {
+						return data.resources;
+					},
+					changed: function(widget) {
+						var scheme = widget.getSelectedObject();
 						if(scheme.remote) {
+							if(getResourceNoDefault(scheme.scheme + '.server.label')!=null) {
+								$("label[for='server']").text(getResource(scheme.scheme + '.server.label'));
+							} else {
+								$("label[for='server']").text(getResource('mount.server.label'));
+							}
 							$('.remoteDiv').show();
-							
+							if(!scheme.showPort) {
+								$('.portDiv').hide();
+							}
 						} else {
 							$('.remoteDiv').hide();
-							$('#server').val('');
+							$('#serverName').val('');
 							$('#port').val('');
 						}
-						if(scheme.supportsCredentials) {
+						if(scheme.supportsCredentials) {								
 							if(getResourceNoDefault(scheme.scheme + '.username.label')!=null) {
 								$("label[for='username']").text(getResource(scheme.scheme + '.username.label'));
 							} else {
@@ -174,10 +202,9 @@
 						}
 					}
 				});
-
 				
 				if(currentMenu.canCreate || currentMenu.canUpdate) {
-					getJSON('roles', null, function(data) {
+					getJSON('roles/list', null, function(data) {
 						$('#tabRoles').multipleSelect({
 							values : data.resources,
 							selectedIsObjectList : true,
@@ -187,7 +214,7 @@
 				}
 				
 				$('#mountProperties').propertyPage({
-					url : 'template/mount',
+					url : 'mounts/template',
 					showButtons : false,
 					useTemplates : true,
 					canUpdate : currentMenu.canUpdate,
@@ -212,10 +239,10 @@
 				$('#tabMounts').ajaxResourcePage(
 						{
 							id : "Mounts",
-							tableUrl : "table/mounts",
+							tableUrl : "mounts/table",
 							title: getResource("filesystems.label"),
 							icon: 'fa-folder-open',
-							resourceUrl : "mount",
+							resourceUrl : "mounts/mount",
 							fields : [ {
 								name : "name"
 							}, {
@@ -244,8 +271,8 @@
 									return false;
 								}
 
-								if ($('#server').val() != '') {
-									if (!isValidHostname($('#server').val())) {
+								if ($('#serverName').val() != '') {
+									if (!isValidHostname($('#serverName').val())) {
 										$('#addResourceForm').resourceDialog(
 												'error', "error.hostnameInvalid");
 										return false;
@@ -256,19 +283,19 @@
 							},
 							clearDialog : function() {
 								
-								$('#mountDetails').tabs('option', 'active', 0);
-								$('#scheme').prop('disabled', false);
-								$('#scheme').val('file');
-								$('#scheme').trigger('change');
+								schemeButton.enable();
+								schemeButton.setValue('file');
+								schemeButton.changed();
+								
 								$('#resourceId').val('');
 								$('#resourceName').val('');
 								
-								$('#server').val('');
+								$('#serverName').val('');
 								$('#port').val('');
-								$('#path').val('');
 								
-								$('#username').val('');
-								$('#password').val('');
+								pathInput.setValue('');
+								usernameInput.setValue('');
+								passwordInput.setValue('');
 								
 								$('#readOnly').prop('checked', false);
 								$('#showHidden').prop('checked', false);
@@ -280,12 +307,12 @@
 								resource = new Object();
 								resource.id = $('#resourceId').val();
 								resource.name = $('#resourceName').val();
-								resource.scheme = $('#scheme').val();
-								resource.server = $('#server').val();
+								resource.scheme = schemeButton.getValue();
+								resource.server = $('#serverName').val();
 								resource.port = $('#port').val();
-								resource.path = $('#path').val();
-								resource.username = $('#username').val();
-								resource.password = $('#password').val();
+								resource.path = pathInput.getValue();
+								resource.username = usernameInput.getValue();
+								resource.password = passwordInput.getValue();
 								resource.readOnly = $('#readOnly').prop('checked') ? true : false;
 								resource.showHidden = $('#showHidden').prop('checked') ? true : false;
 								resource.showFolders = $('#showFolders').prop('checked') ? true : false;
@@ -298,14 +325,14 @@
 								
 								$('#resourceId').val(resource.id);
 								$('#resourceName').val(resource.name);
-								$('#scheme').val(resource.scheme);
-								$('#scheme').trigger('change');
-								$('#scheme').prop('disabled', true);
-								$('#server').val(resource.server);
+								schemeButton.setValue(resource.scheme);
+								schemeButton.disable();
+								schemeButton.changed();
+								$('#serverName').val(resource.server);
 								$('#port').val(resource.port);
-								$('#path').val(resource.path);
-								$('#username').val(resource.username);
-								$('#password').val(resource.password);
+								pathInput.setValue(resource.path);
+								usernameInput.setValue(resource.username);
+								passwordInput.setValue(resource.password);
 								if(resource.readOnly) {
 									$('#readOnly').prop('checked', true);
 								}

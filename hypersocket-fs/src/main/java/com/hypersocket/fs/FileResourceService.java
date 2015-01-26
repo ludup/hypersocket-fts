@@ -7,15 +7,17 @@ import java.io.OutputStream;
 import java.util.List;
 
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
 
 import com.hypersocket.permissions.AccessDeniedException;
+import com.hypersocket.realm.UserVariableReplacement;
 import com.hypersocket.resource.AbstractAssignableResourceService;
+import com.hypersocket.upload.FileUpload;
 
 public interface FileResourceService extends AbstractAssignableResourceService<FileResource> {
 
-	static final String RESOURCE_BUNDLE = "FileResourceService";
-	
-	FileResource getMountForURIPath(String host, String controllerPath, String path) throws FileNotFoundException;
+	FileResource getMountForURIPath(String host, String controllerPath,
+			String path) throws FileNotFoundException, AccessDeniedException;
 
 	boolean isURIFilesystemRoot(String path);
 
@@ -45,10 +47,10 @@ public interface FileResourceService extends AbstractAssignableResourceService<F
 	boolean copyURIFile(String host, String controllerPath, String fromUri,
 			String toUri, String protocol) throws IOException, AccessDeniedException;
 
-	void uploadURIFile(String host, String controllerPath, String uri,
+	FileUpload uploadURIFile(String host, String controllerPath, String uri,
 			InputStream in, UploadProcessor<?> processor, String protocol) throws IOException, AccessDeniedException;
 
-	FileResource getMountForPath(String path);
+	FileResource getMountForPath(String path) throws AccessDeniedException;
 
 	String resolveChildPath(FileResource resource, String path)
 			throws IOException;
@@ -69,5 +71,9 @@ public interface FileResourceService extends AbstractAssignableResourceService<F
 
 	FileObject createFolder(String parentPath, String newName, String protocol)
 			throws IOException, AccessDeniedException;
+
+	boolean testVFSUri(String privateUrl) throws FileSystemException;
+
+	UserVariableReplacement getUserVariableReplacement();
 
 }

@@ -1,19 +1,24 @@
 package com.hypersocket.fs;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
 import javax.xml.bind.annotation.XmlTransient;
 
-import org.codehaus.jackson.annotate.JsonIgnore;
+import org.apache.commons.lang3.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.hypersocket.realm.Principal;
+import com.hypersocket.realm.UserVariableReplacement;
 import com.hypersocket.resource.AssignableResource;
 import com.hypersocket.util.FileUtils;
 import com.hypersocket.util.Utils;
 
 @Entity
-@Table(name="file_resources", uniqueConstraints = {@UniqueConstraint(columnNames={"name"})})
+@Table(name="file_resources")
 public class FileResource extends AssignableResource {
 
 	@Column(name="scheme")
@@ -116,42 +121,55 @@ public class FileResource extends AssignableResource {
 	}
 	
 	public String getUrl() {
-		return getUrl(true);
+		return getUrl(true, null, null);
 	}
 	
 	@JsonIgnore
 	@XmlTransient
-	public String getPrivateUrl() {
-		return getUrl(false);
+	public String getPrivateUrl(Principal principal, UserVariableReplacement replacementService) {
+		return getUrl(false, principal, replacementService);
 	}
 	
-	private String getUrl(boolean friendly) {
-		StringBuffer buf = new StringBuffer();
-		buf.append(scheme);
-		buf.append("://");
-		if(username!=null && !username.equals("")) {
-			buf.append(username);
-			if(password!=null && !password.equals("")) {
-				buf.append(":");
+	private String getUrl(boolean friendly, Principal principal, UserVariableReplacement replacementService) {
+		try {
+			StringBuffer buf = new StringBuffer();
+			buf.append(scheme);
+			buf.append("://");
+			
+			if(StringUtils.isNotBlank(username)) {
 				if(friendly) {
-					buf.append("***");
+					buf.append(username);
 				} else {
-					buf.append(password);
+					buf.append(URLEncoder.encode(replacementService.replaceVariables(principal, username), "UTF-8"));
+				}
+				if(StringUtils.isNotBlank(password)) {
+					buf.append(":");
+					if(friendly) {
+						buf.append("***");
+					} else {
+						buf.append(URLEncoder.encode(replacementService.replaceVariables(principal, password), "UTF-8"));
+					}
+				}
+				buf.append("@");
+			} 
+			
+			if(server!=null && !server.equals("")) {
+				buf.append(server);
+				if(port!=null) {
+					buf.append(":");
+					buf.append(port);
 				}
 			}
-			buf.append("@");
-		}
-		
-		if(server!=null && !server.equals("")) {
-			buf.append(server);
-			if(port!=null) {
-				buf.append(":");
-				buf.append(port);
-			}
-		}
 
-		buf.append(FileUtils.checkStartsWithSlash(Utils.checkNull(path)));
-		return buf.toString();
+			String thisPath = path;
+			if(!friendly) {
+				thisPath = replacementService.replaceVariables(principal, thisPath);
+			}
+			buf.append(FileUtils.checkStartsWithSlash(Utils.checkNull(thisPath)));
+			return buf.toString();
+		} catch (UnsupportedEncodingException e) {
+			throw new IllegalStateException("The system does not appear to support UTF-8!");
+		}
 	}
 
 	

@@ -171,12 +171,12 @@ public abstract class AbstractFtpFile implements FtpFile {
 
 	@Override
 	public String getGroupName() {
-		return session.getPrincipal().getRealm().getName();
+		return session.getCurrentPrincipal().getRealm().getName();
 	}
 
 	@Override
 	public String getOwnerName() {
-		return session.getPrincipal().getPrincipalName();
+		return session.getCurrentPrincipal().getPrincipalName();
 	}
 
 }

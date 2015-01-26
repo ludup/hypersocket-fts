@@ -6,6 +6,8 @@ import java.io.OutputStream;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 
+import com.hypersocket.util.FileUtils;
+
 public class ContentOutputStream extends OutputStream {
 
 	OutputStream out;
@@ -16,7 +18,7 @@ public class ContentOutputStream extends OutputStream {
 	UploadEventProcessor eventProcessor;
 	long bytesIn = 0;
 	String protocol;
-
+	
 	public ContentOutputStream(FileResource resource, String childPath,
 			FileObject file, long position, long started,
 			UploadEventProcessor eventProcessor, String protocol)
@@ -36,6 +38,7 @@ public class ContentOutputStream extends OutputStream {
 			out.write(b);
 			bytesIn++;
 		} catch (IOException e) {
+			FileUtils.closeQuietly(out);
 			eventProcessor.uploadFailed(resource, childPath, file, bytesIn, e,
 					protocol);
 			out = null;
@@ -50,6 +53,7 @@ public class ContentOutputStream extends OutputStream {
 			out.write(buf, off, len);
 			bytesIn += len;
 		} catch (IOException e) {
+			FileUtils.closeQuietly(out);
 			eventProcessor.uploadFailed(resource, childPath, file, bytesIn, e,
 					protocol);
 			out = null;
@@ -61,16 +65,11 @@ public class ContentOutputStream extends OutputStream {
 	public synchronized void close() throws IOException {
 
 		if (out != null) {
-			try {
-				out.close();
-				out = null;
-				// Event callback
-				eventProcessor.uploadComplete(resource, childPath, file,
-						bytesIn, started, protocol);
-			} catch (IOException e) {
-				eventProcessor.uploadFailed(resource, childPath, file, bytesIn,
-						e, protocol);
-			}
+			FileUtils.closeQuietly(out);
+			out = null;
+			// Event callback
+			eventProcessor.uploadComplete(resource, childPath, file,
+					bytesIn, started, protocol);
 		}
 	}
 

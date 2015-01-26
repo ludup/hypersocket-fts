@@ -1,6 +1,5 @@
 package com.hypersocket.fs.json;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -8,6 +7,7 @@ import javax.activation.MimetypesFileTypeMap;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +16,7 @@ import com.hypersocket.fs.ContentInputStream;
 import com.hypersocket.fs.DownloadEventProcessor;
 import com.hypersocket.fs.DownloadProcessor;
 import com.hypersocket.fs.FileResource;
+import com.hypersocket.session.Session;
 
 public class HttpDownloadProcessor implements DownloadProcessor {
 
@@ -28,22 +29,25 @@ public class HttpDownloadProcessor implements DownloadProcessor {
 	long start;
 	long length;
 	String protocol;
+	Session session;
 
 	static MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
 
 	public HttpDownloadProcessor(HttpServletRequest request,
-			HttpServletResponse response, long start, long length, String protocol) {
+			HttpServletResponse response, long start, long length, String protocol, Session session) {
 		this.request = request;
 		this.response = response;
 		this.start = start;
 		this.length = length;
 		this.protocol = protocol;
+		this.session = session;
 	}
 
 	@Override
 	public void startDownload(FileResource resource, String childPath,
 			FileObject file, DownloadEventProcessor downloadEventProcessor) {
 
+		InputStream in = null;
 		try {
 			
 			long started = downloadEventProcessor.downloadStarted(resource, childPath, file, protocol);
@@ -58,7 +62,7 @@ public class HttpDownloadProcessor implements DownloadProcessor {
 
 			if (file.getContent().getSize() <= 1024000 && length <= 1024000) {
 
-				InputStream in = new BufferedInputStream(file.getContent().getInputStream());
+				in = file.getContent().getInputStream();
 				if (start > 0) {
 					in.skip(start);
 				}
@@ -72,16 +76,19 @@ public class HttpDownloadProcessor implements DownloadProcessor {
 					remaining -= r;
 				}
 
+				
 				downloadEventProcessor.downloadComplete(resource, childPath,
-						file, length, System.currentTimeMillis() - started, protocol);
+						file, length, System.currentTimeMillis() - started, protocol, session);
 
 			} else {
 				request.setAttribute(CONTENT_INPUTSTREAM,
 						new ContentInputStream(resource, childPath, file,
-								start, length, downloadEventProcessor, started, protocol));
+								start, length, downloadEventProcessor, started, protocol, session));
 			}
 		} catch (IOException e) {
-			downloadEventProcessor.downloadFailed(resource, childPath, file, e, protocol);
+			downloadEventProcessor.downloadFailed(resource, childPath, file, e, protocol, session);
+		} finally {
+			IOUtils.closeQuietly(in);
 		}
 
 	}

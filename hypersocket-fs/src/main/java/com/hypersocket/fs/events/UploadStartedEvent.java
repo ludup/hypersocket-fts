@@ -1,5 +1,7 @@
 package com.hypersocket.fs.events;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import com.hypersocket.fs.FileResource;
 import com.hypersocket.session.Session;
 
@@ -19,4 +21,7 @@ public class UploadStartedEvent extends FileOperationEvent {
 		super(source, "fs.uploadStarted", t, currentSession, mountName, childPath, protocol);
 	}
 
+	public String[] getResourceKeys() {
+		return ArrayUtils.add(super.getResourceKeys(), EVENT_RESOURCE_KEY);
+	}
 }

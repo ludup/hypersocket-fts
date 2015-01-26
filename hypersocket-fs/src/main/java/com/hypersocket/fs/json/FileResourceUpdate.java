@@ -1,6 +1,6 @@
 package com.hypersocket.fs.json;
 
-import org.codehaus.jackson.annotate.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class FileResourceUpdate {
@@ -16,7 +16,6 @@ public class FileResourceUpdate {
 	boolean readOnly;
 	boolean showHidden;
 	boolean showFolders;
-	
 	Long[] roles;
 
 	public FileResourceUpdate() {
