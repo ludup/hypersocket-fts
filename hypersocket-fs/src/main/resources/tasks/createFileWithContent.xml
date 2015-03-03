@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+<propertyTemplates context="fileTask">
+	<propertyCategory resourceKey="category.file"
+		resourceBundle="FileTask" weight="1000">
+		<property resourceKey="file.path" inputType="text"
+			defaultValue="" weight="0" />
+	</propertyCategory>
+	<propertyCategory resourceKey="category.content"
+		resourceBundle="FileTask" weight="1000">
+		<property resourceKey="file.content" inputType="textarea"
+			defaultValue="" weight="0" />
+	</propertyCategory>
+</propertyTemplates>
