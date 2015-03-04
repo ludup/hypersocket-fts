@@ -183,7 +183,7 @@ public class FileResource extends AssignableResource implements BrowserLaunchabl
 
 	@Override
 	public boolean isDisplayInBrowserResourcesTable() {
-		return displayInBrowserResourcesTable == null ? false : displayInBrowserResourcesTable;
+		return false;
 	}
 
 	
