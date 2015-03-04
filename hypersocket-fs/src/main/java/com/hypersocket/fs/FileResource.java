@@ -181,9 +181,14 @@ public class FileResource extends AssignableResource implements BrowserLaunchabl
 		return System.getProperty("hypersocket.uiPath", "/hypersocket") + "/viewfs/" + getName();
 	}
 
+	public void setDisplayInBrowserResourcesTable(Boolean displayInBrowserResourcesTable) {
+		this.displayInBrowserResourcesTable = Boolean.FALSE;
+	}
+	
 	@Override
 	public boolean isDisplayInBrowserResourcesTable() {
-		return false;
+		return false
+				;
 	}
 
 	
