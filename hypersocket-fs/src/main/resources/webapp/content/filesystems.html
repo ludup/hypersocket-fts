@@ -151,7 +151,10 @@
 				var passwordInput = $('#passwordField').textInput({
 					id: 'password',
 					inputType: 'password',
-					variables: ['password']
+					url: 'realms/realm/userVariables/' + $(document).data('session').currentRealm.id,
+					getUrlData: function(data) {
+						return data.resources.push('password');
+					}
 				});
 				
 				var schemeButton = $('#schemeButton').selectButton({
