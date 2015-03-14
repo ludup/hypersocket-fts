@@ -15,6 +15,7 @@ import com.hypersocket.fs.FileResource;
 import com.hypersocket.fs.FileResourceService;
 import com.hypersocket.i18n.I18NService;
 import com.hypersocket.properties.ResourceTemplateRepository;
+import com.hypersocket.realm.Realm;
 import com.hypersocket.tasks.AbstractTaskProvider;
 import com.hypersocket.tasks.Task;
 import com.hypersocket.tasks.TaskProviderService;
@@ -40,7 +41,7 @@ public class CreateFileTask extends AbstractTaskProvider {
 	CreateFileTaskRepository repository;
 
 	@Autowired
-	FileResourceService service;
+	FileResourceService fileResourceService;
 
 	@Autowired
 	TriggerResourceService triggerService;
@@ -78,10 +79,10 @@ public class CreateFileTask extends AbstractTaskProvider {
 	}
 
 	@Override
-	public TaskResult execute(Task task, SystemEvent event)
+	public TaskResult execute(Task task, Realm currentRealm, SystemEvent... events)
 			throws ValidationException {
 
-		String path = repository.getValue(task, "file.path");
+		String path = processTokenReplacements(repository.getValue(task, "file.path"), events);
 
 		if (log.isInfoEnabled()) {
 			log.info("Path " + path);
@@ -93,21 +94,21 @@ public class CreateFileTask extends AbstractTaskProvider {
 
 			if (task.getResourceKey().equals(ACTION_MKDIR)) {
 
-				service.createFolder(parentPath, name, PROTOCOL);
+				fileResourceService.createFolder(parentPath, name, PROTOCOL);
 			} else if (task.getResourceKey().equals(ACTION_DELETE_FILE)) {
 
-				service.deleteFile(path, PROTOCOL);
+				fileResourceService.deleteFile(path, PROTOCOL);
 			} else if (task.getResourceKey().equals(ACTION_TRUNCATE_FILE)
 					|| task.getResourceKey().equals(ACTION_TOUCH_FILE)) {
 
-				FileResource resource = service.getMountForPath(path);
-				String childPath = service.resolveChildPath(resource, path);
-				FileObject file = service.resolveMountFile(resource);
+				FileResource resource = fileResourceService.getMountForPath(path);
+				String childPath = fileResourceService.resolveChildPath(resource, path);
+				FileObject file = fileResourceService.resolveMountFile(resource);
 				file = file.resolveFile(childPath);
 				
 				if (task.getResourceKey().equals(ACTION_TRUNCATE_FILE)
 						&& file.exists()) {
-					service.deleteFile(path, PROTOCOL);
+					fileResourceService.deleteFile(path, PROTOCOL);
 					file.createFile();
 					
 				} else if (task.getResourceKey().equals(ACTION_TRUNCATE_FILE)
@@ -126,15 +127,19 @@ public class CreateFileTask extends AbstractTaskProvider {
 						"Invalid resource key for file task");
 			}
 
-			return new CreateFileTaskResult(this, event.getCurrentRealm(),
+			return new CreateFileTaskResult(this, currentRealm,
 					task, path);
 		} catch (Exception e) {
 			log.error("Failed to fully process file request for " + path, e);
-			return new CreateFileTaskResult(this, e, event.getCurrentRealm(),
+			return new CreateFileTaskResult(this, e, currentRealm,
 					task, path);
 		}
 	}
 
+	public String[] getResultResourceKeys() {
+		return new String[] { CreateFileTaskResult.EVENT_RESOURCE_KEY };
+	}
+	
 	@Override
 	public ResourceTemplateRepository getRepository() {
 		return repository;

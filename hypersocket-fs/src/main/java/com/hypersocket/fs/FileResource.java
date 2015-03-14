@@ -11,6 +11,7 @@ import javax.xml.bind.annotation.XmlTransient;
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.hypersocket.browser.BrowserLaunchable;
 import com.hypersocket.realm.Principal;
 import com.hypersocket.realm.UserVariableReplacement;
 import com.hypersocket.resource.AssignableResource;
@@ -19,7 +20,7 @@ import com.hypersocket.util.Utils;
 
 @Entity
 @Table(name="file_resources")
-public class FileResource extends AssignableResource {
+public class FileResource extends AssignableResource implements BrowserLaunchable {
 
 	@Column(name="scheme")
 	String scheme;
@@ -47,6 +48,9 @@ public class FileResource extends AssignableResource {
 	
 	@Column(name="show_folders")
 	boolean showFolders;
+	
+	@Column(name="displayInBrowserResourcesTable")
+	Boolean displayInBrowserResourcesTable = Boolean.FALSE;
 	
 	public String getScheme() {
 		return scheme;
@@ -170,6 +174,21 @@ public class FileResource extends AssignableResource {
 		} catch (UnsupportedEncodingException e) {
 			throw new IllegalStateException("The system does not appear to support UTF-8!");
 		}
+	}
+
+	@Override
+	public String getLaunchUrl() {
+		return System.getProperty("hypersocket.uiPath", "/hypersocket") + "/viewfs/" + getName();
+	}
+
+	public void setDisplayInBrowserResourcesTable(Boolean displayInBrowserResourcesTable) {
+		this.displayInBrowserResourcesTable = Boolean.FALSE;
+	}
+	
+	@Override
+	public boolean isDisplayInBrowserResourcesTable() {
+		return false
+				;
 	}
 
 	

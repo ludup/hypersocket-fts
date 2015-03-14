@@ -15,6 +15,7 @@ import com.hypersocket.fs.FileResource;
 import com.hypersocket.fs.FileResourceService;
 import com.hypersocket.i18n.I18NService;
 import com.hypersocket.properties.ResourceTemplateRepository;
+import com.hypersocket.realm.Realm;
 import com.hypersocket.tasks.AbstractTaskProvider;
 import com.hypersocket.tasks.Task;
 import com.hypersocket.tasks.TaskProviderService;
@@ -40,7 +41,7 @@ public class CopyFileTask extends AbstractTaskProvider {
 	CopyFileTaskRepository repository;
 
 	@Autowired
-	FileResourceService service;
+	FileResourceService fileResourceService;
 
 	@Autowired
 	TriggerResourceService triggerService;
@@ -81,11 +82,11 @@ public class CopyFileTask extends AbstractTaskProvider {
 	}
 
 	@Override
-	public TaskResult execute(Task task, SystemEvent event)
+	public TaskResult execute(Task task, Realm currentRealm, SystemEvent... events)
 			throws ValidationException {
 
-		String originPath = repository.getValue(task, "origin.path");
-		String destinationPath = repository.getValue(task, "destination.path");
+		String originPath = processTokenReplacements(repository.getValue(task, "origin.path"), events);
+		String destinationPath = processTokenReplacements(repository.getValue(task, "destination.path"), events);
 
 		if (log.isInfoEnabled()) {
 			log.info("Origin path " + originPath);
@@ -96,18 +97,18 @@ public class CopyFileTask extends AbstractTaskProvider {
 			if (task.getResourceKey().equals(ACTION_COPY_FILE)
 					|| task.getResourceKey().equals(ACTION_COPY_DIR)) {
 
-				service.copyFile(originPath, destinationPath, PROTOCOL);
+				fileResourceService.copyFile(originPath, destinationPath, PROTOCOL);
 			} else if (task.getResourceKey().equals(ACTION_MOVE)) {
 				
-				FileResource resource = service.getMountForPath(originPath);
-				String originChildPath = service.resolveChildPath(resource,
+				FileResource resource = fileResourceService.getMountForPath(originPath);
+				String originChildPath = fileResourceService.resolveChildPath(resource,
 						originPath);
-				FileObject originFile = service.resolveMountFile(resource);
+				FileObject originFile = fileResourceService.resolveMountFile(resource);
 				originFile = originFile.resolveFile(originChildPath);
 				if (originFile.exists()) {
-					String destinationChildPath = service.resolveChildPath(
+					String destinationChildPath = fileResourceService.resolveChildPath(
 							resource, destinationPath);
-					FileObject destinationFile = service
+					FileObject destinationFile = fileResourceService
 							.resolveMountFile(resource);
 					destinationFile = destinationFile
 							.resolveFile(destinationChildPath);
@@ -117,20 +118,24 @@ public class CopyFileTask extends AbstractTaskProvider {
 							+ " does not exist");
 				}
 			} else if (task.getResourceKey().equals(ACTION_RENAME)) {
-				service.renameFile(originPath, destinationPath, PROTOCOL);
+				fileResourceService.renameFile(originPath, destinationPath, PROTOCOL);
 			} else {
 				throw new ValidationException(
 						"Invalid resource key for file task");
 			}
 
-			return new CopyFileTaskResult(this, event.getCurrentRealm(), task,
+			return new CopyFileTaskResult(this, currentRealm, task,
 					originPath, destinationPath);
 		} catch (Exception e) {
 			log.error("Failed to fully process file request for origin: "
 					+ originPath + ", destination: " + destinationPath, e);
-			return new CopyFileTaskResult(this, e, event.getCurrentRealm(),
+			return new CopyFileTaskResult(this, e, currentRealm,
 					task, originPath, destinationPath);
 		}
+	}
+	
+	public String[] getResultResourceKeys() {
+		return new String[] { CopyFileTaskResult.EVENT_RESOURCE_KEY };
 	}
 
 	@Override

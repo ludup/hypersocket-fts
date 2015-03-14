@@ -18,6 +18,7 @@ import com.hypersocket.fs.FileResourceService;
 import com.hypersocket.i18n.I18NService;
 import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.properties.ResourceTemplateRepository;
+import com.hypersocket.realm.Realm;
 import com.hypersocket.tasks.AbstractTaskProvider;
 import com.hypersocket.tasks.Task;
 import com.hypersocket.tasks.TaskProviderService;
@@ -40,7 +41,7 @@ public class DeleteFolderTask extends AbstractTaskProvider {
 	DeleteFolderTaskRepository repository;
 
 	@Autowired
-	FileResourceService service;
+	FileResourceService fileResourceService;
 
 	@Autowired
 	TriggerResourceService triggerService;
@@ -80,10 +81,10 @@ public class DeleteFolderTask extends AbstractTaskProvider {
 	}
 
 	@Override
-	public TaskResult execute(Task task, SystemEvent event)
+	public TaskResult execute(Task task, Realm currentRealm, SystemEvent... events)
 			throws ValidationException {
 
-		String path = repository.getValue(task, "folder.path");
+		String path = processTokenReplacements(repository.getValue(task, "folder.path"), events);
 		boolean deleteNonEmpty = repository.getBooleanValue(task,
 				"folder.deleteNonEmpty");
 
@@ -93,27 +94,31 @@ public class DeleteFolderTask extends AbstractTaskProvider {
 		}
 		try {
 			if (!deleteNonEmpty) {
-				service.deleteFile(path, PROTOCOL);
+				fileResourceService.deleteFile(path, PROTOCOL);
 			} else {
-				FileResource resource = service.getMountForPath(path);
+				FileResource resource = fileResourceService.getMountForPath(path);
 				deleteFolder(path, resource);
 			}
 
-			return new DeleteFolderTaskResult(this, event.getCurrentRealm(),
+			return new DeleteFolderTaskResult(this, currentRealm,
 					task, path, deleteNonEmpty);
 
 		} catch (IOException | AccessDeniedException e) {
 			log.error("Failed to fully process folder request for path: "
 					+ path + ", delete non-empty: " + deleteNonEmpty, e);
-			return new DeleteFolderTaskResult(this, e, event.getCurrentRealm(),
+			return new DeleteFolderTaskResult(this, e, currentRealm,
 					task, path, deleteNonEmpty);
 		}
+	}
+	
+	public String[] getResultResourceKeys() {
+		return new String[] { DeleteFolderTaskResult.EVENT_RESOURCE_KEY };
 	}
 
 	public void deleteFolder(String path, FileResource resource) throws IOException {
 		
-		String childPath = service.resolveChildPath(resource, path);
-		FileObject file = service.resolveMountFile(resource);
+		String childPath = fileResourceService.resolveChildPath(resource, path);
+		FileObject file = fileResourceService.resolveMountFile(resource);
 		file = file.resolveFile(childPath);
 		FileObject[] children=file.getChildren();
 		
