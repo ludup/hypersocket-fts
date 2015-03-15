@@ -60,7 +60,7 @@ import com.hypersocket.ui.UserInterfaceContentHandler;
 import com.hypersocket.upload.FileUpload;
 import com.hypersocket.upload.FileUploadService;
 import com.hypersocket.upload.FileUploadStore;
-import com.hypersocket.util.FileUtils;
+import com.hypersocket.utils.FileUtils;
 
 @Service
 public class FileResourceServiceImpl extends

@@ -6,7 +6,7 @@ import com.hypersocket.fs.FileResource;
 import com.hypersocket.fs.FileResourceServiceImpl;
 import com.hypersocket.resource.ResourceSessionEvent;
 import com.hypersocket.session.Session;
-import com.hypersocket.util.FileUtils;
+import com.hypersocket.utils.FileUtils;
 
 public abstract class FileOperationEvent extends ResourceSessionEvent {
 
