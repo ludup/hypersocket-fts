@@ -850,7 +850,7 @@ public class FileResourceServiceImpl extends
 			boolean created = newFile.exists();
 
 			eventService.publishEvent(new CreateFolderEvent(this, !exists
-					&& created, getCurrentSession(), resource, childPath,
+					&& created, getCurrentSession(), resource, childPath + FileUtils.checkStartsWithSlash(newFile.getName().getBaseName()),
 					protocol));
 
 			return newFile;

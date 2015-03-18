@@ -39,7 +39,6 @@ import com.hypersocket.resource.ResourceChangeException;
 import com.hypersocket.resource.ResourceColumns;
 import com.hypersocket.resource.ResourceCreationException;
 import com.hypersocket.resource.ResourceException;
-import com.hypersocket.resource.ResourceNotFoundException;
 import com.hypersocket.session.json.SessionTimeoutException;
 import com.hypersocket.session.json.SessionUtils;
 import com.hypersocket.tables.Column;
