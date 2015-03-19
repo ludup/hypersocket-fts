@@ -16,16 +16,21 @@ public abstract class FileOperationEvent extends ResourceSessionEvent {
 	
 	public static final String ATTR_FILE_PATH = "attr.filePath";
 	public static final String ATTR_FILE_NAME = "attr.fileName";
+	public static final String ATTR_RESOURCE_PATH = "attr.resourcePath";
 	public static final String ATTR_PROTOCOL = "attr.protocol";
 	
 	FileResource sourceResource;
 	String sourcePath;	
+	String childPath;
 	String filename;
 	
 	public FileOperationEvent(Object source, String resourceKey, boolean success,
 			Session session, FileResource sourceResource, String sourcePath, String protocol) {
 		super(source, resourceKey, success, session, sourceResource);
-		addAttribute(ATTR_FILE_PATH, sourceResource.getName() + FileUtils.checkStartsWithSlash(sourcePath));
+		this.sourcePath = sourcePath;
+		this.sourceResource = sourceResource;
+		addAttribute(ATTR_FILE_PATH, "/" + sourceResource.getName() + FileUtils.checkStartsWithSlash(sourcePath));
+		addAttribute(ATTR_RESOURCE_PATH, childPath = FileUtils.checkStartsWithNoSlash(sourcePath));
 		addAttribute(ATTR_FILE_NAME, filename = FileUtils.lastPathElement(sourcePath));
 		addAttribute(ATTR_PROTOCOL, protocol);
 	}
@@ -43,7 +48,11 @@ public abstract class FileOperationEvent extends ResourceSessionEvent {
 	}
 
 	public FileResource getSourceResource() {
-		return sourceResource;
+		return getSourceResource();
+	}
+	
+	public String getChildPath() {
+		return childPath;
 	}
 
 	public String getSourcePath() {
