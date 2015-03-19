@@ -12,6 +12,13 @@
 		<property resourceKey="ftp.idleTimeout" inputType="slider" step="1" labelResourceKey="seconds.label"
 			min="0" max="3600" weight="300" defaultValue="360" />
 		
+		<property resourceKey="ftp.passivePorts" inputType="text" 
+			allowEmpty="false" weight="400" defaultValue="0" />
+			
+		<property resourceKey="ftp.passiveExternalInterface" inputType="text" 
+			allowEmpty="true" weight="500" defaultValue="" />
+		
+		
 		<property resourceKey="ftp.interfaces" inputType="multipleSelect"
 			restart="true" url="server/networkInterfaces" selectAllIfEmpty="true"
 			weight="600"/>
@@ -30,6 +37,12 @@
 		<property resourceKey="ftps.idleTimeout" inputType="slider" step="1" labelResourceKey="seconds.label"
 			min="0" max="3600" weight="300" defaultValue="360" />
 		
+		<property resourceKey="ftps.passivePorts" inputType="text" 
+			allowEmpty="false" weight="400" defaultValue="0" />
+		
+		<property resourceKey="ftps.passiveExternalInterface" inputType="text" 
+			allowEmpty="true" weight="500" defaultValue="" />
+			
 		<property resourceKey="ftps.interfaces" inputType="multipleSelect"
 			restart="true" url="server/networkInterfaces" selectAllIfEmpty="true"
 			weight="600"/>
