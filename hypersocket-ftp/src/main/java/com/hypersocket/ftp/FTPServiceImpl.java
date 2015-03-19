@@ -3,25 +3,35 @@ package com.hypersocket.ftp;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.security.KeyStore;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.ftpserver.ConnectionConfig;
 import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.FtpServerFactory;
 import org.apache.ftpserver.ftplet.DefaultFtplet;
 import org.apache.ftpserver.ftplet.FtpException;
 import org.apache.ftpserver.ftplet.FtpSession;
 import org.apache.ftpserver.ftplet.FtpletResult;
+import org.apache.ftpserver.impl.DefaultConnectionConfig;
+import org.apache.ftpserver.impl.DefaultDataConnectionConfiguration;
+import org.apache.ftpserver.impl.PassivePorts;
+import org.apache.ftpserver.ipfilter.IpFilter;
 import org.apache.ftpserver.listener.ListenerFactory;
+import org.apache.ftpserver.ssl.SslConfiguration;
 import org.apache.ftpserver.ssl.SslConfigurationFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.support.DefaultDataBinderFactory;
 
 import com.hypersocket.auth.AuthenticationModuleType;
 import com.hypersocket.auth.AuthenticationSchemeRepository;
@@ -31,6 +41,7 @@ import com.hypersocket.config.ConfigurationChangedEvent;
 import com.hypersocket.config.SystemConfigurationService;
 import com.hypersocket.events.SystemEvent;
 import com.hypersocket.i18n.I18NService;
+import com.hypersocket.ip.IPRestrictionService;
 import com.hypersocket.realm.Realm;
 import com.hypersocket.realm.RealmAdapter;
 import com.hypersocket.realm.RealmRepository;
@@ -41,6 +52,7 @@ import com.hypersocket.service.ManageableService;
 import com.hypersocket.service.ServiceManagementService;
 import com.hypersocket.session.SessionService;
 import com.hypersocket.session.json.SessionUtils;
+import com.mysql.jdbc.StringUtils;
 
 @Service
 public class FTPServiceImpl implements FTPService,
@@ -86,6 +98,9 @@ public class FTPServiceImpl implements FTPService,
 	
 	@Autowired
 	ServiceManagementService serviceManagementService; 
+	
+	@Autowired
+	IPRestrictionService ipRestrictionService; 
 	
 	FTPService ftpService = new FTPService();
 	FTPSService ftpsService = new FTPSService();
@@ -228,12 +243,32 @@ public class FTPServiceImpl implements FTPService,
 
 					ListenerFactory factory = new ListenerFactory();
 
+					int idleTime = configurationService
+							.getIntValue("ftp.idleTimeout");
 					// set the port of the listener
 					factory.setPort(configurationService.getIntValue("ftp.port"));
-					factory.setIdleTimeout(configurationService
-							.getIntValue("ftp.idleTimeout"));
+					factory.setIdleTimeout(idleTime);
 					factory.setServerAddress(i);
-
+					
+					String passivePorts = configurationService.getValue("ftp.passivePorts");
+					
+					String passiveExternalAddress = configurationService.getValue("ftp.passiveExternalInterface");
+					if(StringUtils.isEmptyOrWhitespaceOnly(passiveExternalAddress)) {
+						passiveExternalAddress = i;
+					}
+					
+					PassivePorts ports = new PassivePorts(passivePorts, true);
+					
+					factory.setDataConnectionConfiguration(new DefaultDataConnectionConfiguration(
+							idleTime, null, false, false, null, 0, i, ports, passiveExternalAddress, false));
+					
+					factory.setIpFilter(new IpFilter() {
+						
+						@Override
+						public boolean accept(InetAddress address) {
+							return !ipRestrictionService.isBlockedAddress(address);
+						}
+					});
 					if (!replacedDefault) {
 						serverFactory.addListener("default",
 								factory.createListener());
@@ -256,6 +291,9 @@ public class FTPServiceImpl implements FTPService,
 			// start the server
 			serverFactory.setUserManager(userManager);
 			serverFactory.setFileSystem(filesystemFactory);
+			
+			
+			
 			serverFactory.getFtplets().put("default", new DefaultFtplet() {
 
 				@Override
@@ -277,7 +315,7 @@ public class FTPServiceImpl implements FTPService,
 
 			});
 			ftpServer = serverFactory.createServer();
-
+			
 			try {
 				ftpServer.start();
 				running = true;
@@ -352,19 +390,42 @@ public class FTPServiceImpl implements FTPService,
 	
 						ListenerFactory factory = new ListenerFactory();
 	
+						int idleTime = configurationService
+								.getIntValue("ftps.idleTimeout");
+						
 						// set the port of the listener
 						factory.setPort(configurationService.getIntValue("ftps.port"));
 						factory.setIdleTimeout(configurationService
 								.getIntValue("ftps.idleTimeout"));
 						factory.setServerAddress(i);
-	
+						
+						factory.setIpFilter(new IpFilter() {
+							
+							@Override
+							public boolean accept(InetAddress address) {
+								return !ipRestrictionService.isBlockedAddress(address);
+							}
+						});
 						// define SSL configuration
 						SslConfigurationFactory ssl = new SslConfigurationFactory();
 						ssl.setKeystoreFile(tmp);
 						ssl.setKeystorePassword("changeit");
 						
-						factory.setSslConfiguration(ssl.createSslConfiguration());
+						SslConfiguration sslConfig = ssl.createSslConfiguration();
+						factory.setSslConfiguration(sslConfig);
 						factory.setImplicitSsl(true);
+
+						String passivePorts = configurationService.getValue("ftps.passivePorts");
+						
+						String passiveExternalAddress = configurationService.getValue("ftps.passiveExternalInterface");
+						if(StringUtils.isEmptyOrWhitespaceOnly(passiveExternalAddress)) {
+							passiveExternalAddress = i;
+						}
+						
+						PassivePorts ports = new PassivePorts(passivePorts, true);
+						
+						factory.setDataConnectionConfiguration(new DefaultDataConnectionConfiguration(
+								idleTime, sslConfig, false, false, null, 0, i, ports, passiveExternalAddress, true));
 						
 						if (!replacedDefault) {
 							serverFactory.addListener("default",

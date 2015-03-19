@@ -39,14 +39,13 @@ import com.hypersocket.resource.ResourceChangeException;
 import com.hypersocket.resource.ResourceColumns;
 import com.hypersocket.resource.ResourceCreationException;
 import com.hypersocket.resource.ResourceException;
-import com.hypersocket.resource.ResourceNotFoundException;
 import com.hypersocket.session.json.SessionTimeoutException;
 import com.hypersocket.session.json.SessionUtils;
 import com.hypersocket.tables.Column;
 import com.hypersocket.tables.ColumnSort;
 import com.hypersocket.tables.DataTablesResult;
 import com.hypersocket.tables.json.DataTablesPageProcessor;
-import com.hypersocket.util.FileUtils;
+import com.hypersocket.utils.FileUtils;
 
 @Controller
 public class FileResourceController extends ResourceController {
@@ -234,18 +233,8 @@ public class FileResourceController extends ResourceController {
 					resource.getId() != null ? "mount.updated.info"
 							: "mount.created.info", resource.getName()));
 
-		} catch (ResourceCreationException e) {
-			return new ResourceStatus<FileResource>(false, I18N.getResource(
-					sessionUtils.getLocale(request), e.getBundle(),
-					e.getResourceKey(), e.getArgs()));
-		} catch (ResourceChangeException e) {
-			return new ResourceStatus<FileResource>(false, I18N.getResource(
-					sessionUtils.getLocale(request), e.getBundle(),
-					e.getResourceKey(), e.getArgs()));
-		} catch (ResourceNotFoundException e) {
-			return new ResourceStatus<FileResource>(false, I18N.getResource(
-					sessionUtils.getLocale(request), e.getBundle(),
-					e.getResourceKey(), e.getArgs()));
+		} catch (ResourceException e) {
+			return new ResourceStatus<FileResource>(false, e.getMessage());
 		} finally {
 			clearAuthenticatedContext();
 		}

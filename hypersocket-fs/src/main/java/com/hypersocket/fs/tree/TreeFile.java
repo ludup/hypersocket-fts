@@ -5,7 +5,7 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.springframework.mail.javamail.ConfigurableMimeFileTypeMap;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.hypersocket.util.FileUtils;
+import com.hypersocket.utils.FileUtils;
 
 public class TreeFile {
 

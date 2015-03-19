@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.hypersocket.fs.FileResource;
-import com.hypersocket.util.FileUtils;
+import com.hypersocket.utils.FileUtils;
 
 public class TreeFolder {
 

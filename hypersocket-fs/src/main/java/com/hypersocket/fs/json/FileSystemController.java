@@ -43,7 +43,7 @@ import com.hypersocket.session.json.SessionUtils;
 import com.hypersocket.tables.BootstrapTablesResult;
 import com.hypersocket.upload.FileUpload;
 import com.hypersocket.upload.FileUploadService;
-import com.hypersocket.util.FileUtils;
+import com.hypersocket.utils.FileUtils;
 
 @Controller
 public class FileSystemController extends AuthenticatedController {

@@ -15,8 +15,8 @@ import com.hypersocket.browser.BrowserLaunchable;
 import com.hypersocket.realm.Principal;
 import com.hypersocket.realm.UserVariableReplacement;
 import com.hypersocket.resource.AssignableResource;
-import com.hypersocket.util.FileUtils;
 import com.hypersocket.util.Utils;
+import com.hypersocket.utils.FileUtils;
 
 @Entity
 @Table(name="file_resources")

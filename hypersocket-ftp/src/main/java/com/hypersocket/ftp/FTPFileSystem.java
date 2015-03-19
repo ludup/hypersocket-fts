@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import com.hypersocket.fs.FileResource;
 import com.hypersocket.permissions.AccessDeniedException;
-import com.hypersocket.util.FileUtils;
+import com.hypersocket.utils.FileUtils;
 
 public class FTPFileSystem implements FileSystemView {
 
