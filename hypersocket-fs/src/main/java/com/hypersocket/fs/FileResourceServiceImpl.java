@@ -3,6 +3,7 @@ package com.hypersocket.fs;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -257,6 +258,8 @@ public class FileResourceServiceImpl extends
 	public FileResource getMountForURIPath(String host, String controllerPath,
 			String path) throws AccessDeniedException {
 
+		path = Paths.get(path).normalize().toString();
+		
 		if (isURIFilesystemRoot(path)) {
 			throw new IllegalArgumentException(
 					path
@@ -308,6 +311,9 @@ public class FileResourceServiceImpl extends
 
 	public boolean isURIMountResource(FileResource resource,
 			String controllerPath, String path) {
+		
+		path = Paths.get(path).normalize().toString();
+		
 		String mountPath = FileUtils.checkEndsWithSlash(server
 				.resolvePath(controllerPath + "/" + resource.getName()));
 		path = FileUtils.checkEndsWithSlash(path);
@@ -333,6 +339,10 @@ public class FileResourceServiceImpl extends
 
 	private String resolveChildPath(FileResource resource, String rootPath,
 			String path) throws IOException {
+		
+		rootPath = Paths.get(rootPath).normalize().toString();
+		path = Paths.get(path).normalize().toString();
+		
 		return FileUtils.checkEndsWithNoSlash(FileUtils.stripParentPath(FileUtils.checkEndsWithSlash(rootPath)
 				+ FileUtils.checkEndsWithSlash(resource.getName()),
 				FileUtils.checkStartsWithSlash(path)));
@@ -340,6 +350,10 @@ public class FileResourceServiceImpl extends
 
 	public String resolveChildPath(String mountName, String path)
 			throws IOException {
+		
+		mountName = Paths.get(mountName).normalize().toString();
+		path = Paths.get(path).normalize().toString();
+		
 		return FileUtils.checkEndsWithNoSlash(FileUtils.stripParentPath(
 				FileUtils.checkEndsWithSlash("/" + mountName),
 				FileUtils.checkEndsWithSlash(path)));
@@ -361,6 +375,10 @@ public class FileResourceServiceImpl extends
 
 	private String resolveMountName(String rootPath, String path)
 			throws IOException {
+		
+		rootPath = Paths.get(rootPath).normalize().toString();
+		path = Paths.get(path).normalize().toString();
+		
 		String mountPath = FileUtils.stripParentPath(rootPath, path);
 		String mountName = FileUtils.firstPathElement(mountPath);
 		return mountName;
@@ -387,6 +405,8 @@ public class FileResourceServiceImpl extends
 
 		// TODO verify download permission on mount
 
+		path = Paths.get(path).normalize().toString();
+		
 		FileResolver<InputStream> resolver = new FileResolver<InputStream>() {
 			@Override
 			InputStream onFileResolved(FileResource resource, String childPath,
@@ -417,7 +437,9 @@ public class FileResourceServiceImpl extends
 			throws IOException, AccessDeniedException {
 
 		// TODO verify download permission on mount
-
+		
+		path = Paths.get(path).normalize().toString();
+		
 		FileResolver<OutputStream> resolver = new FileResolver<OutputStream>() {
 			@Override
 			OutputStream onFileResolved(FileResource resource,
@@ -484,6 +506,8 @@ public class FileResourceServiceImpl extends
 
 		// TODO verify download permission on mount
 
+		uri = Paths.get(uri).normalize().toString();
+		
 		FileResolver<Object> resolver = new FileResolver<Object>() {
 			@Override
 			FileObject onFileResolved(FileResource resource, String childPath,
@@ -512,6 +536,8 @@ public class FileResourceServiceImpl extends
 
 		// TODO verify download permission on mount
 
+		uri = Paths.get(uri).normalize().toString();
+		
 		FileResolver<FileUpload> resolver = new FileResolver<FileUpload>() {
 			@Override
 			FileUpload onFileResolved(FileResource resource, String childPath,
@@ -558,6 +584,8 @@ public class FileResourceServiceImpl extends
 
 		// TODO verify delete permission on mount
 
+		uri = Paths.get(uri).normalize().toString();
+		
 		return new DeleteFileResolver(protocol).processURIRequest(host,
 				controllerPath, uri);
 
@@ -569,6 +597,8 @@ public class FileResourceServiceImpl extends
 
 		// TODO verify delete permission on mount
 
+		path = Paths.get(path).normalize().toString();
+		
 		return new DeleteFileResolver(protocol).processRequest(path);
 
 	}
@@ -633,6 +663,9 @@ public class FileResourceServiceImpl extends
 
 		// TODO verify rename permission on mount
 
+		fromPath = Paths.get(fromPath).normalize().toString();
+		toPath = Paths.get(toPath).normalize().toString();
+		
 		return new RenameFileResolver(protocol)
 				.processRequest(fromPath, toPath);
 
@@ -688,7 +721,9 @@ public class FileResourceServiceImpl extends
 			AccessDeniedException {
 
 		// TODO verify rename permission on mount
-
+		fromUri = Paths.get(fromUri).normalize().toString();
+		toUri = Paths.get(toUri).normalize().toString();
+		
 		return new CopyFileResolver(protocol).processRequest(host,
 				controllerPath, fromUri, toUri);
 
@@ -699,7 +734,9 @@ public class FileResourceServiceImpl extends
 			throws IOException, AccessDeniedException {
 
 		// TODO verify rename permission on mount
-
+		fromPath = Paths.get(fromPath).normalize().toString();
+		toPath = Paths.get(toPath).normalize().toString();
+		
 		return new CopyFileResolver(protocol).processRequest(fromPath, toPath);
 
 	}
@@ -791,6 +828,7 @@ public class FileResourceServiceImpl extends
 	public FileObject createURIFolder(String host, String controllerPath,
 			String parentUri, String protocol) throws IOException,
 			AccessDeniedException {
+		
 		return createURIFolder(host, controllerPath, parentUri, null, protocol);
 	}
 
@@ -799,6 +837,8 @@ public class FileResourceServiceImpl extends
 			String parentUri, final String newName, String protocol)
 			throws IOException, AccessDeniedException {
 
+		parentUri = Paths.get(parentUri).normalize().toString();
+		
 		FileResolver<FileObject> resolver = new CreateFolderFileResolver(
 				newName, protocol);
 
@@ -810,6 +850,8 @@ public class FileResourceServiceImpl extends
 	public FileObject createFolder(String parentPath, final String newName,
 			String protocol) throws IOException, AccessDeniedException {
 
+		parentPath = Paths.get(parentPath).normalize().toString();
+		
 		FileResolver<FileObject> resolver = new CreateFolderFileResolver(
 				newName, protocol);
 
