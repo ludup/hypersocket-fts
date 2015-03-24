@@ -4,14 +4,12 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.commons.vfs2.FileObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.hypersocket.events.SystemEvent;
-import com.hypersocket.fs.FileResource;
 import com.hypersocket.fs.FileResourceService;
 import com.hypersocket.i18n.I18NService;
 import com.hypersocket.properties.ResourceTemplateRepository;
@@ -34,7 +32,6 @@ public class CopyFileTask extends AbstractTaskProvider {
 
 	public static final String ACTION_COPY_FILE = "copyFile";
 	public static final String ACTION_COPY_DIR = "copyDir";
-	public static final String ACTION_MOVE = "move";
 	public static final String ACTION_RENAME = "rename";
 
 	@Autowired
@@ -66,7 +63,7 @@ public class CopyFileTask extends AbstractTaskProvider {
 
 	@Override
 	public String[] getResourceKeys() {
-		return new String[] { ACTION_COPY_FILE, ACTION_COPY_DIR, ACTION_MOVE,
+		return new String[] { ACTION_COPY_FILE, ACTION_COPY_DIR, 
 				ACTION_RENAME };
 	}
 
@@ -92,46 +89,34 @@ public class CopyFileTask extends AbstractTaskProvider {
 			log.info("Origin path " + originPath);
 			log.info("Destination path " + destinationPath);
 		}
-		try {
+	
+		if (task.getResourceKey().equals(ACTION_COPY_FILE)
+				|| task.getResourceKey().equals(ACTION_COPY_DIR)) {
 
-			if (task.getResourceKey().equals(ACTION_COPY_FILE)
-					|| task.getResourceKey().equals(ACTION_COPY_DIR)) {
-
+			try {
 				fileResourceService.copyFile(originPath, destinationPath, PROTOCOL);
-			} else if (task.getResourceKey().equals(ACTION_MOVE)) {
-				
-				FileResource resource = fileResourceService.getMountForPath(originPath);
-				String originChildPath = fileResourceService.resolveChildPath(resource,
-						originPath);
-				FileObject originFile = fileResourceService.resolveMountFile(resource);
-				originFile = originFile.resolveFile(originChildPath);
-				if (originFile.exists()) {
-					String destinationChildPath = fileResourceService.resolveChildPath(
-							resource, destinationPath);
-					FileObject destinationFile = fileResourceService
-							.resolveMountFile(resource);
-					destinationFile = destinationFile
-							.resolveFile(destinationChildPath);
-					originFile.moveTo(destinationFile);
-				} else {
-					throw new Exception("File " + originPath
-							+ " does not exist");
-				}
-			} else if (task.getResourceKey().equals(ACTION_RENAME)) {
-				fileResourceService.renameFile(originPath, destinationPath, PROTOCOL);
-			} else {
-				throw new ValidationException(
-						"Invalid resource key for file task");
+				return new CopyFileTaskResult(this, currentRealm, task,
+						originPath, destinationPath);
+			} catch (Throwable e) {
+				return new CopyFileTaskResult(this, e, currentRealm,
+						task, originPath, destinationPath);
+		
 			}
-
-			return new CopyFileTaskResult(this, currentRealm, task,
-					originPath, destinationPath);
-		} catch (Exception e) {
-			log.error("Failed to fully process file request for origin: "
-					+ originPath + ", destination: " + destinationPath, e);
-			return new CopyFileTaskResult(this, e, currentRealm,
-					task, originPath, destinationPath);
+		} else if (task.getResourceKey().equals(ACTION_RENAME)) {
+			try {
+				fileResourceService.renameFile(originPath, destinationPath, PROTOCOL);
+				return new RenameFileTaskResult(this, currentRealm, task,
+						originPath, destinationPath);
+			} catch (Throwable e) {
+				return new RenameFileTaskResult(this, e, currentRealm,
+						task, originPath, destinationPath);
+		
+			}
+		} else {
+			throw new ValidationException(
+					"Invalid resource key for file task");
 		}
+
 	}
 	
 	public String[] getResultResourceKeys() {
