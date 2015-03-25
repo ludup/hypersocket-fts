@@ -73,8 +73,10 @@ public class FTPFileSystem implements FileSystemView {
 			}
 		}
 
-
-
+		if(path.equals("/")) {
+			return getHomeDirectory();
+		}
+		
 		try {
 			
 			// Resolve the file from the working directory
