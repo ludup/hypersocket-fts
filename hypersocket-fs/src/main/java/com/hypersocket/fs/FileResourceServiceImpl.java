@@ -406,7 +406,10 @@ public class FileResourceServiceImpl extends
 
 		String url = resource.getPrivateUrl(getCurrentPrincipal(),
 				userVariableReplacement);
-		log.info("REMOVE ME: " + url);
+
+		if(log.isDebugEnabled()) {
+			log.debug("Resolving " + url);
+		}
 		return VFS.getManager().resolveFile(url);
 	}
 
