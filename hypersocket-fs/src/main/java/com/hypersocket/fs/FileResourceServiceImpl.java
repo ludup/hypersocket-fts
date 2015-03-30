@@ -404,9 +404,10 @@ public class FileResourceServiceImpl extends
 
 		// TODO verify permissions
 
-		return VFS.getManager().resolveFile(
-				resource.getPrivateUrl(getCurrentPrincipal(),
-						userVariableReplacement));
+		String url = resource.getPrivateUrl(getCurrentPrincipal(),
+				userVariableReplacement);
+		log.info("REMOVE ME: " + url);
+		return VFS.getManager().resolveFile(url);
 	}
 
 	@Override
