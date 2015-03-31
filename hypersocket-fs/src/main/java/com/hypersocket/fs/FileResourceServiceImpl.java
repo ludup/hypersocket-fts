@@ -923,6 +923,9 @@ public class FileResourceServiceImpl extends
 	protected FileResource assertMountAccess(String name)
 			throws AccessDeniedException {
 		
+		if(log.isDebugEnabled()) {
+			log.debug("Asserting mount access to " + name);
+		}
 		try {
 			assertAnyPermission(SystemPermission.SYSTEM, SystemPermission.SYSTEM_ADMINISTRATION);
 			return getResourceByName(name);
