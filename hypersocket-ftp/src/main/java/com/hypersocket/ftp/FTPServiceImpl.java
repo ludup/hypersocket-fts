@@ -4,22 +4,18 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.NetworkInterface;
 import java.security.KeyStore;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.ftpserver.ConnectionConfig;
 import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.FtpServerFactory;
 import org.apache.ftpserver.ftplet.DefaultFtplet;
 import org.apache.ftpserver.ftplet.FtpException;
 import org.apache.ftpserver.ftplet.FtpSession;
 import org.apache.ftpserver.ftplet.FtpletResult;
-import org.apache.ftpserver.impl.DefaultConnectionConfig;
 import org.apache.ftpserver.impl.DefaultDataConnectionConfiguration;
 import org.apache.ftpserver.impl.PassivePorts;
 import org.apache.ftpserver.ipfilter.IpFilter;
@@ -31,7 +27,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.support.DefaultDataBinderFactory;
 
 import com.hypersocket.auth.AuthenticationModuleType;
 import com.hypersocket.auth.AuthenticationSchemeRepository;

@@ -1,5 +1,6 @@
 package com.hypersocket.fs;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -255,11 +256,17 @@ public class FileResourceServiceImpl extends
 		
 	}
 
+	private String normalise(String path) {
+		path = Paths.get(path).normalize().toString();
+		if(File.separatorChar == '\\') {
+			path = path.replace('\\', '/');
+		}
+		return path;
+	}
 	public FileResource getMountForURIPath(String host, String controllerPath,
 			String path) throws AccessDeniedException {
 
-		path = Paths.get(path).normalize().toString();
-		
+		path = normalise(path);
 		if (isURIFilesystemRoot(path)) {
 			throw new IllegalArgumentException(
 					path
@@ -312,7 +319,7 @@ public class FileResourceServiceImpl extends
 	public boolean isURIMountResource(FileResource resource,
 			String controllerPath, String path) {
 		
-		path = Paths.get(path).normalize().toString();
+		path = normalise(path);
 		
 		String mountPath = FileUtils.checkEndsWithSlash(server
 				.resolvePath(controllerPath + "/" + resource.getName()));
@@ -340,8 +347,8 @@ public class FileResourceServiceImpl extends
 	private String resolveChildPath(FileResource resource, String rootPath,
 			String path) throws IOException {
 		
-		rootPath = Paths.get(rootPath).normalize().toString();
-		path = Paths.get(path).normalize().toString();
+		rootPath = normalise(rootPath);
+		path = normalise(path);
 		
 		return FileUtils.checkEndsWithNoSlash(FileUtils.stripParentPath(FileUtils.checkEndsWithSlash(rootPath)
 				+ FileUtils.checkEndsWithSlash(resource.getName()),
@@ -351,8 +358,8 @@ public class FileResourceServiceImpl extends
 	public String resolveChildPath(String mountName, String path)
 			throws IOException {
 		
-		mountName = Paths.get(mountName).normalize().toString();
-		path = Paths.get(path).normalize().toString();
+		mountName = normalise(mountName);
+		path = normalise(path);
 		
 		return FileUtils.checkEndsWithNoSlash(FileUtils.stripParentPath(
 				FileUtils.checkEndsWithSlash("/" + mountName),
@@ -361,6 +368,9 @@ public class FileResourceServiceImpl extends
 
 	public String resolveURIChildPath(String mountName, String controllerPath,
 			String path) throws IOException {
+		
+		path = normalise(path);
+		
 		return FileUtils
 				.checkEndsWithNoSlash(FileUtils.stripParentPath(FileUtils
 						.checkEndsWithSlash(server.resolvePath(controllerPath
@@ -376,8 +386,8 @@ public class FileResourceServiceImpl extends
 	private String resolveMountName(String rootPath, String path)
 			throws IOException {
 		
-		rootPath = Paths.get(rootPath).normalize().toString();
-		path = Paths.get(path).normalize().toString();
+		path = normalise(rootPath);
+		path = normalise(path);
 		
 		String mountPath = FileUtils.stripParentPath(rootPath, path);
 		String mountName = FileUtils.firstPathElement(mountPath);
@@ -394,9 +404,13 @@ public class FileResourceServiceImpl extends
 
 		// TODO verify permissions
 
-		return VFS.getManager().resolveFile(
-				resource.getPrivateUrl(getCurrentPrincipal(),
-						userVariableReplacement));
+		String url = resource.getPrivateUrl(getCurrentPrincipal(),
+				userVariableReplacement);
+
+		if(log.isDebugEnabled()) {
+			log.debug("Resolving " + url);
+		}
+		return VFS.getManager().resolveFile(url);
 	}
 
 	@Override
@@ -405,7 +419,7 @@ public class FileResourceServiceImpl extends
 
 		// TODO verify download permission on mount
 
-		path = Paths.get(path).normalize().toString();
+		path = normalise(path);
 		
 		FileResolver<InputStream> resolver = new FileResolver<InputStream>() {
 			@Override
@@ -438,7 +452,7 @@ public class FileResourceServiceImpl extends
 
 		// TODO verify download permission on mount
 		
-		path = Paths.get(path).normalize().toString();
+		path = normalise(path);
 		
 		FileResolver<OutputStream> resolver = new FileResolver<OutputStream>() {
 			@Override
@@ -506,7 +520,7 @@ public class FileResourceServiceImpl extends
 
 		// TODO verify download permission on mount
 
-		uri = Paths.get(uri).normalize().toString();
+		uri = normalise(uri);
 		
 		FileResolver<Object> resolver = new FileResolver<Object>() {
 			@Override
@@ -536,7 +550,7 @@ public class FileResourceServiceImpl extends
 
 		// TODO verify download permission on mount
 
-		uri = Paths.get(uri).normalize().toString();
+		uri = normalise(uri);
 		
 		FileResolver<FileUpload> resolver = new FileResolver<FileUpload>() {
 			@Override
@@ -584,7 +598,7 @@ public class FileResourceServiceImpl extends
 
 		// TODO verify delete permission on mount
 
-		uri = Paths.get(uri).normalize().toString();
+		uri = normalise(uri);
 		
 		return new DeleteFileResolver(protocol).processURIRequest(host,
 				controllerPath, uri);
@@ -597,7 +611,7 @@ public class FileResourceServiceImpl extends
 
 		// TODO verify delete permission on mount
 
-		path = Paths.get(path).normalize().toString();
+		path = normalise(path);
 		
 		return new DeleteFileResolver(protocol).processRequest(path);
 
@@ -663,8 +677,8 @@ public class FileResourceServiceImpl extends
 
 		// TODO verify rename permission on mount
 
-		fromPath = Paths.get(fromPath).normalize().toString();
-		toPath = Paths.get(toPath).normalize().toString();
+		fromPath = normalise(fromPath);
+		toPath = normalise(toPath);
 		
 		return new RenameFileResolver(protocol)
 				.processRequest(fromPath, toPath);
@@ -721,8 +735,8 @@ public class FileResourceServiceImpl extends
 			AccessDeniedException {
 
 		// TODO verify rename permission on mount
-		fromUri = Paths.get(fromUri).normalize().toString();
-		toUri = Paths.get(toUri).normalize().toString();
+		fromUri = normalise(fromUri);
+		toUri = normalise(toUri);
 		
 		return new CopyFileResolver(protocol).processRequest(host,
 				controllerPath, fromUri, toUri);
@@ -734,8 +748,8 @@ public class FileResourceServiceImpl extends
 			throws IOException, AccessDeniedException {
 
 		// TODO verify rename permission on mount
-		fromPath = Paths.get(fromPath).normalize().toString();
-		toPath = Paths.get(toPath).normalize().toString();
+		fromPath = normalise(fromPath);
+		toPath = normalise(toPath);
 		
 		return new CopyFileResolver(protocol).processRequest(fromPath, toPath);
 
@@ -837,7 +851,7 @@ public class FileResourceServiceImpl extends
 			String parentUri, final String newName, String protocol)
 			throws IOException, AccessDeniedException {
 
-		parentUri = Paths.get(parentUri).normalize().toString();
+		parentUri = normalise(parentUri);
 		
 		FileResolver<FileObject> resolver = new CreateFolderFileResolver(
 				newName, protocol);
@@ -850,7 +864,7 @@ public class FileResourceServiceImpl extends
 	public FileObject createFolder(String parentPath, final String newName,
 			String protocol) throws IOException, AccessDeniedException {
 
-		parentPath = Paths.get(parentPath).normalize().toString();
+		parentPath = normalise(parentPath);
 		
 		FileResolver<FileObject> resolver = new CreateFolderFileResolver(
 				newName, protocol);
@@ -909,6 +923,9 @@ public class FileResourceServiceImpl extends
 	protected FileResource assertMountAccess(String name)
 			throws AccessDeniedException {
 		
+		if(log.isDebugEnabled()) {
+			log.debug("Asserting mount access to " + name);
+		}
 		try {
 			assertAnyPermission(SystemPermission.SYSTEM, SystemPermission.SYSTEM_ADMINISTRATION);
 			return getResourceByName(name);
