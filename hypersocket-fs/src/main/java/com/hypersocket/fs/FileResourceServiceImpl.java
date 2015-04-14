@@ -100,8 +100,8 @@ public class FileResourceServiceImpl extends
 	RealmService realmService;
 
 	@Autowired
-	FileUploadService uploadService; 
-	
+	FileUploadService uploadService;
+
 	@Autowired
 	UserVariableReplacement userVariableReplacement;
 
@@ -162,8 +162,8 @@ public class FileResourceServiceImpl extends
 			}
 		}
 
-		eventService.registerEvent(FileResourceEvent.class,
-				RESOURCE_BUNDLE, this);
+		eventService.registerEvent(FileResourceEvent.class, RESOURCE_BUNDLE,
+				this);
 		eventService.registerEvent(FileResourceCreatedEvent.class,
 				RESOURCE_BUNDLE, this);
 		eventService.registerEvent(FileResourceUpdatedEvent.class,
@@ -188,20 +188,22 @@ public class FileResourceServiceImpl extends
 				.registerEvent(DeleteFileEvent.class, RESOURCE_BUNDLE, this);
 		eventService.registerEvent(RenameEvent.class, RESOURCE_BUNDLE, this);
 
-		eventService.registerEvent(CopyFileTaskResult.class, CreateFileTask.RESOURCE_BUNDLE);
-		eventService.registerEvent(CreateFileTaskResult.class, CreateFileTask.RESOURCE_BUNDLE);
-		eventService.registerEvent(DeleteFolderTaskResult.class, CreateFileTask.RESOURCE_BUNDLE);
-		
+		eventService.registerEvent(CopyFileTaskResult.class,
+				CreateFileTask.RESOURCE_BUNDLE);
+		eventService.registerEvent(CreateFileTaskResult.class,
+				CreateFileTask.RESOURCE_BUNDLE);
+		eventService.registerEvent(DeleteFolderTaskResult.class,
+				CreateFileTask.RESOURCE_BUNDLE);
+
 		registerScheme(new FileResourceScheme("file", false, false, false));
 		registerScheme(new FileResourceScheme("ftp", true, true, true));
 		registerScheme(new FileResourceScheme("ftps", true, true, true));
 		registerScheme(new FileResourceScheme("http", true, true, true));
 		registerScheme(new FileResourceScheme("https", true, true, true));
-//		registerScheme(new FileResourceScheme("webdav", true, true, true));
-//		registerScheme(new FileResourceScheme("webdavs", true, true, true));
+		// registerScheme(new FileResourceScheme("webdav", true, true, true));
+		// registerScheme(new FileResourceScheme("webdavs", true, true, true));
 		registerScheme(new FileResourceScheme("tmp", false, false, false));
 		registerScheme(new FileResourceScheme("smb", true, true, false));
-
 
 		jQueryUIContentHandler
 				.addAlias("^/viewfs/.*$", "content/fileview.html");
@@ -228,7 +230,8 @@ public class FileResourceServiceImpl extends
 		if (schemes.containsKey(scheme.getScheme())) {
 			throw new IllegalArgumentException(scheme.getScheme()
 					+ " is already a registerd scheme");
-		} else if (scheme.getProvider()==null && !isVFSScheme(scheme.getScheme())) {
+		} else if (scheme.getProvider() == null
+				&& !isVFSScheme(scheme.getScheme())) {
 			throw new IllegalArgumentException(scheme.getScheme()
 					+ " is not a valid VFS scheme");
 		}
@@ -238,31 +241,33 @@ public class FileResourceServiceImpl extends
 					+ " isRemote=" + scheme.isRemote()
 					+ " supportsCredentials=" + scheme.isSupportsCredentials());
 		}
-		
+
 		try {
-			
-			if(scheme.getProvider()!=null) {
-				((DefaultFileSystemManager)VFS.getManager()).addProvider(scheme.getScheme(), scheme.getProvider().newInstance());
-				if(!isVFSScheme(scheme.getScheme())) {
+
+			if (scheme.getProvider() != null) {
+				((DefaultFileSystemManager) VFS.getManager()).addProvider(
+						scheme.getScheme(), scheme.getProvider().newInstance());
+				if (!isVFSScheme(scheme.getScheme())) {
 					log.error("Scheme is still not reported as registred!");
 					return;
 				}
 			}
-			
+
 			schemes.put(scheme.getScheme(), scheme);
-		} catch(Throwable e) {
+		} catch (Throwable e) {
 			log.error("Failed to add scheme " + scheme.getScheme(), e);
 		}
-		
+
 	}
 
 	private String normalise(String path) {
 		path = Paths.get(path).normalize().toString();
-		if(File.separatorChar == '\\') {
+		if (File.separatorChar == '\\') {
 			path = path.replace('\\', '/');
 		}
 		return path;
 	}
+
 	public FileResource getMountForURIPath(String host, String controllerPath,
 			String path) throws AccessDeniedException {
 
@@ -291,10 +296,11 @@ public class FileResourceServiceImpl extends
 		try {
 			mountPath = FileUtils.stripParentPath(rootPath, path);
 			mountName = FileUtils.firstPathElement(mountPath);
-			
-			assertAnyPermission(SystemPermission.SYSTEM, SystemPermission.SYSTEM_ADMINISTRATION);
+
+			assertAnyPermission(SystemPermission.SYSTEM,
+					SystemPermission.SYSTEM_ADMINISTRATION);
 			return getResourceByName(mountName);
-			
+
 		} catch (Exception e) {
 			for (FileResource r : getPersonalResources(getCurrentPrincipal())) {
 				if (r.getName().equals(mountName)) {
@@ -318,9 +324,9 @@ public class FileResourceServiceImpl extends
 
 	public boolean isURIMountResource(FileResource resource,
 			String controllerPath, String path) {
-		
+
 		path = normalise(path);
-		
+
 		String mountPath = FileUtils.checkEndsWithSlash(server
 				.resolvePath(controllerPath + "/" + resource.getName()));
 		path = FileUtils.checkEndsWithSlash(path);
@@ -346,21 +352,22 @@ public class FileResourceServiceImpl extends
 
 	private String resolveChildPath(FileResource resource, String rootPath,
 			String path) throws IOException {
-		
+
 		rootPath = normalise(rootPath);
 		path = normalise(path);
-		
-		return FileUtils.checkEndsWithNoSlash(FileUtils.stripParentPath(FileUtils.checkEndsWithSlash(rootPath)
-				+ FileUtils.checkEndsWithSlash(resource.getName()),
+
+		return FileUtils.checkEndsWithNoSlash(FileUtils.stripParentPath(
+				FileUtils.checkEndsWithSlash(rootPath)
+						+ FileUtils.checkEndsWithSlash(resource.getName()),
 				FileUtils.checkStartsWithSlash(path)));
 	}
 
 	public String resolveChildPath(String mountName, String path)
 			throws IOException {
-		
+
 		mountName = normalise(mountName);
 		path = normalise(path);
-		
+
 		return FileUtils.checkEndsWithNoSlash(FileUtils.stripParentPath(
 				FileUtils.checkEndsWithSlash("/" + mountName),
 				FileUtils.checkEndsWithSlash(path)));
@@ -368,9 +375,9 @@ public class FileResourceServiceImpl extends
 
 	public String resolveURIChildPath(String mountName, String controllerPath,
 			String path) throws IOException {
-		
+
 		path = normalise(path);
-		
+
 		return FileUtils
 				.checkEndsWithNoSlash(FileUtils.stripParentPath(FileUtils
 						.checkEndsWithSlash(server.resolvePath(controllerPath
@@ -385,10 +392,10 @@ public class FileResourceServiceImpl extends
 
 	private String resolveMountName(String rootPath, String path)
 			throws IOException {
-		
+
 		path = normalise(rootPath);
 		path = normalise(path);
-		
+
 		String mountPath = FileUtils.stripParentPath(rootPath, path);
 		String mountName = FileUtils.firstPathElement(mountPath);
 		return mountName;
@@ -407,7 +414,7 @@ public class FileResourceServiceImpl extends
 		String url = resource.getPrivateUrl(getCurrentPrincipal(),
 				userVariableReplacement);
 
-		if(log.isDebugEnabled()) {
+		if (log.isDebugEnabled()) {
 			log.debug("Resolving " + url);
 		}
 		return VFS.getManager().resolveFile(url);
@@ -420,7 +427,7 @@ public class FileResourceServiceImpl extends
 		// TODO verify download permission on mount
 
 		path = normalise(path);
-		
+
 		FileResolver<InputStream> resolver = new FileResolver<InputStream>() {
 			@Override
 			InputStream onFileResolved(FileResource resource, String childPath,
@@ -447,25 +454,26 @@ public class FileResourceServiceImpl extends
 	}
 
 	@Override
-	public OutputStream uploadFile(String path, final long position, final String protocol)
-			throws IOException, AccessDeniedException {
+	public OutputStream uploadFile(String path, final long position,
+			final String protocol) throws IOException, AccessDeniedException {
 
 		// TODO verify download permission on mount
-		
+
 		path = normalise(path);
-		
+
 		FileResolver<OutputStream> resolver = new FileResolver<OutputStream>() {
 			@Override
 			OutputStream onFileResolved(FileResource resource,
 					String childPath, FileObject file) throws IOException {
 
-				long started = uploadStarted(resource, childPath, file, protocol);
+				long started = uploadStarted(resource, childPath, file,
+						protocol);
 
 				return new ContentOutputStream(resource, childPath, file,
-						position, started, new SessionAwareUploadEventProcessor(
-								getCurrentSession(), 
-								getCurrentLocale(), 
-								FileResourceServiceImpl.this, 
+						position, started,
+						new SessionAwareUploadEventProcessor(
+								getCurrentSession(), getCurrentLocale(),
+								FileResourceServiceImpl.this,
 								FileResourceServiceImpl.this), protocol);
 			}
 
@@ -521,7 +529,7 @@ public class FileResourceServiceImpl extends
 		// TODO verify download permission on mount
 
 		uri = normalise(uri);
-		
+
 		FileResolver<Object> resolver = new FileResolver<Object>() {
 			@Override
 			FileObject onFileResolved(FileResource resource, String childPath,
@@ -544,14 +552,15 @@ public class FileResourceServiceImpl extends
 	}
 
 	@Override
-	public FileUpload uploadURIFile(String host, String controllerPath, String uri,
-			final InputStream in, final UploadProcessor<?> processor,
-			final String protocol) throws IOException, AccessDeniedException {
+	public FileUpload uploadURIFile(String host, String controllerPath,
+			String uri, final InputStream in,
+			final UploadProcessor<?> processor, final String protocol)
+			throws IOException, AccessDeniedException {
 
 		// TODO verify download permission on mount
 
 		uri = normalise(uri);
-		
+
 		FileResolver<FileUpload> resolver = new FileResolver<FileUpload>() {
 			@Override
 			FileUpload onFileResolved(FileResource resource, String childPath,
@@ -561,22 +570,23 @@ public class FileResourceServiceImpl extends
 
 				FileUpload upload;
 				try {
-					upload = uploadService.createFile(in, PathUtil.getBaseName(childPath),
-							getCurrentRealm(), false, new FileObjectUploadStore(file, resource, childPath, protocol));
-					
-					if(processor!=null) {
-						processor.processUpload(resource, resolveMountFile(resource),
-							childPath, file);
+					upload = uploadService.createFile(in, PathUtil
+							.getBaseName(childPath), getCurrentRealm(), false,
+							new FileObjectUploadStore(file, resource,
+									childPath, protocol));
+
+					if (processor != null) {
+						processor.processUpload(resource,
+								resolveMountFile(resource), childPath, file);
 					}
 					return upload;
-					
+
 				} catch (ResourceCreationException e) {
 					throw new IOException(e);
 				} catch (AccessDeniedException e) {
 					throw new IOException(e);
 				}
-				
-				
+
 			}
 
 			@Override
@@ -586,7 +596,7 @@ public class FileResourceServiceImpl extends
 						getCurrentSession(), mountName, childPath, protocol));
 			}
 		};
-		
+
 		return resolver.processURIRequest(host, controllerPath, uri);
 
 	}
@@ -599,7 +609,7 @@ public class FileResourceServiceImpl extends
 		// TODO verify delete permission on mount
 
 		uri = normalise(uri);
-		
+
 		return new DeleteFileResolver(protocol).processURIRequest(host,
 				controllerPath, uri);
 
@@ -612,7 +622,7 @@ public class FileResourceServiceImpl extends
 		// TODO verify delete permission on mount
 
 		path = normalise(path);
-		
+
 		return new DeleteFileResolver(protocol).processRequest(path);
 
 	}
@@ -679,10 +689,22 @@ public class FileResourceServiceImpl extends
 
 		fromPath = normalise(fromPath);
 		toPath = normalise(toPath);
-		
+
 		return new RenameFileResolver(protocol)
 				.processRequest(fromPath, toPath);
+	}
 
+	@Override
+	public FileObject getFileObjectForMountFile(String file)
+			throws AccessDeniedException, IOException {
+		FileResource mount = getMountForPath(file);
+		if (mount != null) {
+			String childPath = resolveChildPath(mount, file);
+			FileObject MountObj = resolveMountFile(mount);
+			return MountObj.resolveFile(childPath);
+		} else {
+			throw new IOException("No such Mount exist for " + file);
+		}
 	}
 
 	class RenameFileResolver extends FilesResolver<Boolean> {
@@ -737,7 +759,7 @@ public class FileResourceServiceImpl extends
 		// TODO verify rename permission on mount
 		fromUri = normalise(fromUri);
 		toUri = normalise(toUri);
-		
+
 		return new CopyFileResolver(protocol).processRequest(host,
 				controllerPath, fromUri, toUri);
 
@@ -750,7 +772,7 @@ public class FileResourceServiceImpl extends
 		// TODO verify rename permission on mount
 		fromPath = normalise(fromPath);
 		toPath = normalise(toPath);
-		
+
 		return new CopyFileResolver(protocol).processRequest(fromPath, toPath);
 
 	}
@@ -842,7 +864,7 @@ public class FileResourceServiceImpl extends
 	public FileObject createURIFolder(String host, String controllerPath,
 			String parentUri, String protocol) throws IOException,
 			AccessDeniedException {
-		
+
 		return createURIFolder(host, controllerPath, parentUri, null, protocol);
 	}
 
@@ -852,7 +874,7 @@ public class FileResourceServiceImpl extends
 			throws IOException, AccessDeniedException {
 
 		parentUri = normalise(parentUri);
-		
+
 		FileResolver<FileObject> resolver = new CreateFolderFileResolver(
 				newName, protocol);
 
@@ -865,7 +887,7 @@ public class FileResourceServiceImpl extends
 			String protocol) throws IOException, AccessDeniedException {
 
 		parentPath = normalise(parentPath);
-		
+
 		FileResolver<FileObject> resolver = new CreateFolderFileResolver(
 				newName, protocol);
 
@@ -906,8 +928,9 @@ public class FileResourceServiceImpl extends
 			boolean created = newFile.exists();
 
 			eventService.publishEvent(new CreateFolderEvent(this, !exists
-					&& created, getCurrentSession(), resource, childPath + FileUtils.checkStartsWithSlash(newFile.getName().getBaseName()),
-					protocol));
+					&& created, getCurrentSession(), resource, childPath
+					+ FileUtils.checkStartsWithSlash(newFile.getName()
+							.getBaseName()), protocol));
 
 			return newFile;
 		}
@@ -922,12 +945,13 @@ public class FileResourceServiceImpl extends
 
 	protected FileResource assertMountAccess(String name)
 			throws AccessDeniedException {
-		
-		if(log.isDebugEnabled()) {
+
+		if (log.isDebugEnabled()) {
 			log.debug("Asserting mount access to " + name);
 		}
 		try {
-			assertAnyPermission(SystemPermission.SYSTEM, SystemPermission.SYSTEM_ADMINISTRATION);
+			assertAnyPermission(SystemPermission.SYSTEM,
+					SystemPermission.SYSTEM_ADMINISTRATION);
 			return getResourceByName(name);
 		} catch (Exception e) {
 			for (FileResource r : getResources(getCurrentPrincipal())) {
@@ -938,8 +962,7 @@ public class FileResourceServiceImpl extends
 			throw new AccessDeniedException(getCurrentPrincipal()
 					+ " does not have access to " + name);
 		}
-		
-		
+
 	}
 
 	protected String processTokens(String url) {
@@ -1163,48 +1186,44 @@ public class FileResourceServiceImpl extends
 		FileResource resource;
 		String childPath;
 		String protocol;
-		
-		FileObjectUploadStore(FileObject file,
-				FileResource resource, 
-				String childPath,
-				String protocol) {
+
+		FileObjectUploadStore(FileObject file, FileResource resource,
+				String childPath, String protocol) {
 			this.file = file;
 			this.resource = resource;
 			this.childPath = childPath;
 			this.protocol = protocol;
 		}
-		
+
 		@Override
-		public long writeFile(String uuid, InputStream in)
-				throws IOException {
-			
+		public long writeFile(String uuid, InputStream in) throws IOException {
+
 			long bytesIn = 0;
 
-			long startedTimestamp = uploadStarted(resource, childPath,
-					file, protocol);
-			
+			long startedTimestamp = uploadStarted(resource, childPath, file,
+					protocol);
+
 			OutputStream out = file.getContent().getOutputStream();
 			try {
-				
+
 				bytesIn = IOUtils.copyLarge(in, out);
 				file.refresh();
-				
+
 				uploadComplete(resource, childPath, file, bytesIn,
-						System.currentTimeMillis() - startedTimestamp,
-						protocol);
+						System.currentTimeMillis() - startedTimestamp, protocol);
 
 			} catch (Exception e) {
 
 				eventService.publishEvent(new UploadCompleteEvent(this,
-						getCurrentSession(), e, resource.getName(),
-						childPath, protocol));
+						getCurrentSession(), e, resource.getName(), childPath,
+						protocol));
 			} finally {
 				FileUtils.closeQuietly(in);
 				FileUtils.closeQuietly(out);
 			}
-			
+
 			return bytesIn;
 		}
-		
+
 	}
 }
