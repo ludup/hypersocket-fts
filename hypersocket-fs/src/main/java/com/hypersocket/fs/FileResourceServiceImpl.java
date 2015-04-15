@@ -43,6 +43,7 @@ import com.hypersocket.fs.tasks.CopyFileTaskResult;
 import com.hypersocket.fs.tasks.CreateFileTask;
 import com.hypersocket.fs.tasks.CreateFileTaskResult;
 import com.hypersocket.fs.tasks.DeleteFolderTaskResult;
+import com.hypersocket.i18n.I18N;
 import com.hypersocket.i18n.I18NService;
 import com.hypersocket.menus.MenuRegistration;
 import com.hypersocket.menus.MenuService;
@@ -703,7 +704,8 @@ public class FileResourceServiceImpl extends
 			FileObject MountObj = resolveMountFile(mount);
 			return MountObj.resolveFile(childPath);
 		} else {
-			throw new IOException("No such Mount exist for " + file);
+			throw new IOException(I18N.getResource(getCurrentLocale(),
+					RESOURCE_BUNDLE, "error.mountDoesNotExist", file));
 		}
 	}
 
