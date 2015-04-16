@@ -290,6 +290,11 @@
 								sidePagination : 'server',
 								onLoadSuccess : function(data) {
 									rebindEditable();
+								},
+								onLoadError: function(status) {
+									getJSON(basePath + '/api/fs/lastError', null, function(data) {
+										showError(data.message);
+									});
 								}
 							});
 							

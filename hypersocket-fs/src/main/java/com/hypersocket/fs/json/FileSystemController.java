@@ -36,6 +36,7 @@ import com.hypersocket.fs.FileResourceService;
 import com.hypersocket.fs.tree.TreeFile;
 import com.hypersocket.fs.tree.TreeFolder;
 import com.hypersocket.fs.tree.TreeList;
+import com.hypersocket.json.RequestStatus;
 import com.hypersocket.json.ResourceStatus;
 import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.session.json.SessionTimeoutException;
@@ -253,6 +254,24 @@ public class FileSystemController extends AuthenticatedController {
 		}
 	}
 
+	@AuthenticationRequired
+	@RequestMapping(value = "fs/lastError", method = RequestMethod.GET, produces = { "application/json" })
+	@ResponseBody
+	@ResponseStatus(value = HttpStatus.OK)
+	public RequestStatus getLastError(HttpServletRequest request) throws UnauthorizedException, SessionTimeoutException {
+		
+		setupAuthenticatedContext(sessionUtils.getSession(request),
+				sessionUtils.getLocale(request));
+		try {
+			Throwable e = (Throwable) request.getSession().getAttribute("lastError");
+			String msg = e.getMessage() + (e.getCause()!=null ? "; " + e.getCause().getMessage() : "");
+			return new RequestStatus(true, msg);
+		
+		} finally {
+			clearAuthenticatedContext();
+		}
+	}
+	
 	@SuppressWarnings("unchecked")
 	@AuthenticationRequired
 	@RequestMapping(value = "fs/search/**", method = RequestMethod.GET, produces = { "application/json" })
@@ -330,6 +349,7 @@ public class FileSystemController extends AuthenticatedController {
 			return new BootstrapTablesResult(result, totalRecords);
 
 		} catch (FileSystemException e) {
+			request.getSession().setAttribute("lastError", e);
 			throw e;
 		} catch (IOException e) {
 			throw e;
