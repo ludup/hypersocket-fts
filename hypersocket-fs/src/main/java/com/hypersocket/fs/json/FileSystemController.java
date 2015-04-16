@@ -167,6 +167,9 @@ public class FileSystemController extends AuthenticatedController {
 			
 
 		} catch (Exception e) {
+			if(log.isInfoEnabled()) {
+				log.error("Failed to download file", e);
+			}
 			try {
 				response.sendError(HttpStatus.INTERNAL_SERVER_ERROR.value());
 			} catch (IOException e1) {

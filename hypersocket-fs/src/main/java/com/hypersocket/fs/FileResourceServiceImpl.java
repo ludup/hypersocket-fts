@@ -386,7 +386,7 @@ public class FileResourceServiceImpl extends
 	private String resolveMountName(String rootPath, String path)
 			throws IOException {
 		
-		path = normalise(rootPath);
+		rootPath = normalise(rootPath);
 		path = normalise(path);
 		
 		String mountPath = FileUtils.stripParentPath(rootPath, path);
