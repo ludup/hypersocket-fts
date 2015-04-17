@@ -1,0 +1,29 @@
+<?xml version="1.0" ?>
+<propertyTemplates>
+	<propertyCategory resourceKey="category.windows"
+		resourceBundle="FileResourceService" weight="1000">
+
+		<property resourceKey="jcifs.smb.client.username" inputType="text"
+			weight="100" defaultValue="" allowEmpty="true"/>
+		<property resourceKey="jcifs.smb.client.password" inputType="password"
+			weight="200" defaultValue="" allowEmpty="true"/>
+		<property resourceKey="jcifs.smb.client.domain" inputType="text"
+			weight="300" defaultValue="" allowEmpty="true"/>
+		<property resourceKey="jcifs.netbios.wins" inputType="text"
+			weight="400" defaultValue="" validateAll="ipv4" allowEmpty="true"/>
+		<property resourceKey="jcifs.netbios.baddr" inputType="text"
+			weight="500" defaultValue=""  validateAll="ipv4" allowEmpty="true"/>
+		<property resourceKey="jcifs.netbios.scope" inputType="text"
+			weight="600" defaultValue="" />
+		<property resourceKey="jcifs.smb.client.laddr" inputType="text"
+			weight="700" defaultValue="" validateAll="ipv4" allowEmpty="true"/>
+		<property resourceKey="jcifs.netbios.laddr" inputType="text"
+			weight="800" defaultValue="" validateAll="ipv4" allowEmpty="true" />
+		<property resourceKey="jcifs.netbios.lmhosts" inputType="text"
+			weight="900" defaultValue="" />
+		<property resourceKey="jcifs.encoding" inputType="text"
+			weight="1000" defaultValue="Cp860" />
+		<property resourceKey="jcifs.smb.client.useExtendedSecurity" inputType="switch"
+			weight="1000" defaultValue="true" />
+	</propertyCategory>
+</propertyTemplates>
