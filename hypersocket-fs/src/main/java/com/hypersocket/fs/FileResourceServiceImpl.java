@@ -149,7 +149,7 @@ public class FileResourceServiceImpl extends
 				"myFilesystems", "fa-folder-open", "myFilesystems", 200) {
 			public boolean canRead() {
 				return resourceRepository
-						.getAssignableResourceCount(getCurrentPrincipal()) > 0;
+						.getAssignableResourceCount(realmService.getAssociatedPrincipals(getCurrentPrincipal())) > 0;
 			}
 		}, MenuService.MENU_MY_RESOURCES);
 
