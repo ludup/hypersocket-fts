@@ -46,6 +46,7 @@ import com.hypersocket.fs.tasks.CreateFileTask;
 import com.hypersocket.fs.tasks.CreateFileTaskResult;
 import com.hypersocket.fs.tasks.DeleteFolderTaskResult;
 import com.hypersocket.i18n.I18NService;
+import com.hypersocket.menus.AbstractTableAction;
 import com.hypersocket.menus.MenuRegistration;
 import com.hypersocket.menus.MenuService;
 import com.hypersocket.permissions.AccessDeniedException;
@@ -54,6 +55,7 @@ import com.hypersocket.permissions.PermissionService;
 import com.hypersocket.permissions.PermissionType;
 import com.hypersocket.permissions.SystemPermission;
 import com.hypersocket.realm.RealmService;
+import com.hypersocket.realm.UserPermission;
 import com.hypersocket.realm.UserVariableReplacement;
 import com.hypersocket.resource.AbstractAssignableResourceRepository;
 import com.hypersocket.resource.AbstractAssignableResourceServiceImpl;
@@ -78,6 +80,9 @@ public class FileResourceServiceImpl extends
 
 	public static final String MENU_FILE_SYSTEMS = "fileSystems";
 
+	public static final String ACTIONS_FILE = "fileActions";
+	public static final String ACTIONS_BULK = "bulkActions";
+	
 	@Autowired
 	HypersocketServer server;
 
@@ -153,6 +158,9 @@ public class FileResourceServiceImpl extends
 			}
 		}, MenuService.MENU_MY_RESOURCES);
 
+		menuService.registerExtendableTable(ACTIONS_FILE);
+		menuService.registerExtendableTable(ACTIONS_BULK);
+		
 		if (log.isInfoEnabled()) {
 			log.info("VFS reports the following schemes available");
 

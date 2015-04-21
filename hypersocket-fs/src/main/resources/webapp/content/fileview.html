@@ -40,7 +40,7 @@
 	var regex = new RegExp(
 			/(.[^\:]+)(\:\/\/)(.[^\/]+)(.[^\/]+)(.*\/viewfs\/)(.*)/);
 
-	var url = regex.exec(document.URL);
+	var url = regex.exec(stripFragment(document.URL));
 	var baseURL = url[1] + url[2] + url[3] + url[4];
 	var basePath = url[4];
 	var mountPath = url[6];
@@ -52,9 +52,64 @@
 
 	$.fn.editable.defaults.mode = 'inline';
 
+
 	function actionFormatter(value, row, index) {
 
-		var actionHtml = '<a class="delete tableAction btn btn-danger"><i class="fa fa-trash fa-fw"></i></a>';
+		var additionalActions = $(document).data('actions');
+		var actionHtml = '';
+		
+		if(additionalActions && additionalActions.length > 0) {
+			actionHtml += '<div id="dropdown_' + index + '" class="btn-group"><a class="btn btn-success row-additional dropdown-toggle" data-toggle="dropdown" href="#"><i class="fa fa-gears"></i></a>';
+			actionHtml += '<ul class="dropdown-menu dropdown-menu-right" role="menu">';
+			$.each(additionalActions,
+					function(x, act) {
+						if (act.enabled) {
+							actionHtml += '<li><a class="row-' + act.resourceKey + '" href="#"><span>' + getResource(act.resourceKey + ".label") + '</span>&nbsp;&nbsp;<i class="fa ' + act.iconClass + '"></i></a></li>';
+	
+							$(document).off('click',
+								'#dropdown_' + index + ' .row-' + act.resourceKey);
+	
+							$(document).on(
+								'click',
+								'#dropdown_' + index + ' .row-' + act.resourceKey,
+								function() {
+									path = mountPath + row.label;
+									act.action(path, function(resource) {
+										
+									});
+								});
+						}
+			});
+			actionHtml += '</ul></div>';
+			
+			$(document).on('show.bs.dropdown', '#Actions' + index, function () {
+				var dropdown = $(this);
+				var resource = row
+				$.each(additionalActions, function(x, act) {
+					if(act.enabled) {
+						if(act.displayFunction && act.displayFunction != '') {
+							var display = window[act.displayFunction].apply(null, [resource]);
+							var el = $('.row-' + act.resourceKey, dropdown);   
+							if(display) {
+								el.show();
+							} else {
+								el.hide();
+							}
+						}
+						if(act.enableFunction && act.enableFunction != '') {
+							if(!window[act.enableFunction].apply(null, [resource])) {
+								var el = $('.row-' + act.resourceKey, dropdown);    
+								el.parent().addClass('disabled');
+								el.attr('disabled', true);
+							}
+						} 
+					}
+					
+				});
+			});
+		}
+		
+		actionHtml += '<a class="delete tableAction btn btn-danger"><i class="fa fa-trash fa-fw"></i></a>';
 		actionHtml += '<a class="edit tableAction btn btn-primary"><i class="fa fa-edit fa-fw"></i></a>';
 
 		if (row.type != "Folder") {
@@ -135,6 +190,8 @@
 			});
 		}
 	};
+	
+
 
 	function rebindEditable() {
 		$('.fileLabel').editable(
@@ -173,166 +230,196 @@
 					}
 				});
 	};
-	$(document)
-			.ready(
+	$(document).ready(
 					function() {
 
-						loadResources(function() {
+						
+							 
+							 loadResources(function() {
 
-							$.notify.addStyle(
-								'confirm',
-								{
-									html : "<div>"
-											+ "<div class='clearfix'>"
-											+ "<div class='title' data-notify-html='title'/>"
-											+ "<div class='buttons'>"
-											+ "<button class='btn btn-primary no'>Cancel</button>"
-											+ "<button class='btn btn-danger yes' data-notify-text='button'></button>"
-											+ "</div>" + "</div>"
-											+ "</div>"
-								});
-
-							$.notify.addStyle(
-								'upload',
-								{
-									html : "<div>"
-											+ "<div class='clearfix'>"
-											+ "<div class='title' data-notify-html='title'/>"
-											+ "</div>" + "</div>"
-								});
-
-							$(document).on('click',
-									'.notifyjs-confirm-base .no', function() {
-										$(this).trigger('notify-hide');
-									});
-
-							$(document).on('click',
-											'.notifyjs-confirm-base .yes',
-											function() {
-												
-												var row = $(document).data('deleteRow');
-												
-												$.each(row, function(idx, row) {
-													getJSON('fs/delete/' + mountPath + row.label,
-															null,
-															function(data) {
-																if (data.success) {
-																	showInformation(getResource('text.deleted').format(row.label));
-																	$('#table').bootstrapTable('refresh');
-																} else {
-																	showError(getResource('text.deleteFailed').format(row.label));
-																}
-															});
+								 getJSON('menus/tableActions/fileActions', null, function(data) {
+										
+										var actions = new Array();
+										
+										if(data.resources.length > 0) {
+											$.each(data.resources, function(idx, action) {
+												var div = action.resourceKey + 'Div';
+												$('#additionalActions').append('<div id="' + div + '"></div>');
+												$('#' + div).load(basePath + '/ui/content/' + action.url + '.html');
+												actions.push({
+													resourceKey : action.resourceKey,
+													iconClass : action.iconClass,
+													action : function(resource, callback) {
+														if($('#' + action.resourceKey).data('action')) {
+															$('#' + action.resourceKey).data('action')(resource, callback);
+														}
+													},
+													enabled : true,
+													enableFunction: action.enableFunction,
+													displayFunction: action.displayFunction
 												});
-												
+											});
+										 }
+										
+										 $(document).data('actions', actions);
+										
+										 $.notify.addStyle(
+											'confirm',
+											{
+												html : "<div>"
+														+ "<div class='clearfix'>"
+														+ "<div class='title' data-notify-html='title'/>"
+														+ "<div class='buttons'>"
+														+ "<button class='btn btn-primary no'>Cancel</button>"
+														+ "<button class='btn btn-danger yes' data-notify-text='button'></button>"
+														+ "</div>" + "</div>"
+														+ "</div>"
+											});
+
+									$.notify.addStyle(
+										'upload',
+										{
+											html : "<div>"
+													+ "<div class='clearfix'>"
+													+ "<div class='title' data-notify-html='title'/>"
+													+ "</div>" + "</div>"
+										});
+
+									$(document).on('click',
+											'.notifyjs-confirm-base .no', function() {
 												$(this).trigger('notify-hide');
 											});
 
-							var breadcrumbs = mountPath.split('/');
-							if (breadcrumbs[breadcrumbs.length - 1] == '') {
-								breadcrumbs.pop();
-							}
-							var currentPath = '';
-							$.each(breadcrumbs, function(idx, obj) {
-								if(obj=='#') {
-									return;
-								}
-								currentPath += obj + '/';
-								if (idx < breadcrumbs.length - 1) {
-									$('#breadcrumbs').append(
-											'<li><a href="' + viewfsPath + currentPath + '">'
-													+ decodeURIComponent(obj) + '</a></li>');
-								} else {
-									$('#breadcrumbs').append(
-											'<li class="active">' + decodeURIComponent(obj)
-													+ '</li>');
+									$(document).on('click',
+													'.notifyjs-confirm-base .yes',
+													function() {
+														
+														var row = $(document).data('deleteRow');
+														
+														$.each(row, function(idx, row) {
+															getJSON('fs/delete/' + mountPath + row.label,
+																	null,
+																	function(data) {
+																		if (data.success) {
+																			showInformation(getResource('text.deleted').format(row.label));
+																			$('#table').bootstrapTable('refresh');
+																		} else {
+																			showError(getResource('text.deleteFailed').format(row.label));
+																		}
+																	});
+														});
+														
+														$(this).trigger('notify-hide');
+													});
 
-								}
+									var breadcrumbs = mountPath.split('/');
+									if (breadcrumbs[breadcrumbs.length - 1] == '') {
+										breadcrumbs.pop();
+									}
+									var currentPath = '';
+									$.each(breadcrumbs, function(idx, obj) {
+										if(obj=='#') {
+											return;
+										}
+										currentPath += obj + '/';
+										if (idx < breadcrumbs.length - 1) {
+											$('#breadcrumbs').append(
+													'<li><a href="' + viewfsPath + currentPath + '">'
+															+ decodeURIComponent(obj) + '</a></li>');
+										} else {
+											$('#breadcrumbs').append(
+													'<li class="active">' + decodeURIComponent(obj)
+															+ '</li>');
 
-							});
-							
-							$('#listingButton').click(function(e) {
+										}
 
-								$('#table').bootstrapTable('refresh');
-								$('#tableWrapper').show();
-								$('#uploadWrapper').hide();
-								$('#uploadWrapper').empty();
-								
-							});
-							
-							$('#uploadFileButton').click(function(e) {
-
-								$('#tableWrapper').hide();
-								$('#uploadWrapper').empty();
-
-								$('#uploadWrapper').multipleFileUpload({
-									  showDownloadButton: false,
-								      url: basePath + '/api/fs/upload/' + currentPath
-								});
-
-								$('#uploadWrapper').show();
-								
-							});
-
-							$('#uploadWrapper').hide();
-							
-							$('#table').bootstrapTable({
-								url : basePath + '/api/fs/search/' + mountPath,
-								pagination : true,
-								page : 1,
-								pageSize : 10,
-								pageList : [ 10, 20, 50, 100 ],
-								clickToSelect : false,
-								search : true,
-								showColumns : true,
-								showRefresh : true,
-								showToggle : true,
-								sidePagination : 'server',
-								onLoadSuccess : function(data) {
-									rebindEditable();
-								},
-								onLoadError: function(status) {
-									getJSON(basePath + '/api/fs/lastError', null, function(data) {
-										showError(data.message);
 									});
-								}
-							});
-							
-							$('.fixed-table-toolbar').find('.btn-group').first().prepend('<button id="multipleDelete" class="btn btn-default" type="button" name="multipleDelete" title="Delete"><i class="fa fa-trash"></i></button>');
-							$('.fixed-table-toolbar').find('.btn-group').first().prepend('<button id="newFolderButton" class="btn btn-default" type="button" name="newFolder" title="New Folder"><i class="fa fa-folder-open"></i></button>');
+									
+									$('#listingButton').click(function(e) {
 
-							$('#multipleDelete').click(
-									function(e) {
-								
-										var arr = $('#table').bootstrapTable('getSelections');
-										if(arr.length > 0) {
-											$(document).data('deleteRow', arr);
-											$('#multipleDelete').notify({
-												title : getResource("text.confirmMultipleDelete").format(arr.length),
-												button : getResource("text.delete")
-											}, {
-												style : 'confirm',
-												position : 'left middle',
-												autoHide : false,
-												clickToHide : false,
-												showDuration : 100
+										$('#table').bootstrapTable('refresh');
+										$('#tableWrapper').show();
+										$('#uploadWrapper').hide();
+										$('#uploadWrapper').empty();
+										
+									});
+									
+									$('#uploadFileButton').click(function(e) {
+
+										$('#tableWrapper').hide();
+										$('#uploadWrapper').empty();
+
+										$('#uploadWrapper').multipleFileUpload({
+											  showDownloadButton: false,
+										      url: basePath + '/api/fs/upload/' + currentPath
+										});
+
+										$('#uploadWrapper').show();
+										
+									});
+
+									$('#uploadWrapper').hide();
+									
+									$('#table').bootstrapTable({
+										url : basePath + '/api/fs/search/' + mountPath,
+										pagination : true,
+										page : 1,
+										pageSize : 10,
+										pageList : [ 10, 20, 50, 100 ],
+										clickToSelect : false,
+										search : true,
+										showColumns : true,
+										showRefresh : true,
+										showToggle : true,
+										sidePagination : 'server',
+										onLoadSuccess : function(data) {
+											rebindEditable();
+										},
+										onLoadError: function(status) {
+											getJSON(basePath + '/api/fs/lastError', null, function(data) {
+												showError(data.message);
 											});
 										}
-							});
-							
-							$('#newFolderButton').click(
-									function(e) {
+									});
+									
+									$('.fixed-table-toolbar').find('.btn-group').first().prepend('<button id="multipleDelete" class="btn btn-default" type="button" name="multipleDelete" title="Delete"><i class="fa fa-trash"></i></button>');
+									$('.fixed-table-toolbar').find('.btn-group').first().prepend('<button id="newFolderButton" class="btn btn-default" type="button" name="newFolder" title="New Folder"><i class="fa fa-folder-open"></i></button>');
+
+									$('#multipleDelete').click(
+											function(e) {
 										
-										getJSON('fs/createFolder/'
-												+ currentPath, null, function(data) {
-											$('#table').bootstrapTable(
-													'append', data.resource);
-											rebindEditable();
-											$('.fileLabel').last().editable(
-													'toggle');
-										});
-							});
+												var arr = $('#table').bootstrapTable('getSelections');
+												if(arr.length > 0) {
+													$(document).data('deleteRow', arr);
+													$('#multipleDelete').notify({
+														title : getResource("text.confirmMultipleDelete").format(arr.length),
+														button : getResource("text.delete")
+													}, {
+														style : 'confirm',
+														position : 'left middle',
+														autoHide : false,
+														clickToHide : false,
+														showDuration : 100
+													});
+												}
+									});
+									
+									$('#newFolderButton').click(
+											function(e) {
+												
+												getJSON('fs/createFolder/'
+														+ currentPath, null, function(data) {
+													$('#table').bootstrapTable(
+															'append', data.resource);
+													rebindEditable();
+													$('.fileLabel').last().editable(
+															'toggle');
+												});
+									});
+								});
 						});
+						
+						
 					});
 </script>
 </head>
@@ -369,6 +456,6 @@
 			<div id="uploadWrapper"></div>
 		</div>
 	</div>
-
+	<div id="additionalActions"></div>
 </body>
 </html>
