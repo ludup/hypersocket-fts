@@ -23,6 +23,7 @@ import com.hypersocket.auth.AuthenticationState;
 import com.hypersocket.auth.BrowserEnvironment;
 import com.hypersocket.i18n.I18NService;
 import com.hypersocket.permissions.AccessDeniedException;
+import com.hypersocket.realm.PrincipalType;
 import com.hypersocket.realm.RealmService;
 import com.hypersocket.resource.ResourceNotFoundException;
 
@@ -118,7 +119,7 @@ public class FTPUserManager implements UserManager {
 
 	public User getUserByName(String username) throws FtpException {
 		try {
-			return new FTPUser(realmService.getUniquePrincipal(username), "admin");
+			return new FTPUser(realmService.getUniquePrincipal(username, PrincipalType.USER), "admin");
 		} catch (ResourceNotFoundException e) {
 			throw new FtpException(e);
 		}
