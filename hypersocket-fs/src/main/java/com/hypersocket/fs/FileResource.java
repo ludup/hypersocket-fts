@@ -191,5 +191,14 @@ public class FileResource extends AssignableResource implements BrowserLaunchabl
 				;
 	}
 
+	@Override
+	public String getLogo() {
+		return null;
+	}
+
+	@Override
+	public String getType() {
+		return getClass().getSimpleName();
+	}
 	
 }
