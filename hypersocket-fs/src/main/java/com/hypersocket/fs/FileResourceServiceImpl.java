@@ -45,8 +45,8 @@ import com.hypersocket.fs.tasks.CopyFileTaskResult;
 import com.hypersocket.fs.tasks.CreateFileTask;
 import com.hypersocket.fs.tasks.CreateFileTaskResult;
 import com.hypersocket.fs.tasks.DeleteFolderTaskResult;
+import com.hypersocket.i18n.I18N;
 import com.hypersocket.i18n.I18NService;
-import com.hypersocket.menus.AbstractTableAction;
 import com.hypersocket.menus.MenuRegistration;
 import com.hypersocket.menus.MenuService;
 import com.hypersocket.permissions.AccessDeniedException;
@@ -55,7 +55,6 @@ import com.hypersocket.permissions.PermissionService;
 import com.hypersocket.permissions.PermissionType;
 import com.hypersocket.permissions.SystemPermission;
 import com.hypersocket.realm.RealmService;
-import com.hypersocket.realm.UserPermission;
 import com.hypersocket.realm.UserVariableReplacement;
 import com.hypersocket.resource.AbstractAssignableResourceRepository;
 import com.hypersocket.resource.AbstractAssignableResourceServiceImpl;
@@ -701,7 +700,20 @@ public class FileResourceServiceImpl extends
 
 		return new RenameFileResolver(protocol)
 				.processRequest(fromPath, toPath);
+	}
 
+	@Override
+	public FileObject getFileObjectForMountFile(String file)
+			throws AccessDeniedException, IOException {
+		FileResource mount = getMountForPath(file);
+		if (mount != null) {
+			String childPath = resolveChildPath(mount, file);
+			FileObject MountObj = resolveMountFile(mount);
+			return MountObj.resolveFile(childPath);
+		} else {
+			throw new IOException(I18N.getResource(getCurrentLocale(),
+					RESOURCE_BUNDLE, "error.mountDoesNotExist", file));
+		}
 	}
 
 	class RenameFileResolver extends FilesResolver<Boolean> {
@@ -1221,7 +1233,6 @@ public class FileResourceServiceImpl extends
 
 			return bytesIn;
 		}
-
 	}
 
 	@Override
@@ -1234,6 +1245,5 @@ public class FileResourceServiceImpl extends
 							event.getAttribute(ConfigurationChangedEvent.ATTR_CONFIG_RESOURCE_KEY),
 							event.getAttribute(ConfigurationChangedEvent.ATTR_NEW_VALUE));
 		}
-
 	}
 }
