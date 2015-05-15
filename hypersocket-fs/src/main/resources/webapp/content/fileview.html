@@ -336,7 +336,6 @@
 									});
 									
 									$('#listingButton').click(function(e) {
-
 										$('#table').bootstrapTable('refresh');
 										$('#tableWrapper').show();
 										$('#uploadWrapper').hide();
@@ -362,6 +361,11 @@
 									
 									$('#table').bootstrapTable({
 										url : basePath + '/api/fs/search/' + mountPath,
+										queryParams: function(params) {
+											debugger;
+ 											params._ = new Date().getTime();
+											return params;
+										},
 										pagination : true,
 										page : 1,
 										pageSize : 10,
