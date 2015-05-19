@@ -362,7 +362,6 @@
 									$('#table').bootstrapTable({
 										url : basePath + '/api/fs/search/' + mountPath,
 										queryParams: function(params) {
-											debugger;
  											params._ = new Date().getTime();
 											return params;
 										},
