@@ -134,11 +134,26 @@ body {
 	padding: 5px;
 }
 
-.notifyjs-upload-base {
-	width: 600px;
-	background: #F5F5F5;
+.notifyjs-share-base {
+	width: 400px;
+	background: #FFF;
 	border: 1px solid #000;
 	padding: 5px;
+}
+
+.notifyjs-share-base .buttons {
+	width: 70px;
+	float: right;
+	font-size: 9px;
+	padding: 5px;
+	margin: 2px;
+}
+
+.notifyjs-share-base button {
+	font-size: 9px;
+	padding: 5px;
+	margin: 2px;
+	width: 60px;
 }
 
 .notifyjs-confirm-base .title {
