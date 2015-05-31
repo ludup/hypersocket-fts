@@ -28,14 +28,16 @@ public abstract class AbstractFtpFile implements FtpFile {
 	final FileResource resource;
 	final FileObject file;
 	final String absolutePath;
+	final String realPath;
 
 	AbstractFtpFile(Session session, FTPFileSystemFactory factory,
-			FileResource resource, FileObject file, String absolutePath) {
+			FileResource resource, FileObject file, String absolutePath, String realPath) {
 		this.session = session;
 		this.factory = factory;
 		this.resource = resource;
 		this.file = file;
-		this.absolutePath = FileUtils.checkEndsWithNoSlash(absolutePath);
+		this.absolutePath = absolutePath.equals("/") ? absolutePath : FileUtils.checkEndsWithNoSlash(absolutePath);
+		this.realPath = realPath;
 	}
 
 	public Session getSession() {
@@ -66,6 +68,8 @@ public abstract class AbstractFtpFile implements FtpFile {
 			for (FileObject f : file.getChildren()) {
 				ret.add(new SessionContextFtpFileAdapter(new FileObjectFile(session, factory, resource, f,
 						FileUtils.checkEndsWithSlash(absolutePath)
+								+ f.getName().getBaseName(),
+						FileUtils.checkEndsWithSlash(realPath)
 								+ f.getName().getBaseName()), factory));
 			}
 		} catch (FileSystemException e) {
@@ -82,8 +86,8 @@ public abstract class AbstractFtpFile implements FtpFile {
 			if (file.exists()) {
 				return false;
 			}
-			factory.getFileResourceService().createFolder(FileUtils.getParentPath(getAbsolutePath()), 
-					FileUtils.lastPathElement(getAbsolutePath()), FTP_PROTOCOL);
+			factory.getFileResourceService().createFolder(FileUtils.getParentPath(realPath), 
+					FileUtils.lastPathElement(realPath), FTP_PROTOCOL);
 			
 			file.createFolder();
 			return true;

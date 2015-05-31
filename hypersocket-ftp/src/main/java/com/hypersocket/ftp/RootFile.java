@@ -65,7 +65,7 @@ public class RootFile implements FtpFile {
 	}
 
 	public String getName() {
-		return "";
+		return "/";
 	}
 
 	public String getOwnerName() {

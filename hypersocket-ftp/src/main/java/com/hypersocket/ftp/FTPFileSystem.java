@@ -1,6 +1,7 @@
 package com.hypersocket.ftp;
 
 import java.io.IOException;
+import java.util.Collection;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
@@ -79,21 +80,26 @@ public class FTPFileSystem implements FileSystemView {
 		
 		try {
 			
+			String tmpPath = path;
+			if(user.hasSingleMount()) {
+				tmpPath = "/" + user.getMounts().iterator().next().getName() + path;
+			}
 			// Resolve the file from the working directory
-			FileResource mount = factory.getFileResourceService().getMountForPath(path);
+			FileResource mount = factory.getFileResourceService().getMountForPath(tmpPath);
 			
 			FileObject mountFile = factory.getFileResourceService().resolveMountFile(mount);
 
 			String childPath = factory.getFileResourceService()
-					.resolveChildPath(mount, path);
+					.resolveChildPath(mount, tmpPath);
 
 			if (childPath.equals("")) {
 				return new SessionContextFtpFileAdapter(new MountFile(user.getSession(), factory, mount, mountFile), factory);
 			} else {
 				FileObject file = mountFile.resolveFile(childPath);
 				return new SessionContextFtpFileAdapter(new FileObjectFile(user.getSession(), factory, mount, file, "/"
-						+ FileUtils.checkEndsWithSlash(mount.getName())
-						+ childPath), factory);
+						+ (user.hasSingleMount() ? "" : FileUtils.checkEndsWithSlash(mount.getName()))
+						+ childPath,
+						"/" + FileUtils.checkEndsWithSlash(mount.getName()) + childPath), factory);
 
 			}
 		} catch (FileSystemException e) {
@@ -114,7 +120,22 @@ public class FTPFileSystem implements FileSystemView {
 			log.info("Requesting home directory for "
 					+ user.getPrincipal().getPrincipalName());
 		}
-		return new SessionContextFtpFileAdapter(new RootFile("/", user.getSession(), factory), factory, user.getSession());
+		
+		try {
+			Collection<FileResource> mounts = user.getMounts();
+			
+			if(mounts.size() > 1) {
+				return new SessionContextFtpFileAdapter(new RootFile("/", user.getSession(), factory), factory, user.getSession());
+			} else if(mounts.size() == 0) {
+				throw new FtpException("You do not have access to any mounts");
+			} else {
+				FileResource resource = mounts.iterator().next();
+				FileObject mountFile = factory.getFileResourceService().resolveMountFile(resource);
+				return new SessionContextFtpFileAdapter(new MountFile(user.getSession(), factory, resource, mountFile, true), factory, user.getSession());
+			}
+		} catch (IOException e) {
+			throw new FtpException(e);
+		}
 	}
 
 	public FtpFile getWorkingDirectory() throws FtpException {

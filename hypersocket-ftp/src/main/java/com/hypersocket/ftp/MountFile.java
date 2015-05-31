@@ -7,10 +7,15 @@ import com.hypersocket.session.Session;
 
 public class MountFile extends AbstractFtpFile {
 
-	public MountFile(Session session, FTPFileSystemFactory fileResourceService, FileResource resource, FileObject file) {
-		super(session, fileResourceService, resource, file, "/" + resource.getName());
+	boolean singleMount = false;
+	public MountFile(Session session, FTPFileSystemFactory fileResourceService, FileResource resource, FileObject file, boolean singleMount) {
+		super(session, fileResourceService, resource, file, singleMount ? "/" : "/" + resource.getName(), "/" + resource.getName());
+		this.singleMount = singleMount;
 	}
 
+	public MountFile(Session session, FTPFileSystemFactory fileResourceService, FileResource resource, FileObject file) {
+		this(session, fileResourceService, resource, file, false);
+	}
 	@Override
 	public boolean delete() {
 		return false;

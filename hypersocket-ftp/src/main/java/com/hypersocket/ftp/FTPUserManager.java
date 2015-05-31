@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 import com.hypersocket.auth.AuthenticationService;
 import com.hypersocket.auth.AuthenticationState;
 import com.hypersocket.auth.BrowserEnvironment;
+import com.hypersocket.fs.FileResourceService;
 import com.hypersocket.i18n.I18NService;
 import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.realm.PrincipalType;
@@ -35,6 +36,9 @@ public class FTPUserManager implements UserManager {
 	@Autowired
 	AuthenticationService authenticationService;
 
+	@Autowired
+	FileResourceService fileResourceService; 
+	
 	@Autowired
 	RealmService realmService;
 
@@ -89,7 +93,7 @@ public class FTPUserManager implements UserManager {
 						log.debug(state.getSession().getCurrentPrincipal().getName() + " has authenticated via FTP authentication");
 					}
 					
-					return new FTPSessionUser(state.getSession(), pwd.getPassword());
+					return new FTPSessionUser(state.getSession(), pwd.getPassword(), fileResourceService.getPersonalResources());
 				} 
 			} catch (AccessDeniedException e) {
 				throw new AuthenticationFailedException(e);

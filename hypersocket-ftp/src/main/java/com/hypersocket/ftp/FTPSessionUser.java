@@ -1,21 +1,25 @@
 package com.hypersocket.ftp;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.apache.ftpserver.ftplet.Authority;
 import org.apache.ftpserver.ftplet.AuthorizationRequest;
 import org.apache.ftpserver.ftplet.User;
 
+import com.hypersocket.fs.FileResource;
 import com.hypersocket.realm.Principal;
 import com.hypersocket.session.Session;
 
 public class FTPSessionUser implements User {
 
-	Session session;;
+	Session session;
 	String password;
+	Collection<FileResource> mounts;
 	
-	public FTPSessionUser(Session session, String password) {
+	public FTPSessionUser(Session session, String password, Collection<FileResource> mounts) {
 		this.session = session;
+		this.mounts = mounts;
 	}
 	
 	public Principal getPrincipal() {
@@ -56,6 +60,14 @@ public class FTPSessionUser implements User {
 	
 	public Session getSession() {
 		return session;
+	}
+	
+	boolean hasSingleMount() {
+		return mounts.size() == 1;
+	}
+	
+	Collection<FileResource> getMounts() {
+		return mounts;
 	}
 
 }

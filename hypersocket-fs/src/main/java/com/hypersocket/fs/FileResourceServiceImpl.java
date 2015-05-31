@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -301,6 +302,7 @@ public class FileResourceServiceImpl extends
 			throws AccessDeniedException {
 		String mountPath = "";
 		String mountName = "";
+		
 		try {
 			mountPath = FileUtils.stripParentPath(rootPath, path);
 			mountName = FileUtils.firstPathElement(mountPath);
@@ -310,7 +312,7 @@ public class FileResourceServiceImpl extends
 			return getResourceByName(mountName);
 
 		} catch (Exception e) {
-			for (FileResource r : getPersonalResources(getCurrentPrincipal())) {
+			for (FileResource r : getPersonalResources()) {
 				if (r.getName().equals(mountName)) {
 					return r;
 				}

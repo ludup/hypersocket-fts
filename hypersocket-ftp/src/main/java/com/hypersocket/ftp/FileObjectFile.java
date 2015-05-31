@@ -18,13 +18,13 @@ public class FileObjectFile extends AbstractFtpFile {
 	static Logger log = LoggerFactory.getLogger(FileObjectFile.class);
 
 	
-	FileObjectFile(Session session, FTPFileSystemFactory factory, FileResource resource, FileObject file, String path) {
-		super(session, factory, resource, file, path);
+	FileObjectFile(Session session, FTPFileSystemFactory factory, FileResource resource, FileObject file, String path, String realPath) {
+		super(session, factory, resource, file, path, realPath);
 	}
 	
 	public InputStream createInputStream(long position) throws IOException {
 		try {
-			return factory.getFileResourceService().downloadFile(getAbsolutePath(), position, FTP_PROTOCOL);
+			return factory.getFileResourceService().downloadFile(realPath, position, FTP_PROTOCOL);
 		} catch (AccessDeniedException e) {
 			log.error("Failed to create InputStream", e);
 			throw new IOException(e);
@@ -34,7 +34,7 @@ public class FileObjectFile extends AbstractFtpFile {
 	public OutputStream createOutputStream(long position) throws IOException {
 		
 		try {
-			return factory.getFileResourceService().uploadFile(getAbsolutePath(), position, FTP_PROTOCOL);
+			return factory.getFileResourceService().uploadFile(realPath, position, FTP_PROTOCOL);
 		} catch (AccessDeniedException e) {
 			log.error("Failed to create InputStream", e);
 			throw new IOException(e);
