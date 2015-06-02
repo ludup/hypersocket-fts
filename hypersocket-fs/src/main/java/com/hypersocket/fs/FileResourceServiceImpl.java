@@ -116,7 +116,7 @@ public class FileResourceServiceImpl extends
 	Map<String, FileResourceScheme> schemes = new HashMap<String, FileResourceScheme>();
 
 	public FileResourceServiceImpl() {
-
+		super("fileResource");
 	}
 
 	@PostConstruct
@@ -1247,5 +1247,10 @@ public class FileResourceServiceImpl extends
 							event.getAttribute(ConfigurationChangedEvent.ATTR_CONFIG_RESOURCE_KEY),
 							event.getAttribute(ConfigurationChangedEvent.ATTR_NEW_VALUE));
 		}
+	}
+
+	@Override
+	protected Class<FileResource> getResourceClass() {
+		return FileResource.class;
 	}
 }
