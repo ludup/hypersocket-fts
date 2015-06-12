@@ -241,6 +241,7 @@ public class FileResourceController extends ResourceController {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@AuthenticationRequired
 	@RequestMapping(value = "mounts/mount/{id}", method = RequestMethod.DELETE, produces = { "application/json" })
 	@ResponseBody
