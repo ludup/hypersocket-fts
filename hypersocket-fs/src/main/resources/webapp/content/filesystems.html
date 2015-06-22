@@ -270,15 +270,13 @@
 							validate : function() {
 
 								if ($('#resourceName').val() == '') {
-									$('#addResourceForm').resourceDialog(
-											'error', "error.nameRequired");
+									showError("error.nameRequired");
 									return false;
 								}
 
 								if ($('#serverName').val() != '') {
 									if (!isValidHostname($('#serverName').val())) {
-										$('#addResourceForm').resourceDialog(
-												'error', "error.hostnameInvalid");
+										showError("error.hostnameInvalid");
 										return false;
 									}
 								}
