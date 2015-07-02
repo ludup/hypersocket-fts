@@ -9,6 +9,7 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +19,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.hypersocket.auth.json.AuthenticationRequired;
 import com.hypersocket.auth.json.ResourceController;
@@ -29,6 +32,7 @@ import com.hypersocket.fs.FileResourceScheme;
 import com.hypersocket.fs.FileResourceService;
 import com.hypersocket.fs.FileResourceServiceImpl;
 import com.hypersocket.i18n.I18N;
+import com.hypersocket.i18n.I18NServiceImpl;
 import com.hypersocket.json.ResourceList;
 import com.hypersocket.json.ResourceStatus;
 import com.hypersocket.permissions.AccessDeniedException;
@@ -39,13 +43,16 @@ import com.hypersocket.resource.ResourceChangeException;
 import com.hypersocket.resource.ResourceColumns;
 import com.hypersocket.resource.ResourceCreationException;
 import com.hypersocket.resource.ResourceException;
+import com.hypersocket.resource.ResourceExportException;
+import com.hypersocket.resource.ResourceNotFoundException;
 import com.hypersocket.session.json.SessionTimeoutException;
 import com.hypersocket.session.json.SessionUtils;
+import com.hypersocket.tables.BootstrapTableResult;
 import com.hypersocket.tables.Column;
 import com.hypersocket.tables.ColumnSort;
-import com.hypersocket.tables.BootstrapTableResult;
 import com.hypersocket.tables.json.BootstrapTablePageProcessor;
 import com.hypersocket.utils.FileUtils;
+import com.hypersocket.utils.HypersocketUtils;
 
 @Controller
 public class FileResourceController extends ResourceController {
@@ -151,9 +158,10 @@ public class FileResourceController extends ResourceController {
 	@RequestMapping(value = "mounts/personal", method = RequestMethod.GET, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
-	public BootstrapTableResult personalMounts(final HttpServletRequest request,
-			HttpServletResponse response) throws AccessDeniedException,
-			UnauthorizedException, SessionTimeoutException {
+	public BootstrapTableResult personalMounts(
+			final HttpServletRequest request, HttpServletResponse response)
+			throws AccessDeniedException, UnauthorizedException,
+			SessionTimeoutException {
 
 		setupAuthenticatedContext(sessionUtils.getSession(request),
 				sessionUtils.getLocale(request));
@@ -168,8 +176,8 @@ public class FileResourceController extends ResourceController {
 						}
 
 						@Override
-						public Collection<?> getPage(String searchPattern, int start,
-								int length, ColumnSort[] sorting)
+						public Collection<?> getPage(String searchPattern,
+								int start, int length, ColumnSort[] sorting)
 								throws UnauthorizedException,
 								AccessDeniedException {
 							return mountService.searchPersonalResources(
@@ -289,7 +297,8 @@ public class FileResourceController extends ResourceController {
 		resource.setScheme(update.getScheme());
 		resource.setServer(update.getServer());
 		resource.setPort(update.getPort());
-		resource.setPath(FileUtils.convertBackslashToForwardSlash(update.getPath()));
+		resource.setPath(FileUtils.convertBackslashToForwardSlash(update
+				.getPath()));
 		resource.setUsername(update.getUsername());
 		resource.setPassword(update.getPassword());
 
@@ -299,31 +308,124 @@ public class FileResourceController extends ResourceController {
 
 		resource.setRoles(roles);
 
-//		try {
-//			if (!mountService.testVFSUri(resource.getPrivateUrl(username,
-//					password))) {
-//				if (creating) {
-//					throw new ResourceCreationException(
-//							FileResourceServiceImpl.RESOURCE_BUNDLE,
-//							"error.fileDoesNotExist", resource.getUrl());
-//				} else {
-//					throw new ResourceChangeException(
-//							FileResourceServiceImpl.RESOURCE_BUNDLE,
-//							"error.fileDoesNotExist", resource.getUrl());
-//				}
-//			}
-//		} catch (FileSystemException e) {
-//			log.error("Failed to access " + resource.getUrl(), e);
-//			if (creating) {
-//				throw new ResourceCreationException(
-//						FileResourceServiceImpl.RESOURCE_BUNDLE,
-//						"error.failedToAccessFile", e.getMessage());
-//			} else {
-//				throw new ResourceChangeException(
-//						FileResourceServiceImpl.RESOURCE_BUNDLE,
-//						"error.failedToAccessFile", e.getMessage());
-//			}
-//		}
+		// try {
+		// if (!mountService.testVFSUri(resource.getPrivateUrl(username,
+		// password))) {
+		// if (creating) {
+		// throw new ResourceCreationException(
+		// FileResourceServiceImpl.RESOURCE_BUNDLE,
+		// "error.fileDoesNotExist", resource.getUrl());
+		// } else {
+		// throw new ResourceChangeException(
+		// FileResourceServiceImpl.RESOURCE_BUNDLE,
+		// "error.fileDoesNotExist", resource.getUrl());
+		// }
+		// }
+		// } catch (FileSystemException e) {
+		// log.error("Failed to access " + resource.getUrl(), e);
+		// if (creating) {
+		// throw new ResourceCreationException(
+		// FileResourceServiceImpl.RESOURCE_BUNDLE,
+		// "error.failedToAccessFile", e.getMessage());
+		// } else {
+		// throw new ResourceChangeException(
+		// FileResourceServiceImpl.RESOURCE_BUNDLE,
+		// "error.failedToAccessFile", e.getMessage());
+		// }
+		// }
+	}
+	
+	@AuthenticationRequired
+	@RequestMapping(value = "mounts/export/{id}", method = RequestMethod.GET, produces = { "text/plain" })
+	@ResponseStatus(value = HttpStatus.OK)
+	@ResponseBody
+	public String exportResource(HttpServletRequest request,
+			HttpServletResponse response, @PathVariable("id") long id)
+			throws AccessDeniedException, UnauthorizedException,
+			SessionTimeoutException, ResourceNotFoundException,
+			ResourceExportException {
+
+		setupAuthenticatedContext(sessionUtils.getSession(request),
+				sessionUtils.getLocale(request));
+		try {
+			Thread.sleep(1000);
+		} catch (Exception e) {
+		}
+		try {
+			response.setHeader("Content-Disposition", "attachment; filename=\""
+					+ mountService.getResourceCategory() + "-"
+					+ mountService.getResourceById(id).getName() + ".json\"");
+			return mountService.exportResoure(id);
+		} finally {
+			clearAuthenticatedContext();
+		}
+
+	}
+
+	@AuthenticationRequired
+	@RequestMapping(value = "mounts/export", method = RequestMethod.GET, produces = { "text/plain" })
+	@ResponseStatus(value = HttpStatus.OK)
+	@ResponseBody
+	public String exportAll(HttpServletRequest request,
+			HttpServletResponse response) throws AccessDeniedException,
+			UnauthorizedException, SessionTimeoutException,
+			ResourceNotFoundException, ResourceExportException {
+
+		setupAuthenticatedContext(sessionUtils.getSession(request),
+				sessionUtils.getLocale(request));
+		try {
+			Thread.sleep(1000);
+		} catch (Exception e) {
+		}
+		try {
+			response.setHeader("Content-Disposition", "attachment; filename=\""
+					+ mountService.getResourceCategory() + ".json\"");
+			return mountService.exportAllResoures();
+		} finally {
+			clearAuthenticatedContext();
+		}
+
+	}
+
+	@AuthenticationRequired
+	@RequestMapping(value = "mounts/import", method = { RequestMethod.POST }, produces = { "application/json" })
+	@ResponseBody
+	@ResponseStatus(value = HttpStatus.OK)
+	public ResourceStatus<FileResource> importAll(HttpServletRequest request,
+			HttpServletResponse response,
+			@RequestParam(value = "file") MultipartFile jsonFile,
+			@RequestParam(required = false) boolean dropExisting)
+			throws AccessDeniedException, UnauthorizedException,
+			SessionTimeoutException {
+		setupAuthenticatedContext(sessionUtils.getSession(request),
+				sessionUtils.getLocale(request));
+		try {
+			Thread.sleep(2000);
+		} catch (Exception e) {
+		}
+		try {
+			String json = IOUtils.toString(jsonFile.getInputStream());
+			if (!HypersocketUtils.isValidJSON(json)) {
+				throw new ResourceException(
+						I18NServiceImpl.USER_INTERFACE_BUNDLE,
+						"error.incorrectJSON");
+			}
+			Collection<FileResource> collects = mountService.importResources(
+					json, getCurrentRealm(), dropExisting);
+			return new ResourceStatus<FileResource>(true, I18N.getResource(
+					sessionUtils.getLocale(request),
+					I18NServiceImpl.USER_INTERFACE_BUNDLE,
+					"resource.import.success", collects.size()));
+		} catch (ResourceException e) {
+			return new ResourceStatus<FileResource>(false, e.getMessage());
+		} catch (Exception e) {
+			return new ResourceStatus<FileResource>(false, I18N.getResource(
+					sessionUtils.getLocale(request),
+					I18NServiceImpl.USER_INTERFACE_BUNDLE,
+					"resource.import.failure", e.getMessage()));
+		} finally {
+			clearAuthenticatedContext();
+		}
 	}
 
 }
