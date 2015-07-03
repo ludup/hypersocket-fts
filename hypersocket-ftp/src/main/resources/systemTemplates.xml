@@ -6,7 +6,7 @@
 	    <property resourceKey="ftp.enabled" inputType="switch"
 			weight="100" defaultValue="true" />
 	    
-		<property resourceKey="ftp.port" inputType="number"
+		<property resourceKey="ftp.port" inputType="integer"
 			minValue="1" maxValue="65535" weight="200" defaultValue="21" developmentValue="2221" />
 		
 		<property resourceKey="ftp.idleTimeout" inputType="slider" step="1" labelResourceKey="seconds.label"
@@ -31,7 +31,7 @@
 	    <property resourceKey="ftps.enabled" inputType="switch"
 			weight="100" defaultValue="true" />
 	    
-		<property resourceKey="ftps.port" inputType="number"
+		<property resourceKey="ftps.port" inputType="integer"
 			minValue="1" maxValue="65535" weight="200" defaultValue="990" developmentValue="9990" />
 		
 		<property resourceKey="ftps.idleTimeout" inputType="slider" step="1" labelResourceKey="seconds.label"
