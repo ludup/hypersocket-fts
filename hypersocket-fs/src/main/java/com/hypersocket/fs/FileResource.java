@@ -11,6 +11,7 @@ import javax.xml.bind.annotation.XmlTransient;
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.hypersocket.browser.BrowserLaunchable;
 import com.hypersocket.realm.Principal;
 import com.hypersocket.realm.UserVariableReplacement;
@@ -19,39 +20,41 @@ import com.hypersocket.util.Utils;
 import com.hypersocket.utils.FileUtils;
 
 @Entity
-@Table(name="file_resources")
-public class FileResource extends AssignableResource implements BrowserLaunchable {
+@Table(name = "file_resources")
+@JsonDeserialize(using=FileResourceDeserializer.class)
+public class FileResource extends AssignableResource implements
+		BrowserLaunchable {
 
-	@Column(name="scheme")
+	@Column(name = "scheme")
 	String scheme;
-	
-	@Column(name="server", nullable=true)
+
+	@Column(name = "server", nullable = true)
 	String server;
-	
-	@Column(name="port", nullable=true)
+
+	@Column(name = "port", nullable = true)
 	Integer port;
-	
-	@Column(name="path")
+
+	@Column(name = "path")
 	String path;
-	
-	@Column(name="username", nullable=true)
+
+	@Column(name = "username", nullable = true)
 	String username;
-	
-	@Column(name="password", nullable=true)
+
+	@Column(name = "password", nullable = true)
 	String password;
 
-	@Column(name="read_only")
+	@Column(name = "read_only")
 	boolean readOnly;
-	
-	@Column(name="show_hidden")
+
+	@Column(name = "show_hidden")
 	boolean showHidden;
-	
-	@Column(name="show_folders")
+
+	@Column(name = "show_folders")
 	boolean showFolders;
-	
-	@Column(name="displayInBrowserResourcesTable")
+
+	@Column(name = "displayInBrowserResourcesTable")
 	Boolean displayInBrowserResourcesTable = Boolean.FALSE;
-	
+
 	public String getScheme() {
 		return scheme;
 	}
@@ -107,7 +110,7 @@ public class FileResource extends AssignableResource implements BrowserLaunchabl
 	public void setPort(Integer port) {
 		this.port = port;
 	}
-	
+
 	public boolean isShowHidden() {
 		return showHidden;
 	}
@@ -123,72 +126,79 @@ public class FileResource extends AssignableResource implements BrowserLaunchabl
 	public void setShowFolders(boolean showFolders) {
 		this.showFolders = showFolders;
 	}
-	
+
 	public String getUrl() {
 		return getUrl(true, null, null);
 	}
-	
+
 	@JsonIgnore
 	@XmlTransient
-	public String getPrivateUrl(Principal principal, UserVariableReplacement replacementService) {
+	public String getPrivateUrl(Principal principal,
+			UserVariableReplacement replacementService) {
 		return getUrl(false, principal, replacementService);
 	}
-	
-	private String getUrl(boolean friendly, Principal principal, UserVariableReplacement replacementService) {
+
+	private String getUrl(boolean friendly, Principal principal,
+			UserVariableReplacement replacementService) {
 		try {
 			StringBuffer buf = new StringBuffer();
 			buf.append(scheme);
 			buf.append("://");
-			
-			if(StringUtils.isNotBlank(username)) {
-				if(friendly) {
+
+			if (StringUtils.isNotBlank(username)) {
+				if (friendly) {
 					buf.append(username);
 				} else {
-					buf.append(URLEncoder.encode(replacementService.replaceVariables(principal, username), "UTF-8"));
+					buf.append(URLEncoder.encode(replacementService
+							.replaceVariables(principal, username), "UTF-8"));
 				}
-				if(StringUtils.isNotBlank(password)) {
+				if (StringUtils.isNotBlank(password)) {
 					buf.append(":");
-					if(friendly) {
+					if (friendly) {
 						buf.append("***");
 					} else {
-						buf.append(URLEncoder.encode(replacementService.replaceVariables(principal, password), "UTF-8"));
+						buf.append(URLEncoder.encode(replacementService
+								.replaceVariables(principal, password), "UTF-8"));
 					}
 				}
 				buf.append("@");
-			} 
-			
-			if(server!=null && !server.equals("")) {
+			}
+
+			if (server != null && !server.equals("")) {
 				buf.append(server);
-				if(port!=null) {
+				if (port != null) {
 					buf.append(":");
 					buf.append(port);
 				}
 			}
 
 			String thisPath = path;
-			if(!friendly) {
-				thisPath = replacementService.replaceVariables(principal, thisPath);
+			if (!friendly) {
+				thisPath = replacementService.replaceVariables(principal,
+						thisPath);
 			}
 			buf.append(FileUtils.checkStartsWithSlash(Utils.checkNull(thisPath)));
 			return buf.toString();
 		} catch (UnsupportedEncodingException e) {
-			throw new IllegalStateException("The system does not appear to support UTF-8!");
+			throw new IllegalStateException(
+					"The system does not appear to support UTF-8!");
 		}
 	}
 
 	@Override
 	public String getLaunchUrl() {
-		return System.getProperty("hypersocket.uiPath", "/hypersocket") + "/viewfs/" + getName();
+		return System.getProperty("hypersocket.uiPath", "/hypersocket")
+				+ "/viewfs/" + getName();
 	}
 
-	public void setDisplayInBrowserResourcesTable(Boolean displayInBrowserResourcesTable) {
+	public void setDisplayInBrowserResourcesTable(
+			Boolean displayInBrowserResourcesTable) {
 		this.displayInBrowserResourcesTable = Boolean.FALSE;
 	}
-	
+
 	@Override
 	public boolean isDisplayInBrowserResourcesTable() {
-		return false
-				;
+		return false;
 	}
 
 	@Override
@@ -200,5 +210,5 @@ public class FileResource extends AssignableResource implements BrowserLaunchabl
 	public String getType() {
 		return getClass().getSimpleName();
 	}
-	
+
 }
