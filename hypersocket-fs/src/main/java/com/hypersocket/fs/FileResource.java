@@ -203,7 +203,7 @@ public class FileResource extends AssignableResource implements
 
 	@Override
 	public String getLogo() {
-		return null;
+		return "uri-" + scheme;
 	}
 
 	@Override
