@@ -79,11 +79,11 @@ public class CopyFileTask extends AbstractTaskProvider {
 	}
 
 	@Override
-	public TaskResult execute(Task task, Realm currentRealm, SystemEvent... events)
+	public TaskResult execute(Task task, Realm currentRealm, SystemEvent event)
 			throws ValidationException {
 
-		String originPath = processTokenReplacements(repository.getValue(task, "origin.path"), events);
-		String destinationPath = processTokenReplacements(repository.getValue(task, "destination.path"), events);
+		String originPath = processTokenReplacements(repository.getValue(task, "origin.path"), event);
+		String destinationPath = processTokenReplacements(repository.getValue(task, "destination.path"), event);
 
 		if (log.isInfoEnabled()) {
 			log.info("Origin path " + originPath);

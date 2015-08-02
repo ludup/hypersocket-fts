@@ -1,5 +1,7 @@
 package com.hypersocket.fs.tasks;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import com.hypersocket.realm.Realm;
 import com.hypersocket.tasks.Task;
 import com.hypersocket.triggers.TaskResult;
@@ -32,4 +34,7 @@ public class FileOperationTaskResult extends TaskResult {
 		return CopyFileTask.RESOURCE_BUNDLE;
 	}
 
+	public String[] getResourceKeys() {
+		return ArrayUtils.add(super.getResourceKeys(), EVENT_RESOURCE_KEY);
+	}
 }

@@ -79,10 +79,10 @@ public class CreateFileTask extends AbstractTaskProvider {
 	}
 
 	@Override
-	public TaskResult execute(Task task, Realm currentRealm, SystemEvent... events)
+	public TaskResult execute(Task task, Realm currentRealm, SystemEvent event)
 			throws ValidationException {
 
-		String path = processTokenReplacements(repository.getValue(task, "file.path"), events);
+		String path = processTokenReplacements(repository.getValue(task, "file.path"), event);
 
 		if (log.isInfoEnabled()) {
 			log.info("Path " + path);

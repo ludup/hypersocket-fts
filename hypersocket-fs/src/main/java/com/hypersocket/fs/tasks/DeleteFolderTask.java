@@ -81,10 +81,10 @@ public class DeleteFolderTask extends AbstractTaskProvider {
 	}
 
 	@Override
-	public TaskResult execute(Task task, Realm currentRealm, SystemEvent... events)
+	public TaskResult execute(Task task, Realm currentRealm, SystemEvent event)
 			throws ValidationException {
 
-		String path = processTokenReplacements(repository.getValue(task, "folder.path"), events);
+		String path = processTokenReplacements(repository.getValue(task, "folder.path"), event);
 		boolean deleteNonEmpty = repository.getBooleanValue(task,
 				"folder.deleteNonEmpty");
 
