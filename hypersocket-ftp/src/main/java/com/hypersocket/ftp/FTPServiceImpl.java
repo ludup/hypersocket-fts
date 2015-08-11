@@ -33,6 +33,7 @@ import com.hypersocket.auth.AuthenticationSchemeRepository;
 import com.hypersocket.auth.UsernameAndPasswordAuthenticator;
 import com.hypersocket.certificates.CertificateResourceService;
 import com.hypersocket.config.ConfigurationChangedEvent;
+import com.hypersocket.config.ConfigurationService;
 import com.hypersocket.config.SystemConfigurationService;
 import com.hypersocket.events.SystemEvent;
 import com.hypersocket.i18n.I18NService;
@@ -68,8 +69,11 @@ public class FTPServiceImpl implements FTPService,
 	FTPFileSystemFactory filesystemFactory;
 
 	@Autowired
-	SystemConfigurationService configurationService;
+	SystemConfigurationService systemConfigurationService;
 
+	@Autowired
+	ConfigurationService configurationService;
+	
 	@Autowired
 	SessionService sessionService;
 
@@ -144,10 +148,10 @@ public class FTPServiceImpl implements FTPService,
 
 		if (event instanceof ServerStartedEvent) {
 
-			if (configurationService.getBooleanValue("ftp.enabled")) {
+			if (systemConfigurationService.getBooleanValue("ftp.enabled")) {
 				startFTP();
 			}
-			if (configurationService.getBooleanValue("ftps.enabled")) {
+			if (systemConfigurationService.getBooleanValue("ftps.enabled")) {
 				try {
 					startFTPS();
 				} catch (Exception e) {
@@ -228,7 +232,7 @@ public class FTPServiceImpl implements FTPService,
 			
 			FtpServerFactory serverFactory = new FtpServerFactory();
 
-			String[] interfaces = configurationService.getValues("ftp.interfaces");
+			String[] interfaces = systemConfigurationService.getValues("ftp.interfaces");
 			if (interfaces != null && interfaces.length > 0) {
 				boolean replacedDefault = false;
 				for (String i : interfaces) {
@@ -238,16 +242,16 @@ public class FTPServiceImpl implements FTPService,
 
 					ListenerFactory factory = new ListenerFactory();
 
-					int idleTime = configurationService
+					int idleTime = systemConfigurationService
 							.getIntValue("ftp.idleTimeout");
 					// set the port of the listener
-					factory.setPort(configurationService.getIntValue("ftp.port"));
+					factory.setPort(systemConfigurationService.getIntValue("ftp.port"));
 					factory.setIdleTimeout(idleTime);
 					factory.setServerAddress(i);
 					
-					String passivePorts = configurationService.getValue("ftp.passivePorts");
+					String passivePorts = systemConfigurationService.getValue("ftp.passivePorts");
 					
-					String passiveExternalAddress = configurationService.getValue("ftp.passiveExternalInterface");
+					String passiveExternalAddress = systemConfigurationService.getValue("ftp.passiveExternalInterface");
 					if(StringUtils.isEmptyOrWhitespaceOnly(passiveExternalAddress)) {
 						passiveExternalAddress = i;
 					}
@@ -276,8 +280,8 @@ public class FTPServiceImpl implements FTPService,
 				ListenerFactory factory = new ListenerFactory();
 
 				// set the port of the listener
-				factory.setPort(configurationService.getIntValue("ftp.port"));
-				factory.setIdleTimeout(configurationService
+				factory.setPort(systemConfigurationService.getIntValue("ftp.port"));
+				factory.setIdleTimeout(systemConfigurationService
 						.getIntValue("ftp.idleTimeout"));
 
 				serverFactory.addListener("default", factory.createListener());
@@ -365,7 +369,7 @@ public class FTPServiceImpl implements FTPService,
 				FtpServerFactory serverFactory = new FtpServerFactory();
 	
 				certificateService.setCurrentPrincipal(realmService
-						.getSystemPrincipal(), i18nService.getDefaultLocale(),
+						.getSystemPrincipal(), configurationService.getDefaultLocale(),
 						realmService.getSystemPrincipal().getRealm());
 				
 				KeyStore keystore = certificateService.getDefaultCertificate();
@@ -375,7 +379,7 @@ public class FTPServiceImpl implements FTPService,
 				File tmp = File.createTempFile("ftps", ".tmp");
 				keystore.store(new FileOutputStream(tmp), "changeit".toCharArray());
 				
-				String[] interfaces = configurationService.getValues("ftps.interfaces");
+				String[] interfaces = systemConfigurationService.getValues("ftps.interfaces");
 				if (interfaces != null && interfaces.length > 0) {
 					boolean replacedDefault = false;
 					for (String i : interfaces) {
@@ -385,12 +389,12 @@ public class FTPServiceImpl implements FTPService,
 	
 						ListenerFactory factory = new ListenerFactory();
 	
-						int idleTime = configurationService
+						int idleTime = systemConfigurationService
 								.getIntValue("ftps.idleTimeout");
 						
 						// set the port of the listener
-						factory.setPort(configurationService.getIntValue("ftps.port"));
-						factory.setIdleTimeout(configurationService
+						factory.setPort(systemConfigurationService.getIntValue("ftps.port"));
+						factory.setIdleTimeout(systemConfigurationService
 								.getIntValue("ftps.idleTimeout"));
 						factory.setServerAddress(i);
 						
@@ -410,9 +414,9 @@ public class FTPServiceImpl implements FTPService,
 						factory.setSslConfiguration(sslConfig);
 						factory.setImplicitSsl(true);
 
-						String passivePorts = configurationService.getValue("ftps.passivePorts");
+						String passivePorts = systemConfigurationService.getValue("ftps.passivePorts");
 						
-						String passiveExternalAddress = configurationService.getValue("ftps.passiveExternalInterface");
+						String passiveExternalAddress = systemConfigurationService.getValue("ftps.passiveExternalInterface");
 						if(StringUtils.isEmptyOrWhitespaceOnly(passiveExternalAddress)) {
 							passiveExternalAddress = i;
 						}
@@ -434,8 +438,8 @@ public class FTPServiceImpl implements FTPService,
 					ListenerFactory factory = new ListenerFactory();
 	
 					// set the port of the listener
-					factory.setPort(configurationService.getIntValue("ftps.port"));
-					factory.setIdleTimeout(configurationService
+					factory.setPort(systemConfigurationService.getIntValue("ftps.port"));
+					factory.setIdleTimeout(systemConfigurationService
 							.getIntValue("ftps.idleTimeout"));
 					
 					// define SSL configuration

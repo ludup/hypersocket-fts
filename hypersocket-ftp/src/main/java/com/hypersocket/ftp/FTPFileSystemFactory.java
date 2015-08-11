@@ -55,12 +55,12 @@ public class FTPFileSystemFactory implements FileSystemFactory {
 	}
 	
 	public void setupSessionContext(Session session) {
-		fileResourceService.setCurrentSession(session, i18nService.getDefaultLocale());
-		realmService.setCurrentSession(session, i18nService.getDefaultLocale());
-		permissionService.setCurrentSession(session, i18nService.getDefaultLocale());
-		authenticationService.setCurrentSession(session, i18nService.getDefaultLocale());
-		sessionService.setCurrentSession(session, i18nService.getDefaultLocale());
-		configurationService.setCurrentSession(session, i18nService.getDefaultLocale());
+		fileResourceService.setCurrentSession(session, configurationService.getDefaultLocale());
+		realmService.setCurrentSession(session, configurationService.getDefaultLocale());
+		permissionService.setCurrentSession(session, configurationService.getDefaultLocale());
+		authenticationService.setCurrentSession(session, configurationService.getDefaultLocale());
+		sessionService.setCurrentSession(session, configurationService.getDefaultLocale());
+		configurationService.setCurrentSession(session, configurationService.getDefaultLocale());
 	}
 	
 	public void clearSessionContext() {
