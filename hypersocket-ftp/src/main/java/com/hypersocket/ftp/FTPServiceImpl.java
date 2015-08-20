@@ -213,7 +213,8 @@ public class FTPServiceImpl implements FTPService,
 
 		boolean running = false;
 		FtpServer ftpServer;
-
+		Throwable lastError = null;
+		
 		@Override
 		public void stop() {
 			try {
@@ -317,12 +318,14 @@ public class FTPServiceImpl implements FTPService,
 			
 			try {
 				ftpServer.start();
+				lastError = null;
 				running = true;
 				if (log.isInfoEnabled()) {
 					log.info("Started FTP server");
 				}
 			} catch (FtpException e) {
 				log.error("Failed to start FTP server", e);
+				lastError = e;
 				ftpServer = null;
 			}
 		}
@@ -342,12 +345,23 @@ public class FTPServiceImpl implements FTPService,
 			return running;
 		}
 		
+		@Override
+		public boolean isError() {
+			return lastError!=null;
+		}
+		
+		@Override
+		public String getErrorText() {
+			return lastError==null ? "" : lastError.getMessage();
+		}
+		
 	}
 	
 	class FTPSService implements ManageableService {
 
 		boolean running = false;
 		FtpServer ftpsServer;
+		Throwable lastError = null;
 		
 		@Override
 		public void stop() {
@@ -480,12 +494,14 @@ public class FTPServiceImpl implements FTPService,
 	
 				try {
 					ftpsServer.start();
+					lastError = null;
 					running = true;
 					if (log.isInfoEnabled()) {
 						log.info("Started FTPS server");
 					}
 				} catch (FtpException e) {
 					log.error("Failed to start FTPS server", e);
+					lastError = e;
 					ftpsServer = null;
 				}
 			} catch(Throwable t) {
@@ -506,6 +522,17 @@ public class FTPServiceImpl implements FTPService,
 		@Override
 		public boolean isRunning() {
 			return running;
+		}
+		
+
+		@Override
+		public boolean isError() {
+			return lastError!=null;
+		}
+		
+		@Override
+		public String getErrorText() {
+			return lastError==null ? "" : lastError.getMessage();
 		}
 		
 	}
