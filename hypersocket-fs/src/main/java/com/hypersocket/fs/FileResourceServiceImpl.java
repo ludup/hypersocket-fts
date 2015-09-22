@@ -282,7 +282,7 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 
 		} catch (Exception e) {
 			for (FileResource r : getPersonalResources()) {
-				if (r.getName().equals(mountName)) {
+				if (r.getName().equalsIgnoreCase(mountName)) {
 					return r;
 				}
 			}
