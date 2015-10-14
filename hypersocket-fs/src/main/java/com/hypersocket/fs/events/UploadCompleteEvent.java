@@ -31,4 +31,8 @@ public class UploadCompleteEvent extends FileOperationEvent {
 	public String[] getResourceKeys() {
 		return ArrayUtils.add(super.getResourceKeys(), EVENT_RESOURCE_KEY);
 	}
+	
+	public boolean isUsage() {
+		return true;
+	}
 }

@@ -58,4 +58,7 @@ public class CopyFileEvent extends FileOperationEvent {
 		return toFilePath;
 	}
 
+	public boolean isUsage() {
+		return true;
+	}
 }
