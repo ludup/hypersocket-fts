@@ -55,4 +55,8 @@ public class RenameEvent extends FileOperationEvent {
 	public String getToFilePath() {
 		return toFilePath;
 	}
+	
+	public boolean isUsage() {
+		return true;
+	}
 }

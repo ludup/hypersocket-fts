@@ -66,6 +66,9 @@ public abstract class FileOperationEvent extends ResourceSessionEvent {
 	public String[] getResourceKeys() {
 		return ArrayUtils.add(super.getResourceKeys(), EVENT_RESOURCE_KEY);
 	}
-	
 
+	@Override
+	public boolean isUsage() {
+		return false;
+	}
 }
