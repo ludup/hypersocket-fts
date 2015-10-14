@@ -211,4 +211,9 @@ public class FileResource extends AssignableResource implements
 		return getClass().getSimpleName();
 	}
 
+	@Override
+	public Boolean getRequireVPNAccess() {
+		return Boolean.FALSE;
+	}
+
 }
