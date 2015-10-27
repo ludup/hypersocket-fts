@@ -57,7 +57,7 @@ public class HttpDownloadProcessor implements DownloadProcessor {
 
 			if ("true".equals(request.getParameter("forceDownload"))) {
 				response.setHeader("Content-disposition",
-						"attachment; filename=" + file.getName().getBaseName());
+						"attachment; filename=\"" + file.getName().getBaseName() + "\"");
 			}
 
 			if (file.getContent().getSize() <= 1024000 && length <= 1024000) {
