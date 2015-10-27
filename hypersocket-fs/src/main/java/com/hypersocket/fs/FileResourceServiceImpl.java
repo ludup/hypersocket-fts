@@ -393,10 +393,11 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 			@Override
 			InputStream onFileResolved(FileResource resource, String childPath, FileObject file) throws IOException {
 
-				long started = downloadStarted(resource, childPath, file, protocol);
+				InputStream in = file.getContent().getInputStream();
+				DownloadStartedEvent evt = downloadStarted(resource, childPath, file, in, protocol);
 
-				return new ContentInputStream(resource, childPath, file, position,
-						file.getContent().getSize() - position, FileResourceServiceImpl.this, started, protocol,
+				return new ContentInputStream(resource, childPath, file, evt.getInputStream(), position,
+						file.getContent().getSize() - position, FileResourceServiceImpl.this, evt.getTimestamp(), protocol,
 						getCurrentSession());
 			}
 
@@ -983,10 +984,10 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 	}
 
 	@Override
-	public long downloadStarted(FileResource resource, String childPath, FileObject file, String protocol) {
-		FileOperationEvent evt = new DownloadStartedEvent(this, getCurrentSession(), resource, childPath, protocol);
+	public DownloadStartedEvent downloadStarted(FileResource resource, String childPath, FileObject file, InputStream in, String protocol) {
+		DownloadStartedEvent evt = new DownloadStartedEvent(this, getCurrentSession(), resource, childPath, in, protocol);
 		eventService.publishEvent(evt);
-		return evt.getTimestamp();
+		return evt;
 	}
 
 	@Override

@@ -25,11 +25,17 @@ public class ContentInputStream extends InputStream {
 	String protocol;
 	Session session;
 
-	public ContentInputStream(FileResource resource, String childPath,
-			FileObject file, long start, long length,
-			DownloadEventProcessor eventProcessor, long timeStarted,
+	public ContentInputStream(FileResource resource, 
+			String childPath,
+			FileObject file, 
+			InputStream in,
+			long start, 
+			long length,
+			DownloadEventProcessor eventProcessor, 
+			long timeStarted,
 			String protocol,
 			Session session) throws IOException {
+		
 		this.eventProcessor = eventProcessor;
 		this.resource = resource;
 		this.timeStarted = timeStarted;
@@ -37,7 +43,7 @@ public class ContentInputStream extends InputStream {
 		this.file = file;
 		this.protocol = protocol;
 		this.session = session;
-		this.in = file.getContent().getInputStream();
+		this.in = in;
 		this.remaining = file.getContent().getSize();
 		if (start > 0) {
 			if (log.isDebugEnabled()) {
