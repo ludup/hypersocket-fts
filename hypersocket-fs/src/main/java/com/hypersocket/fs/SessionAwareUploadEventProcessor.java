@@ -5,6 +5,7 @@ import java.util.Locale;
 import org.apache.commons.vfs2.FileObject;
 
 import com.hypersocket.auth.AuthenticatedService;
+import com.hypersocket.fs.events.UploadStartedEvent;
 import com.hypersocket.session.Session;
 
 public class SessionAwareUploadEventProcessor implements UploadEventProcessor {
@@ -41,7 +42,7 @@ public class SessionAwareUploadEventProcessor implements UploadEventProcessor {
 	}
 
 	@Override
-	public long uploadStarted(FileResource resource, String childPath,
+	public UploadStartedEvent uploadStarted(FileResource resource, String childPath,
 			FileObject file, String protocol) {
 		
 		boolean setupContext = !authenticatedService.hasAuthenticatedContext();

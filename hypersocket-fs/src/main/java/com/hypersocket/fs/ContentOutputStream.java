@@ -20,10 +20,10 @@ public class ContentOutputStream extends OutputStream {
 	String protocol;
 	
 	public ContentOutputStream(FileResource resource, String childPath,
-			FileObject file, long position, long started,
+			FileObject file, OutputStream out, long position, long started,
 			UploadEventProcessor eventProcessor, String protocol)
 			throws FileSystemException {
-		out = file.getContent().getOutputStream();
+		this.out = out;
 		this.started = started;
 		this.resource = resource;
 		this.file = file;
