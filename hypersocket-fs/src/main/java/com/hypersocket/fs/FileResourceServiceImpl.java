@@ -393,10 +393,11 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 			@Override
 			InputStream onFileResolved(FileResource resource, String childPath, FileObject file) throws IOException {
 
-				long started = downloadStarted(resource, childPath, file, protocol);
+				InputStream in = file.getContent().getInputStream();
+				DownloadStartedEvent evt = downloadStarted(resource, childPath, file, in, protocol);
 
-				return new ContentInputStream(resource, childPath, file, position,
-						file.getContent().getSize() - position, FileResourceServiceImpl.this, started, protocol,
+				return new ContentInputStream(resource, childPath, file, evt.getInputStream(), position,
+						file.getContent().getSize() - position, FileResourceServiceImpl.this, evt.getTimestamp(), protocol,
 						getCurrentSession());
 			}
 
@@ -422,10 +423,10 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 			@Override
 			OutputStream onFileResolved(FileResource resource, String childPath, FileObject file) throws IOException {
 
-				long started = uploadStarted(resource, childPath, file, protocol);
-
+				UploadStartedEvent event = uploadStarted(resource, childPath, file, protocol);
+				
 				return new ContentOutputStream(resource, childPath,
-						file, position, started, new SessionAwareUploadEventProcessor(getCurrentSession(),
+						event.getOutputFile(), event.getOutputStream(), position, event.getTimestamp(), new SessionAwareUploadEventProcessor(getCurrentSession(),
 								getCurrentLocale(), FileResourceServiceImpl.this, FileResourceServiceImpl.this),
 						protocol);
 			}
@@ -447,10 +448,12 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 	}
 
 	@Override
-	public long uploadStarted(FileResource resource, String childPath, FileObject file, String protocol) {
-		UploadStartedEvent evt = new UploadStartedEvent(this, getCurrentSession(), resource, childPath, protocol);
+	public UploadStartedEvent uploadStarted(FileResource resource, String childPath, FileObject file, String protocol) {
+		
+		
+		UploadStartedEvent evt = new UploadStartedEvent(this, getCurrentSession(), resource, childPath, file, protocol);
 		eventService.publishEvent(evt);
-		return evt.getTimestamp();
+		return evt;
 	}
 
 	@Override
@@ -504,8 +507,6 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 		FileResolver<FileUpload> resolver = new FileResolver<FileUpload>() {
 			@Override
 			FileUpload onFileResolved(FileResource resource, String childPath, FileObject file) throws IOException {
-
-				file.createFile();
 
 				FileUpload upload;
 				try {
@@ -983,10 +984,10 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 	}
 
 	@Override
-	public long downloadStarted(FileResource resource, String childPath, FileObject file, String protocol) {
-		FileOperationEvent evt = new DownloadStartedEvent(this, getCurrentSession(), resource, childPath, protocol);
+	public DownloadStartedEvent downloadStarted(FileResource resource, String childPath, FileObject file, InputStream in, String protocol) {
+		DownloadStartedEvent evt = new DownloadStartedEvent(this, getCurrentSession(), resource, childPath, in, protocol);
 		eventService.publishEvent(evt);
-		return evt.getTimestamp();
+		return evt;
 	}
 
 	@Override
@@ -1064,15 +1065,15 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 
 			long bytesIn = 0;
 
-			long startedTimestamp = uploadStarted(resource, childPath, file, protocol);
+			UploadStartedEvent event = uploadStarted(resource, childPath, file, protocol);
 
-			OutputStream out = file.getContent().getOutputStream();
+			OutputStream out = event.getOutputStream();
 			try {
 
 				bytesIn = IOUtils.copyLarge(in, out);
-				file.refresh();
+				event.getOutputFile().refresh();
 
-				uploadComplete(resource, childPath, file, bytesIn, System.currentTimeMillis() - startedTimestamp,
+				uploadComplete(resource, event.getTransformationPath(), event.getOutputFile(), bytesIn, System.currentTimeMillis() - event.getTimestamp(),
 						protocol);
 
 			} catch (Exception e) {

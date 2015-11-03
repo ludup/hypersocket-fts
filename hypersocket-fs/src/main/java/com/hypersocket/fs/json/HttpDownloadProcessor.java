@@ -7,7 +7,6 @@ import javax.activation.MimetypesFileTypeMap;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +15,7 @@ import com.hypersocket.fs.ContentInputStream;
 import com.hypersocket.fs.DownloadEventProcessor;
 import com.hypersocket.fs.DownloadProcessor;
 import com.hypersocket.fs.FileResource;
+import com.hypersocket.fs.events.DownloadStartedEvent;
 import com.hypersocket.session.Session;
 
 public class HttpDownloadProcessor implements DownloadProcessor {
@@ -50,45 +50,22 @@ public class HttpDownloadProcessor implements DownloadProcessor {
 		InputStream in = null;
 		try {
 			
-			long started = downloadEventProcessor.downloadStarted(resource, childPath, file, protocol);
+			in = file.getContent().getInputStream();
+			DownloadStartedEvent evt = downloadEventProcessor.downloadStarted(resource, childPath, file, in, protocol);
 			
-			response.setContentType(mimeTypesMap.getContentType(file.getName()
-					.getBaseName()));
+			response.setContentType(mimeTypesMap.getContentType(evt.getTransformationFilename()));
 
 			if ("true".equals(request.getParameter("forceDownload"))) {
 				response.setHeader("Content-disposition",
-						"attachment; filename=\"" + file.getName().getBaseName() + "\"");
+						"attachment; filename=\"" + evt.getTransformationFilename() + "\"");
 			}
 
-			if (file.getContent().getSize() <= 1024000 && length <= 1024000) {
-
-				in = file.getContent().getInputStream();
-				if (start > 0) {
-					in.skip(start);
-				}
-				byte[] buf = new byte[65535];
-				int r;
-				long remaining = length;
-				while ((r = in.read(buf, 0,
-						(int) Math.min(buf.length, remaining))) > -1
-						&& remaining > 0) {
-					response.getOutputStream().write(buf, 0, r);
-					remaining -= r;
-				}
-
-				
-				downloadEventProcessor.downloadComplete(resource, childPath,
-						file, length, System.currentTimeMillis() - started, protocol, session);
-
-			} else {
-				request.setAttribute(CONTENT_INPUTSTREAM,
-						new ContentInputStream(resource, childPath, file,
-								start, length, downloadEventProcessor, started, protocol, session));
-			}
+			request.setAttribute(CONTENT_INPUTSTREAM,
+						new ContentInputStream(resource, childPath, file, evt.getInputStream(),
+								start, length, downloadEventProcessor, evt.getTimestamp(), protocol, session));
+			
 		} catch (IOException e) {
 			downloadEventProcessor.downloadFailed(resource, childPath, file, e, protocol, session);
-		} finally {
-			IOUtils.closeQuietly(in);
 		}
 
 	}
