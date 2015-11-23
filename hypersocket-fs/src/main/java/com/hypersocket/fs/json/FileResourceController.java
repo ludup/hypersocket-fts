@@ -126,8 +126,8 @@ public class FileResourceController extends ResourceController {
 					new BootstrapTablePageProcessor() {
 
 						@Override
-						public Column getColumn(int col) {
-							return ResourceColumns.values()[col];
+						public Column getColumn(String col) {
+							return ResourceColumns.valueOf(col.toUpperCase());
 						}
 
 						@Override
@@ -171,8 +171,8 @@ public class FileResourceController extends ResourceController {
 					new BootstrapTablePageProcessor() {
 
 						@Override
-						public Column getColumn(int col) {
-							return ResourceColumns.values()[col];
+						public Column getColumn(String col) {
+							return ResourceColumns.valueOf(col.toUpperCase());
 						}
 
 						@Override
