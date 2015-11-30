@@ -17,6 +17,7 @@ public class FileResourceUpdate {
 	boolean showHidden;
 	boolean showFolders;
 	Long[] roles;
+	String logo;
 
 	public FileResourceUpdate() {
 	}
@@ -115,6 +116,14 @@ public class FileResourceUpdate {
 
 	public void setShowFolders(boolean showFolders) {
 		this.showFolders = showFolders;
+	}
+
+	public String getLogo() {
+		return logo;
+	}
+
+	public void setLogo(String logo) {
+		this.logo = logo;
 	}
 
 	

@@ -12,6 +12,10 @@
 							tableUrl : "mounts/personal",
 							title: getResource("filesystems.label"),
 							icon: 'fa-folder-open',
+							logo: true,
+							logoResourceTypeCallback: function(resource) {
+								return 'FILE';
+							},
 							resourceUrl : "mount",
 							fields : [ {
 								name : "name"

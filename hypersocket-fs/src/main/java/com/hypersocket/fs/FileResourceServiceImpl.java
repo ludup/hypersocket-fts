@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Service;
 
+import com.hypersocket.browser.BrowserLaunchableService;
 import com.hypersocket.config.ConfigurationChangedEvent;
 import com.hypersocket.events.EventService;
 import com.hypersocket.fs.events.CopyFileEvent;
@@ -110,6 +111,9 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 
 	@Autowired
 	UserVariableReplacement userVariableReplacement;
+	
+	@Autowired
+	BrowserLaunchableService browserLaunchableService;
 
 	Map<String, FileResourceScheme> schemes = new HashMap<String, FileResourceScheme>();
 
@@ -1101,5 +1105,11 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 	@Override
 	protected Class<FileResource> getResourceClass() {
 		return FileResource.class;
+	}
+
+	@Override
+	protected void updateFingerprint() {
+		super.updateFingerprint();
+		browserLaunchableService.updateFingerprint();
 	}
 }

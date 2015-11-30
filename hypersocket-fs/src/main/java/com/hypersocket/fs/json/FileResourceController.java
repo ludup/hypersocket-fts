@@ -299,6 +299,7 @@ public class FileResourceController extends ResourceController {
 		resource.setPort(update.getPort());
 		resource.setPath(FileUtils.convertBackslashToForwardSlash(update
 				.getPath()));
+		resource.setLogo(update.getLogo());
 		resource.setUsername(update.getUsername());
 		resource.setPassword(update.getPassword());
 
