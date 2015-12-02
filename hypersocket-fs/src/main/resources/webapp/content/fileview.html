@@ -69,7 +69,7 @@
 								'#dropdown_' + index + ' .row-' + act.resourceKey,
 								function() {
 									path = mountPath + row.label;
-									act.action(path, function(resource) {
+									act.action(path, row, function(resource) {
 										
 									});
 								});
@@ -244,9 +244,9 @@
 												actions.push({
 													resourceKey : action.resourceKey,
 													iconClass : action.iconClass,
-													action : function(resource, callback) {
+													action : function(resource, row, callback) {
 														if($('#' + action.resourceKey).data('action')) {
-															$('#' + action.resourceKey).data('action')(resource, callback);
+															$('#' + action.resourceKey).data('action')(resource, row, callback);
 														}
 													},
 													enabled : true,
