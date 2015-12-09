@@ -240,7 +240,7 @@
 											$.each(data.resources, function(idx, action) {
 												var div = action.resourceKey + 'Div';
 												$('#additionalActions').append('<div id="' + div + '"></div>');
-												$('#' + div).load(basePath + '/ui/content/' + action.url + '.html');
+												$('#' + div).load(uiPath + 'content/' + action.url + '.html');
 												actions.push({
 													resourceKey : action.resourceKey,
 													iconClass : action.iconClass,
