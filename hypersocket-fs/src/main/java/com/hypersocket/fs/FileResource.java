@@ -54,6 +54,9 @@ public class FileResource extends AssignableResource implements
 
 	@Column(name = "displayInBrowserResourcesTable")
 	Boolean displayInBrowserResourcesTable = Boolean.FALSE;
+	
+	@Column(name = "logo")
+	String logo;
 
 	public String getScheme() {
 		return scheme;
@@ -130,6 +133,10 @@ public class FileResource extends AssignableResource implements
 	public String getUrl() {
 		return getUrl(true, null, null);
 	}
+	
+	public void setLogo(String logo) {
+		this.logo = logo;
+	}
 
 	@JsonIgnore
 	@XmlTransient
@@ -203,7 +210,7 @@ public class FileResource extends AssignableResource implements
 
 	@Override
 	public String getLogo() {
-		return "uri-" + scheme;
+		return logo;
 	}
 
 	@Override
