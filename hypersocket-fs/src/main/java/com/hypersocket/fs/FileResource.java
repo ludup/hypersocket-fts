@@ -12,7 +12,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.hypersocket.browser.BrowserLaunchable;
 import com.hypersocket.realm.Principal;
 import com.hypersocket.realm.UserVariableReplacement;
 import com.hypersocket.resource.AssignableResource;

@@ -27,7 +27,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.hypersocket.auth.json.AuthenticationRequired;
 import com.hypersocket.auth.json.ResourceController;
 import com.hypersocket.auth.json.UnauthorizedException;
-import com.hypersocket.browser.BrowserLaunchable;
 import com.hypersocket.fs.FileResource;
 import com.hypersocket.fs.FileResourceScheme;
 import com.hypersocket.fs.FileResourceService;
