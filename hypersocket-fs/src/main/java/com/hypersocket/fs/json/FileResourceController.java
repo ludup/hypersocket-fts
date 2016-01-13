@@ -27,6 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.hypersocket.auth.json.AuthenticationRequired;
 import com.hypersocket.auth.json.ResourceController;
 import com.hypersocket.auth.json.UnauthorizedException;
+import com.hypersocket.browser.BrowserLaunchable;
 import com.hypersocket.fs.FileResource;
 import com.hypersocket.fs.FileResourceScheme;
 import com.hypersocket.fs.FileResourceService;
@@ -149,6 +150,50 @@ public class FileResourceController extends ResourceController {
 									searchPattern);
 						}
 					});
+		} finally {
+			clearAuthenticatedContext();
+		}
+	}
+	
+	@AuthenticationRequired
+	@RequestMapping(value = "mounts/fingerprint", method = RequestMethod.GET, produces = { "application/json" })
+	@ResponseBody
+	@ResponseStatus(value = HttpStatus.OK)
+	public ResourceStatus<String> getFingerprint(
+			HttpServletRequest request, HttpServletResponse response)
+			throws AccessDeniedException, UnauthorizedException,
+			SessionTimeoutException {
+		setupAuthenticatedContext(sessionUtils.getSession(request),
+				sessionUtils.getLocale(request));
+		try {
+			return new ResourceStatus<String>(true, mountService.getFingerprint());
+		} finally {
+			clearAuthenticatedContext();
+		}
+	}
+
+	@AuthenticationRequired
+	@RequestMapping(value = "mounts/myResources", method = RequestMethod.GET, produces = { "application/json" })
+	@ResponseBody
+	@ResponseStatus(value = HttpStatus.OK)
+	public ResourceList<FileResource> myFileResources(
+			final HttpServletRequest request, HttpServletResponse response)
+			throws AccessDeniedException, UnauthorizedException,
+			SessionTimeoutException {
+
+		setupAuthenticatedContext(sessionUtils.getSession(request),
+				sessionUtils.getLocale(request));
+
+		try {
+			ResourceList<FileResource> list = new ResourceList<FileResource>(
+					new HashMap<String,String>(),
+					mountService.getPersonalResources(sessionUtils
+							.getPrincipal(request)));
+			list.getProperties().put(
+					"authCode",
+					sessionService.createSessionToken(
+							sessionUtils.getSession(request)).getShortCode());
+			return list;
 		} finally {
 			clearAuthenticatedContext();
 		}

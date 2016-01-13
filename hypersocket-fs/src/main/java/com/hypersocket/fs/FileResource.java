@@ -22,8 +22,7 @@ import com.hypersocket.utils.FileUtils;
 @Entity
 @Table(name = "file_resources")
 @JsonDeserialize(using=FileResourceDeserializer.class)
-public class FileResource extends AssignableResource implements
-		BrowserLaunchable {
+public class FileResource extends AssignableResource  {
 
 	@Column(name = "scheme")
 	String scheme;
@@ -192,7 +191,6 @@ public class FileResource extends AssignableResource implements
 		}
 	}
 
-	@Override
 	public String getLaunchUrl() {
 		return System.getProperty("hypersocket.uiPath", "/hypersocket")
 				+ "/viewfs/" + getName();
@@ -203,24 +201,8 @@ public class FileResource extends AssignableResource implements
 		this.displayInBrowserResourcesTable = Boolean.FALSE;
 	}
 
-	@Override
-	public boolean isDisplayInBrowserResourcesTable() {
-		return false;
-	}
-
-	@Override
 	public String getLogo() {
 		return logo;
-	}
-
-	@Override
-	public String getType() {
-		return getClass().getSimpleName();
-	}
-
-	@Override
-	public Boolean getRequireVPNAccess() {
-		return Boolean.FALSE;
 	}
 
 }
