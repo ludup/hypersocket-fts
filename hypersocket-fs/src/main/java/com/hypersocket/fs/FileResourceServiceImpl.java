@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +18,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSelectInfo;
 import org.apache.commons.vfs2.FileSelector;
 import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.VFS;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.apache.derby.impl.io.vfmem.PathUtil;
@@ -55,11 +57,14 @@ import com.hypersocket.permissions.PermissionCategory;
 import com.hypersocket.permissions.PermissionService;
 import com.hypersocket.permissions.PermissionType;
 import com.hypersocket.permissions.SystemPermission;
+import com.hypersocket.properties.PropertyCategory;
 import com.hypersocket.realm.RealmService;
 import com.hypersocket.realm.UserVariableReplacement;
 import com.hypersocket.resource.AbstractAssignableResourceRepository;
 import com.hypersocket.resource.AbstractAssignableResourceServiceImpl;
+import com.hypersocket.resource.ResourceChangeException;
 import com.hypersocket.resource.ResourceCreationException;
+import com.hypersocket.resource.TransactionAdapter;
 import com.hypersocket.server.HypersocketServer;
 import com.hypersocket.session.Session;
 import com.hypersocket.ui.UserInterfaceContentHandler;
@@ -231,7 +236,7 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 
 		try {
 
-			if (scheme.getProvider() != null) {
+			if (scheme.getProvider() != null && !VFS.getManager().hasProvider(scheme.getScheme())) {
 				((DefaultFileSystemManager) VFS.getManager()).addProvider(scheme.getScheme(),
 						scheme.getProvider().newInstance());
 				if (!isVFSScheme(scheme.getScheme())) {
@@ -377,12 +382,7 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 
 		// TODO verify permissions
 
-		String url = resource.getPrivateUrl(getCurrentPrincipal(), userVariableReplacement);
-
-		if (log.isDebugEnabled()) {
-			log.debug("Resolving " + url);
-		}
-		return VFS.getManager().resolveFile(url);
+		return resolveVFSFile(resource);
 	}
 
 	@Override
@@ -868,14 +868,6 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 
 	}
 
-	protected String processTokens(String url) {
-		Session session = getCurrentSession();
-		url = url.replace("${username}", session.getCurrentPrincipal().getPrincipalName());
-		url = url.replace("${principalName}", session.getCurrentPrincipal().getPrincipalName());
-		url = url.replace("${password}", "");
-		return url;
-	}
-
 	abstract class FileResolver<T> {
 
 		FileResolver() {
@@ -901,8 +893,7 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 
 				FileResource mountResource = assertMountAccess(mountName);
 
-				FileObject fromFile = VFS.getManager().resolveFile(
-						processTokens(mountResource.getPrivateUrl(getCurrentPrincipal(), userVariableReplacement)));
+				FileObject fromFile = resolveVFSFile(mountResource);
 
 				fromFile = fromFile.resolveFile(childPath);
 
@@ -953,15 +944,13 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 
 				FileResource fromResource = assertMountAccess(fromMountName);
 
-				FileObject fromFile = VFS.getManager()
-						.resolveFile(fromResource.getPrivateUrl(getCurrentPrincipal(), userVariableReplacement));
+				FileObject fromFile = resolveVFSFile(fromResource);
 
 				fromFile = fromFile.resolveFile(fromChildPath);
 
 				FileResource toResource = assertMountAccess(toMountName);
 
-				FileObject toFile = VFS.getManager()
-						.resolveFile(toResource.getPrivateUrl(getCurrentPrincipal(), userVariableReplacement));
+				FileObject toFile = resolveVFSFile(toResource);
 
 				toFile = toFile.resolveFile(toChildPath);
 
@@ -978,6 +967,24 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 
 		abstract void onFilesUnresolved(String fromMountName, String fromChildPath, String toMountName,
 				String toChildPath, IOException t);
+	}
+	
+	protected FileObject resolveVFSFile(FileResource resource) throws FileSystemException {
+		FileResourceScheme scheme = schemes.get(resource.getScheme());
+		if(scheme.getFileService()!=null) {
+			FileSystemOptions opts = scheme.getFileService().buildFileSystemOptions(resource);
+			return VFS.getManager().resolveFile(
+					resource.getPrivateUrl(getCurrentPrincipal(), userVariableReplacement), opts);
+		} else {
+			return VFS.getManager().resolveFile(
+					resource.getPrivateUrl(getCurrentPrincipal(), userVariableReplacement));
+		}
+	}
+	
+	protected FileSystemOptions buildFilesystemOptions(FileResource resource) {
+		FileResourceScheme scheme = schemes.get(resource.getScheme());
+		return scheme.getFileService().buildFileSystemOptions(resource);
+		
 	}
 
 	@Override
@@ -1111,5 +1118,61 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 	protected void updateFingerprint() {
 		super.updateFingerprint();
 		browserLaunchableService.updateFingerprint();
+	}
+
+	@Override
+	public Collection<PropertyCategory> getPropertyTemplates(String scheme) throws AccessDeniedException {
+		
+		assertAnyPermission(FileResourcePermission.READ);
+		
+		FileResourceScheme fileScheme = schemes.get(scheme);
+		if(fileScheme.getFileService()!=null) {
+			return fileScheme.getFileService().getRepository().getPropertyCategories(null);
+		}
+		return new ArrayList<PropertyCategory>();
+	}
+
+	@Override
+	public Collection<PropertyCategory> getResourceProperties(FileResource resource) throws AccessDeniedException {
+		
+		assertAnyPermission(FileResourcePermission.READ);
+		
+		FileResourceScheme fileScheme = schemes.get(resource.getScheme());
+		if(fileScheme.getFileService()!=null) {
+			return fileScheme.getFileService().getRepository().getPropertyCategories(resource);
+		}
+		return new ArrayList<PropertyCategory>();
+	}
+
+	@Override
+	public void createFileResource(FileResource resource, Map<String, String> properties) throws ResourceCreationException, AccessDeniedException {
+		createResource(resource, properties, new TransactionAdapter<FileResource>() {
+
+			@Override
+			public void afterOperation(FileResource resource, Map<String, String> properties) {
+				
+				FileResourceScheme scheme = schemes.get(resource.getScheme());
+				if(scheme.getFileService()!=null) {
+					scheme.getFileService().getRepository().setValues(resource, properties);
+				}
+				
+			}
+		});
+	}
+
+	@Override
+	public void updateFileResource(FileResource resource, Map<String, String> properties) throws ResourceChangeException, AccessDeniedException {
+		updateResource(resource, properties, new TransactionAdapter<FileResource>() {
+
+			@Override
+			public void afterOperation(FileResource resource, Map<String, String> properties) {
+				
+				FileResourceScheme scheme = schemes.get(resource.getScheme());
+				if(scheme.getFileService()!=null) {
+					scheme.getFileService().getRepository().setValues(resource, properties);
+				}
+				
+			}
+		});
 	}
 }
