@@ -9,7 +9,7 @@ public class CopyFileTaskResult extends AbstractCopyFileTaskResult {
 
 	private static final long serialVersionUID = -7915027397936300413L;
 
-	public static final String EVENT_RESOURCE_KEY = "fs.moveFile";
+	public static final String EVENT_RESOURCE_KEY = "fs.copyFile";
 	
 	public static final String ATTR_DESTINATION = "attr.destination";
 	
