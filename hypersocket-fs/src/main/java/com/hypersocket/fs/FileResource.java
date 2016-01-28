@@ -201,7 +201,7 @@ public class FileResource extends AssignableResource  {
 	}
 
 	public String getLogo() {
-		return logo;
+		return logo == null ? "logo://100_autotype_autotype_auto.png" : logo;
 	}
 
 }
