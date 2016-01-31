@@ -58,6 +58,7 @@ import com.hypersocket.permissions.PermissionService;
 import com.hypersocket.permissions.PermissionType;
 import com.hypersocket.permissions.SystemPermission;
 import com.hypersocket.properties.PropertyCategory;
+import com.hypersocket.realm.Realm;
 import com.hypersocket.realm.RealmService;
 import com.hypersocket.realm.UserVariableReplacement;
 import com.hypersocket.resource.AbstractAssignableResourceRepository;
@@ -68,9 +69,9 @@ import com.hypersocket.resource.TransactionAdapter;
 import com.hypersocket.server.HypersocketServer;
 import com.hypersocket.session.Session;
 import com.hypersocket.ui.UserInterfaceContentHandler;
+import com.hypersocket.upload.FileStore;
 import com.hypersocket.upload.FileUpload;
 import com.hypersocket.upload.FileUploadService;
-import com.hypersocket.upload.FileUploadStore;
 import com.hypersocket.utils.FileUtils;
 
 @Service
@@ -1057,7 +1058,7 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 		return userVariableReplacement;
 	}
 
-	class FileObjectUploadStore implements FileUploadStore {
+	class FileObjectUploadStore implements FileStore {
 
 		FileObject file;
 		FileResource resource;
@@ -1072,7 +1073,7 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 		}
 
 		@Override
-		public long writeFile(String uuid, InputStream in) throws IOException {
+		public long writeFile(Realm realm, String uuid, InputStream in) throws IOException {
 
 			long bytesIn = 0;
 
