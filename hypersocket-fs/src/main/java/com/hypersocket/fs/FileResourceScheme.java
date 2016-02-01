@@ -3,7 +3,6 @@ package com.hypersocket.fs;
 import org.apache.commons.vfs2.provider.FileProvider;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.hypersocket.resource.AbstractResourceRepository;
 
 public class FileResourceScheme {
 
