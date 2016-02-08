@@ -247,7 +247,7 @@ public class FileResourceController extends ResourceController {
 								AccessDeniedException {
 							return mountService.searchPersonalResources(
 									sessionUtils.getPrincipal(request),
-									searchPattern, start, length, sorting);
+									searchColumn, searchPattern, start, length, sorting);
 						}
 
 						@Override
@@ -256,7 +256,7 @@ public class FileResourceController extends ResourceController {
 								AccessDeniedException {
 							return mountService.getPersonalResourceCount(
 									sessionUtils.getPrincipal(request),
-									searchPattern);
+									searchColumn, searchPattern);
 						}
 					});
 		} finally {
