@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 import com.hypersocket.auth.AuthenticationService;
 import com.hypersocket.auth.AuthenticationState;
 import com.hypersocket.auth.BrowserEnvironment;
+import com.hypersocket.auth.FallbackAuthenticationRequired;
 import com.hypersocket.config.ConfigurationService;
 import com.hypersocket.fs.FileResourceService;
 import com.hypersocket.permissions.AccessDeniedException;
@@ -96,6 +97,8 @@ public class FTPUserManager implements UserManager {
 					return new FTPSessionUser(state.getSession(), pwd.getPassword(), fileResourceService.getPersonalResources());
 				} 
 			} catch (AccessDeniedException e) {
+				throw new AuthenticationFailedException(e);
+			} catch(FallbackAuthenticationRequired e) {
 				throw new AuthenticationFailedException(e);
 			}
 
