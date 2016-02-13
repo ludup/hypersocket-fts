@@ -1,6 +1,7 @@
 package com.hypersocket.fs.json;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.hypersocket.properties.json.PropertyItem;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class FileResourceUpdate {
@@ -17,6 +18,8 @@ public class FileResourceUpdate {
 	boolean showHidden;
 	boolean showFolders;
 	Long[] roles;
+	String logo;
+	PropertyItem[] properties;
 
 	public FileResourceUpdate() {
 	}
@@ -115,6 +118,22 @@ public class FileResourceUpdate {
 
 	public void setShowFolders(boolean showFolders) {
 		this.showFolders = showFolders;
+	}
+
+	public String getLogo() {
+		return logo;
+	}
+
+	public void setLogo(String logo) {
+		this.logo = logo;
+	}
+
+	public PropertyItem[] getProperties() {
+		return properties;
+	}
+
+	public void setProperties(PropertyItem[] properties) {
+		this.properties = properties;
 	}
 
 	

@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
@@ -38,6 +39,7 @@ import com.hypersocket.json.ResourceStatus;
 import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.permissions.Role;
 import com.hypersocket.properties.PropertyCategory;
+import com.hypersocket.properties.json.PropertyItem;
 import com.hypersocket.realm.Realm;
 import com.hypersocket.resource.ResourceChangeException;
 import com.hypersocket.resource.ResourceColumns;
@@ -94,17 +96,36 @@ public class FileResourceController extends ResourceController {
 	}
 
 	@AuthenticationRequired
-	@RequestMapping(value = "mounts/template", method = RequestMethod.GET, produces = { "application/json" })
+	@RequestMapping(value = "mounts/template/{scheme}", method = RequestMethod.GET, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
 	public ResourceList<PropertyCategory> getResourceTemplate(
-			HttpServletRequest request) throws AccessDeniedException,
+			HttpServletRequest request, @PathVariable String scheme) throws AccessDeniedException,
 			UnauthorizedException, SessionTimeoutException {
 		setupAuthenticatedContext(sessionUtils.getSession(request),
 				sessionUtils.getLocale(request));
 
 		try {
-			return new ResourceList<PropertyCategory>();
+			return new ResourceList<PropertyCategory>(mountService.getPropertyTemplates(scheme));
+		} finally {
+			clearAuthenticatedContext();
+		}
+	}
+	
+	@AuthenticationRequired
+	@RequestMapping(value = "mounts/properties/{id}", method = RequestMethod.GET, produces = { "application/json" })
+	@ResponseBody
+	@ResponseStatus(value = HttpStatus.OK)
+	public ResourceList<PropertyCategory> getResourceProperties(
+			HttpServletRequest request, @PathVariable Long id) throws AccessDeniedException,
+			UnauthorizedException, SessionTimeoutException {
+		setupAuthenticatedContext(sessionUtils.getSession(request),
+				sessionUtils.getLocale(request));
+
+		try {
+			return new ResourceList<PropertyCategory>(mountService.getResourceProperties(mountService.getResourceById(id)));
+		} catch (ResourceNotFoundException e) {
+			return new ResourceList<PropertyCategory>(false, e.getMessage());
 		} finally {
 			clearAuthenticatedContext();
 		}
@@ -126,29 +147,73 @@ public class FileResourceController extends ResourceController {
 					new BootstrapTablePageProcessor() {
 
 						@Override
-						public Column getColumn(int col) {
-							return ResourceColumns.values()[col];
+						public Column getColumn(String col) {
+							return FileResourceColumn.valueOf(col.toUpperCase());
 						}
 
 						@Override
-						public List<?> getPage(String searchPattern, int start,
+						public List<?> getPage(String searchColumn, String searchPattern, int start,
 								int length, ColumnSort[] sorting)
 								throws UnauthorizedException,
 								AccessDeniedException {
 							return mountService.searchResources(
 									sessionUtils.getCurrentRealm(request),
-									searchPattern, start, length, sorting);
+									searchColumn, searchPattern, start, length, sorting);
 						}
 
 						@Override
-						public Long getTotalCount(String searchPattern)
+						public Long getTotalCount(String searchColumn, String searchPattern)
 								throws UnauthorizedException,
 								AccessDeniedException {
 							return mountService.getResourceCount(
 									sessionUtils.getCurrentRealm(request),
-									searchPattern);
+									searchColumn, searchPattern);
 						}
 					});
+		} finally {
+			clearAuthenticatedContext();
+		}
+	}
+	
+	@AuthenticationRequired
+	@RequestMapping(value = "mounts/fingerprint", method = RequestMethod.GET, produces = { "application/json" })
+	@ResponseBody
+	@ResponseStatus(value = HttpStatus.OK)
+	public ResourceStatus<String> getFingerprint(
+			HttpServletRequest request, HttpServletResponse response)
+			throws AccessDeniedException, UnauthorizedException,
+			SessionTimeoutException {
+		setupAuthenticatedContext(sessionUtils.getSession(request),
+				sessionUtils.getLocale(request));
+		try {
+			return new ResourceStatus<String>(true, mountService.getFingerprint());
+		} finally {
+			clearAuthenticatedContext();
+		}
+	}
+
+	@AuthenticationRequired
+	@RequestMapping(value = "mounts/myResources", method = RequestMethod.GET, produces = { "application/json" })
+	@ResponseBody
+	@ResponseStatus(value = HttpStatus.OK)
+	public ResourceList<FileResource> myFileResources(
+			final HttpServletRequest request, HttpServletResponse response)
+			throws AccessDeniedException, UnauthorizedException,
+			SessionTimeoutException {
+
+		setupAuthenticatedContext(sessionUtils.getSession(request),
+				sessionUtils.getLocale(request));
+
+		try {
+			ResourceList<FileResource> list = new ResourceList<FileResource>(
+					new HashMap<String,String>(),
+					mountService.getPersonalResources(sessionUtils
+							.getPrincipal(request)));
+			list.getProperties().put(
+					"authCode",
+					sessionService.createSessionToken(
+							sessionUtils.getSession(request)).getShortCode());
+			return list;
 		} finally {
 			clearAuthenticatedContext();
 		}
@@ -171,27 +236,27 @@ public class FileResourceController extends ResourceController {
 					new BootstrapTablePageProcessor() {
 
 						@Override
-						public Column getColumn(int col) {
-							return ResourceColumns.values()[col];
+						public Column getColumn(String col) {
+							return ResourceColumns.valueOf(col.toUpperCase());
 						}
 
 						@Override
-						public Collection<?> getPage(String searchPattern,
+						public Collection<?> getPage(String searchColumn, String searchPattern,
 								int start, int length, ColumnSort[] sorting)
 								throws UnauthorizedException,
 								AccessDeniedException {
 							return mountService.searchPersonalResources(
 									sessionUtils.getPrincipal(request),
-									searchPattern, start, length, sorting);
+									searchColumn, searchPattern, start, length, sorting);
 						}
 
 						@Override
-						public Long getTotalCount(String searchPattern)
+						public Long getTotalCount(String searchColumn, String searchPattern)
 								throws UnauthorizedException,
 								AccessDeniedException {
 							return mountService.getPersonalResourceCount(
 									sessionUtils.getPrincipal(request),
-									searchPattern);
+									searchColumn, searchPattern);
 						}
 					});
 		} finally {
@@ -199,7 +264,6 @@ public class FileResourceController extends ResourceController {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	@AuthenticationRequired
 	@RequestMapping(value = "mounts/mount", method = RequestMethod.POST, produces = { "application/json" })
 	@ResponseBody
@@ -216,6 +280,11 @@ public class FileResourceController extends ResourceController {
 
 			Realm realm = sessionUtils.getCurrentRealm(request);
 
+			Map<String, String> properties = new HashMap<String, String>();
+			for (PropertyItem i : resource.getProperties()) {
+				properties.put(i.getId(), i.getValue());
+			}
+			
 			Set<Role> roles = new HashSet<Role>();
 			for (Long id : resource.getRoles()) {
 				roles.add(permissionRepository.getRoleById(id));
@@ -227,13 +296,13 @@ public class FileResourceController extends ResourceController {
 				buildResource(realm, r, resource, roles, false,
 						mountService.getCurrentUsername(),
 						mountService.getCurrentPassword());
-				mountService.updateResource(r, new HashMap<String, String>());
+				mountService.updateFileResource(r, properties);
 			} else {
 				r = new FileResource();
 				buildResource(realm, r, resource, roles, true,
 						mountService.getCurrentUsername(),
 						mountService.getCurrentPassword());
-				mountService.createResource(r, new HashMap<String, String>());
+				mountService.createFileResource(r, properties);
 			}
 
 			return new ResourceStatus<FileResource>(r, I18N.getResource(
@@ -299,6 +368,7 @@ public class FileResourceController extends ResourceController {
 		resource.setPort(update.getPort());
 		resource.setPath(FileUtils.convertBackslashToForwardSlash(update
 				.getPath()));
+		resource.setLogo(update.getLogo());
 		resource.setUsername(update.getUsername());
 		resource.setPassword(update.getPassword());
 

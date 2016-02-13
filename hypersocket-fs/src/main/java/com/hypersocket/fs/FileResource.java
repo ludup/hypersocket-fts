@@ -12,7 +12,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.hypersocket.browser.BrowserLaunchable;
 import com.hypersocket.realm.Principal;
 import com.hypersocket.realm.UserVariableReplacement;
 import com.hypersocket.resource.AssignableResource;
@@ -22,8 +21,7 @@ import com.hypersocket.utils.FileUtils;
 @Entity
 @Table(name = "file_resources")
 @JsonDeserialize(using=FileResourceDeserializer.class)
-public class FileResource extends AssignableResource implements
-		BrowserLaunchable {
+public class FileResource extends AssignableResource  {
 
 	@Column(name = "scheme")
 	String scheme;
@@ -54,6 +52,9 @@ public class FileResource extends AssignableResource implements
 
 	@Column(name = "displayInBrowserResourcesTable")
 	Boolean displayInBrowserResourcesTable = Boolean.FALSE;
+	
+	@Column(name = "logo")
+	String logo;
 
 	public String getScheme() {
 		return scheme;
@@ -130,6 +131,10 @@ public class FileResource extends AssignableResource implements
 	public String getUrl() {
 		return getUrl(true, null, null);
 	}
+	
+	public void setLogo(String logo) {
+		this.logo = logo;
+	}
 
 	@JsonIgnore
 	@XmlTransient
@@ -185,7 +190,6 @@ public class FileResource extends AssignableResource implements
 		}
 	}
 
-	@Override
 	public String getLaunchUrl() {
 		return System.getProperty("hypersocket.uiPath", "/hypersocket")
 				+ "/viewfs/" + getName();
@@ -196,24 +200,8 @@ public class FileResource extends AssignableResource implements
 		this.displayInBrowserResourcesTable = Boolean.FALSE;
 	}
 
-	@Override
-	public boolean isDisplayInBrowserResourcesTable() {
-		return false;
-	}
-
-	@Override
 	public String getLogo() {
-		return "uri-" + scheme;
-	}
-
-	@Override
-	public String getType() {
-		return getClass().getSimpleName();
-	}
-
-	@Override
-	public Boolean getRequireVPNAccess() {
-		return Boolean.FALSE;
+		return logo == null ? "logo://100_autotype_autotype_auto.png" : logo;
 	}
 
 }

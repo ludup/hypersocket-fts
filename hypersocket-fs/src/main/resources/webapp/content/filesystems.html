@@ -1,7 +1,7 @@
 <div id="tabMounts">
 
 	<div class="modal" id="addMountForm" tabindex="-1" role="dialog" dialog-for="tabMounts">
-		<div class="modal-dialog">
+		<div class="modal-dialog modal-lg" >
 			<div class="modal-content">
 				<div class="modal-header">
 					<button type="button" class="close" data-dismiss="modal"
@@ -117,6 +117,18 @@
 							</div>
 						</div>
 					</div>
+					<div id="tabLogo" class="dialogTab">
+						<div class="propertyItem">
+							<label for="logo" class="col-md-3 control-label" 
+								localize="mount.logo.label"></label> 
+							<div class="propertyValue col-md-9">
+								<div id="logo"></div>
+								<div>
+									<span class="help-block" localize="mount.logo.info"></span>
+								</div>
+							</div>
+						</div>
+					</div>
 					<div id="tabRoles" class="dialogTab">
 					<input type="hidden" id="resourceId" name="resourceId" value="" />
 				</div>
@@ -193,10 +205,20 @@
 							} else {
 								$("label[for='username']").text(getResource('mount.username.label'));
 							}
+							if(getResourceNoDefault(scheme.scheme + '.username.info')!=null) {
+								$("span[localize='mount.username.info']").text(getResource(scheme.scheme + '.username.info'));
+							} else {
+								$("span[localize='mount.username.info']").text(getResource('mount.username.info'));
+							}
 							if(getResourceNoDefault(scheme.scheme + '.password.label')!=null) {
 								$("label[for='password']").text(getResource(scheme.scheme + '.password.label'));
 							} else {
 								$("label[for='password']").text(getResource('mount.password.label'));
+							}
+							if(getResourceNoDefault(scheme.scheme + '.password.info')!=null) {
+								$("span[localize='mount.password.info']").text(getResource(scheme.scheme + '.password.info'));
+							} else {
+								$("span[localize='mount.password.info']").text(getResource('mount.password.info'));
 							}
 							$('.credsDiv').show();
 						} else {
@@ -204,7 +226,47 @@
 							$('#username').val('');
 							$('#password').val('');
 						}
+						$('#mountProperties').propertyPage({
+							url : 'mounts/template/' + (widget.getValue() ? widget.getValue() : 'file'),
+							showButtons : false,
+							useTemplates : true,
+							canUpdate : currentMenu.canUpdate,
+							additionalTabs : [ {
+								id : "tabFile",
+								name : getResource("mount.details.label")
+							},
+							{
+								id : "tabAuth",
+								name : getResource("mount.auth.label")
+							},
+							{
+								id : "tabOptions",
+								name : getResource("mount.options.label")
+							},
+							{
+								id : "tabRoles",
+								name : getResource("label.roles")
+							},
+							{
+								id : "tabLogo",
+								name : getResource("mount.logo.label")
+							},]
+						});
 					}
+				});
+				
+				var logo = $('#logo').logoInput({
+					defaultTextCallback: function() {
+						return $('#resourceName').val();
+					},
+					typeCallback: function() {
+						// Matches that used by the client so the shape/colour will be the same
+						return 'FILE';
+					},
+					url : basePath + '/api/files/file'
+				});
+				$('#resourceName').on('input', function(){
+					logo.defaultTextChanged();
 				});
 				
 				if(currentMenu.canCreate || currentMenu.canUpdate) {
@@ -216,29 +278,7 @@
 						});
 					});
 				}
-				
-				$('#mountProperties').propertyPage({
-					url : 'mounts/template',
-					showButtons : false,
-					useTemplates : true,
-					canUpdate : currentMenu.canUpdate,
-					additionalTabs : [ {
-						id : "tabFile",
-						name : getResource("mount.details.label")
-					},
-					{
-						id : "tabAuth",
-						name : getResource("mount.auth.label")
-					},
-					{
-						id : "tabOptions",
-						name : getResource("mount.options.label")
-					},
-					{
-						id : "tabRoles",
-						name : getResource("label.roles")
-					}]
-				});
+			
 
 				$('#tabMounts').ajaxResourcePage(
 						{
@@ -249,11 +289,17 @@
 							resourceUrl : "mounts/mount",
 							importUrl: 'mounts/import',
 							exportUrl: 'mounts/export',
+							logo: true,
+							logoResourceTypeCallback: function(resource) {
+								return 'FILE';
+							},
 							fields : [ {
-								name : "name"
+								name : "name",
+								sortable: true
 							}, {
 								name : "scheme",
-								isResourceKey : true
+								isResourceKey : true,
+								sortable: true
 							}, {
 								name : "url"
 							} ],
@@ -285,12 +331,14 @@
 
 								return true;
 							},
-							clearDialog : function() {
+							clearDialog : function(isCreate) {
 								
 								schemeButton.enable();
 								schemeButton.setValue('file');
-								schemeButton.changed();
 								
+							    if(isCreate) {
+							    	schemeButton.changed();
+							    }
 								$('#resourceId').val('');
 								$('#resourceName').val('');
 								
@@ -300,12 +348,14 @@
 								pathInput.setValue('');
 								usernameInput.setValue('');
 								passwordInput.setValue('');
+								logo.clear();
 								
 								$('#readOnly').prop('checked', false);
 								$('#showHidden').prop('checked', false);
 								$('#showFolders').prop('checked', true);
 								
 								$('#tabRoles').multipleSelect();
+								
 							},
 							createResource : function() {
 								resource = new Object();
@@ -320,9 +370,11 @@
 								resource.readOnly = $('#readOnly').prop('checked') ? true : false;
 								resource.showHidden = $('#showHidden').prop('checked') ? true : false;
 								resource.showFolders = $('#showFolders').prop('checked') ? true : false;
-								
+								resource.logo = logo.getValue();
 								resource.roles = $('#tabRoles').multipleSelectValues();
-								
+								$('#mountProperties').saveProperties(true, function(items) {
+									resource.properties = items;
+								});
 								return resource;
 							},
 							displayResource : function(resource) {
@@ -331,12 +383,17 @@
 								$('#resourceName').val(resource.name);
 								schemeButton.setValue(resource.scheme);
 								schemeButton.disable();
-								schemeButton.changed();
+								
 								$('#serverName').val(resource.server);
 								$('#port').val(resource.port);
 								pathInput.setValue(resource.path);
 								usernameInput.setValue(resource.username);
 								passwordInput.setValue(resource.password);
+								
+								if(resource.logo == '')
+									logo.clear();
+								else
+									logo.setValue(resource.logo);
 								if(resource.readOnly) {
 									$('#readOnly').prop('checked', true);
 								}
@@ -350,6 +407,33 @@
 									selected : resource.roles,
 									selectedIsObjectList : true,
 									resourceKey : 'mount'
+								});
+								
+								$('#mountProperties').propertyPage({
+									url : 'mounts/properties/' + resource.id,
+									showButtons : false,
+									useTemplates : true,
+									canUpdate : currentMenu.canUpdate,
+									additionalTabs : [ {
+										id : "tabFile",
+										name : getResource("mount.details.label")
+									},
+									{
+										id : "tabAuth",
+										name : getResource("mount.auth.label")
+									},
+									{
+										id : "tabOptions",
+										name : getResource("mount.options.label")
+									},
+									{
+										id : "tabRoles",
+										name : getResource("label.roles")
+									},
+									{
+										id : "tabLogo",
+										name : getResource("mount.logo.label")
+									},]
 								});
 							},
 							complete : function() {

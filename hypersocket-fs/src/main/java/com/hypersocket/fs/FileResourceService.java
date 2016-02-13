@@ -4,14 +4,19 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 
 import com.hypersocket.permissions.AccessDeniedException;
+import com.hypersocket.properties.PropertyCategory;
 import com.hypersocket.realm.UserVariableReplacement;
 import com.hypersocket.resource.AbstractAssignableResourceService;
+import com.hypersocket.resource.ResourceChangeException;
+import com.hypersocket.resource.ResourceCreationException;
 import com.hypersocket.upload.FileUpload;
 
 public interface FileResourceService extends
@@ -90,5 +95,13 @@ public interface FileResourceService extends
 
 	FileObject getFileObjectForMountFile(String file)
 			throws AccessDeniedException, IOException;
+
+	Collection<PropertyCategory> getResourceProperties(FileResource resource) throws AccessDeniedException;
+
+	Collection<PropertyCategory> getPropertyTemplates(String scheme) throws AccessDeniedException;
+
+	void createFileResource(FileResource r, Map<String, String> properties) throws ResourceCreationException, AccessDeniedException;
+
+	void updateFileResource(FileResource r, Map<String, String> properties) throws ResourceChangeException, AccessDeniedException;
 
 }

@@ -4,9 +4,9 @@ import org.apache.commons.lang3.ArrayUtils;
 
 import com.hypersocket.realm.Realm;
 import com.hypersocket.tasks.Task;
-import com.hypersocket.triggers.TaskResult;
+import com.hypersocket.triggers.AbstractTaskResult;
 
-public class FileOperationTaskResult extends TaskResult {
+public class FileOperationTaskResult extends AbstractTaskResult {
 
 	private static final long serialVersionUID = -5267005980338783100L;
 

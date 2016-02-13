@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.vfs2.FileObject;
 
 import com.hypersocket.fs.FileResource;
@@ -28,8 +29,12 @@ public class UploadStartedEvent extends FileOperationEvent implements FileInputT
 		this.outputFile = file;
 		this.out = null;
 		this.transformationFilename = FileUtils.lastPathElement(sourcePath);
-		this.originalFilename = FileUtils.lastPathElement(sourcePath);
-		this.originalPath = FileUtils.stripLastPathElement(sourcePath);
+		this.originalFilename = this.transformationFilename;
+		if(FileUtils.hasParents(sourcePath)) {
+			this.originalPath = FileUtils.stripLastPathElement(sourcePath);
+		} else {
+			this.originalPath = "";
+		}
 	}
 
 	public UploadStartedEvent(Object source, Throwable t,
@@ -85,6 +90,10 @@ public class UploadStartedEvent extends FileOperationEvent implements FileInputT
 	}
 
 	public String getTransformationPath() {
-		return originalPath + "/" + transformationFilename;
+		if(StringUtils.isNotBlank(originalPath)) {
+			return originalPath + "/" + transformationFilename;
+		} else {
+			return transformationFilename; 
+		}
 	}
 }

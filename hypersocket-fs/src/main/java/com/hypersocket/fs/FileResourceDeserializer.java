@@ -22,6 +22,7 @@ public class FileResourceDeserializer extends JsonDeserializer<FileResource> {
 
 		resource.setScheme(node.get("scheme").asText());
 		resource.setServer(node.get("server").asText());
+		resource.setLogo(node.get("logo").asText());
 		resource.setPort(node.get("port").asInt());
 		resource.setPath(node.get("path").asText());
 		resource.setUsername(node.get("username").asText());
