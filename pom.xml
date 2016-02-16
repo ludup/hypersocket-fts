@@ -12,6 +12,7 @@
 	</properties>
 
 	<modules>
+		<module>client-fs</module>
 		<module>hypersocket-fs</module>
 		<module>hypersocket-ftp</module>
 	</modules>
