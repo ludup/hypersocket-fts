@@ -144,51 +144,61 @@ public class FTPServiceImpl implements FTPService,
 
 	}
 	
-	public void onApplicationEvent(SystemEvent event) {
+	public void onApplicationEvent(final SystemEvent event) {
 
-		if (event instanceof ServerStartedEvent) {
+		sessionService.executeInSystemContext(new Runnable() {
 
-			if (systemConfigurationService.getBooleanValue("ftp.enabled")) {
-				startFTP();
-			}
-			if (systemConfigurationService.getBooleanValue("ftps.enabled")) {
-				try {
-					startFTPS();
-				} catch (Exception e) {
-					log.error("Failed to start FTPS server", e);
-				}
-			}
-		} else if (event instanceof ServerStoppingEvent) {
-		
-			stopFTP();
-			stopFTPS();
-		
-		} else if(event instanceof ConfigurationChangedEvent) {
-			
-			if(event.getAttribute(ConfigurationChangedEvent.ATTR_CONFIG_RESOURCE_KEY).equals("ftp.enabled")) {
-				boolean enabled = Boolean.parseBoolean(event.getAttribute(ConfigurationChangedEvent.ATTR_NEW_VALUE).toString());
-				
-				if(enabled) {
-					startFTP();
-				} else if(!enabled) {
-					stopFTP();
-				}
-			}
-			
-			if(event.getAttribute(ConfigurationChangedEvent.ATTR_CONFIG_RESOURCE_KEY).equals("ftps.enabled")) {
-				boolean enabled = Boolean.parseBoolean(event.getAttribute(ConfigurationChangedEvent.ATTR_NEW_VALUE).toString());
-				
-				if(enabled) {
-					try {
-						startFTPS();
-					} catch (Exception e) {
-						log.error("Failed to start FTPS server");
+			@Override
+			public void run() {
+				if (event instanceof ServerStartedEvent) {
+
+					if (systemConfigurationService.getBooleanValue("ftp.enabled")) {
+						startFTP();
 					}
-				} else if(!enabled) {
+					if (systemConfigurationService.getBooleanValue("ftps.enabled")) {
+						try {
+							startFTPS();
+						} catch (Exception e) {
+							log.error("Failed to start FTPS server", e);
+						}
+					}
+				} else if (event instanceof ServerStoppingEvent) {
+				
+					stopFTP();
 					stopFTPS();
+				
+				} else if(event instanceof ConfigurationChangedEvent) {
+					
+					if(event.getAttribute(ConfigurationChangedEvent.ATTR_CONFIG_RESOURCE_KEY).equals("ftp.enabled")) {
+						boolean enabled = Boolean.parseBoolean(event.getAttribute(ConfigurationChangedEvent.ATTR_NEW_VALUE).toString());
+						
+						if(enabled) {
+							startFTP();
+						} else if(!enabled) {
+							stopFTP();
+						}
+					}
+					
+					if(event.getAttribute(ConfigurationChangedEvent.ATTR_CONFIG_RESOURCE_KEY).equals("ftps.enabled")) {
+						boolean enabled = Boolean.parseBoolean(event.getAttribute(ConfigurationChangedEvent.ATTR_NEW_VALUE).toString());
+						
+						if(enabled) {
+							try {
+								startFTPS();
+							} catch (Exception e) {
+								log.error("Failed to start FTPS server");
+							}
+						} else if(!enabled) {
+							stopFTPS();
+						}
+					}
 				}
 			}
-		}
+			
+		});
+
+		
+		
 
 	}
 	
