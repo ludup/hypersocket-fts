@@ -15,6 +15,7 @@ import com.hypersocket.permissions.PermissionService;
 import com.hypersocket.realm.RealmService;
 import com.hypersocket.session.Session;
 import com.hypersocket.session.SessionService;
+import com.hypersocket.vfs.VirtualFileService;
 
 @Component
 public class FTPFileSystemFactory implements FileSystemFactory {
@@ -23,7 +24,7 @@ public class FTPFileSystemFactory implements FileSystemFactory {
 	I18NService i18nService;
 	
 	@Autowired
-	FileResourceService fileResourceService;
+	VirtualFileService fileService;
 	
 	@Autowired
 	RealmService realmService;
@@ -46,8 +47,8 @@ public class FTPFileSystemFactory implements FileSystemFactory {
 	}
 	
 	
-	public FileResourceService getFileResourceService() {
-		return fileResourceService;
+	public VirtualFileService getService() {
+		return fileService;
 	}
 	
 	public I18NService getI18NService() {
@@ -55,7 +56,7 @@ public class FTPFileSystemFactory implements FileSystemFactory {
 	}
 	
 	public void setupSessionContext(Session session) {
-		fileResourceService.setCurrentSession(session, configurationService.getDefaultLocale());
+		fileService.setCurrentSession(session, configurationService.getDefaultLocale());
 		realmService.setCurrentSession(session, configurationService.getDefaultLocale());
 		permissionService.setCurrentSession(session, configurationService.getDefaultLocale());
 		authenticationService.setCurrentSession(session, configurationService.getDefaultLocale());

@@ -1,5 +1,6 @@
 package com.hypersocket.ftp;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -12,19 +13,20 @@ import org.slf4j.LoggerFactory;
 import com.hypersocket.fs.FileResource;
 import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.session.Session;
+import com.hypersocket.utils.FileUtils;
 
 public class FileObjectFile extends AbstractFtpFile {
 
 	static Logger log = LoggerFactory.getLogger(FileObjectFile.class);
 
 	
-	FileObjectFile(Session session, FTPFileSystemFactory factory, FileResource resource, FileObject file, String path, String realPath) {
-		super(session, factory, resource, file, path, realPath);
+	FileObjectFile(Session session, FTPFileSystemFactory factory, String path) {
+		super(session, factory, path);
 	}
 	
 	public InputStream createInputStream(long position) throws IOException {
 		try {
-			return factory.getFileResourceService().downloadFile(realPath, position, FTP_PROTOCOL);
+			return factory.getService().downloadFile(absolutePath, position, FTP_PROTOCOL);
 		} catch (AccessDeniedException e) {
 			log.error("Failed to create InputStream", e);
 			throw new IOException(e);
@@ -34,7 +36,7 @@ public class FileObjectFile extends AbstractFtpFile {
 	public OutputStream createOutputStream(long position) throws IOException {
 		
 		try {
-			return factory.getFileResourceService().uploadFile(realPath, position, FTP_PROTOCOL);
+			return factory.getService().uploadFile(absolutePath, position, FTP_PROTOCOL);
 		} catch (AccessDeniedException e) {
 			log.error("Failed to create InputStream", e);
 			throw new IOException(e);
@@ -43,29 +45,30 @@ public class FileObjectFile extends AbstractFtpFile {
 
 	public boolean delete() {
 		try {
-			return file.delete();
-		} catch (FileSystemException e) {
+			return factory.getService().deleteFile(absolutePath, FTP_PROTOCOL);
+		} catch (IOException e) {
 			log.error("Failed to delete file", e);
+			return false;
+		} catch(AccessDeniedException e) {
 			return false;
 		}
 	}
 
 	public boolean doesExist() {
+		
 		try {
-			return file.exists();
-		} catch (FileSystemException e) {
-			log.error("Failed to determine if file exists", e);
+			factory.getService().getFile(absolutePath);
+			return true;
+		} catch (FileNotFoundException e) {
+			return false;
+		} catch (AccessDeniedException e) {
 			return false;
 		}
 	}
 
 	public long getLastModified() {
-		try {
-			return file.getContent().getLastModifiedTime();
-		} catch (FileSystemException e) {
-			log.error("Failed to determine last modified time", e);
-			return 0;
-		}
+		checkFile();
+		return file.getLastModified();
 	}
 
 	public int getLinkCount() {
@@ -73,7 +76,7 @@ public class FileObjectFile extends AbstractFtpFile {
 	}
 
 	public String getName() {
-		return file.getName().getBaseName();
+		return FileUtils.lastPathElement(absolutePath);
 	}
 	
 	public boolean isReadable() {
@@ -81,10 +84,12 @@ public class FileObjectFile extends AbstractFtpFile {
 	}
 
 	public boolean isRemovable() {
-		return !resource.isReadOnly();
+		checkFile();
+		return file.getWritable();
 	}
 
 	public boolean isWritable() {
-		return !resource.isReadOnly();
+		checkFile();
+		return file.getWritable();
 	}
 }

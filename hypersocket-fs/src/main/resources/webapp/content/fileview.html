@@ -29,7 +29,7 @@
 
 <script type="text/javascript">
 	var regex = new RegExp(
-			/(.[^\:]+)(\:\/\/)(.[^\/]+)(.[^\/]+)(.*\/viewfs\/)(.*)/);
+			/(.[^\:]+)(\:\/\/)(.[^\/]+)(.[^\/]+)(.*\/viewfs)(.*)/);
 
 	var url = regex.exec(stripFragment(document.URL));
 	var baseURL = url[1] + url[2] + url[3] + url[4];
@@ -64,7 +64,7 @@
 								'click',
 								'#dropdown_' + index + ' .row-' + act.resourceKey,
 								function() {
-									path = mountPath + row.label;
+									path = row.virtualPath;
 									act.action(path, row, function(resource) {
 										
 									});
@@ -112,10 +112,36 @@
 		return actionHtml;
 	}
 
+	function sizeFormatter(value, row, index) {
+		return formatBytes(row.size, 0);
+	}
+	
+	function dateFormatter(value, row, index) {
+		
+		debugger;
+		var today = new Date();
+		var yesterday = (function(d){ d.setDate(d.getDate()-1); return d})(new Date);
+		var fileDate = new Date(row.lastModified);
+		
+		var todayStr = today.format('yyyy-mm-dd');
+		var yesterdayStr = yesterday.format('yyyy-mm-dd');
+		var fileStr = fileDate.format('yyyy-mm-dd');
+		
+		if(todayStr === fileStr) {
+			return getResource("today.text") + " " + fileDate.format("HH:MM");	
+		} else if(yesterdayStr === fileStr) {
+			return getResource("yesterday.text") + " " + fileDate.format("HH:MM");
+		} else {
+			return fileDate.format("d mmmm yyyy HH:MM");	
+		}
+		
+	}
+	
 	function nameFormatter(value, row, index) {
 
+		debugger;
 		var outputHtml = '';
-		if (row.type != 'Folder') {
+		if (row.type != 'FOLDER' && row.type != 'MOUNT') {
 
 			var className = "fa-file-o";
 			var canOpen = true;
@@ -133,8 +159,8 @@
 			}
 
 			if (canOpen) {
-				outputHtml += '<a href="' + baseURL + '/api/fs/download/'
-						+ mountPath + row.label + '?forceDownload=false">';
+				outputHtml += '<a href="' + baseURL + '/api/fs/download'
+						+ row.virtualPath + '?forceDownload=false">';
 			}
 			outputHtml += '<i class="fileIcon fa ' + className + '"></i>';
 
@@ -142,12 +168,12 @@
 				outputHtml += '</a>';
 			}
 
-			outputHtml += '<span class="fileLabel" data-original="' + row.label + '">'
-					+ row.label + '</span>';
+			outputHtml += '<span class="fileLabel" data-original="' + row.filename + '">'
+					+ row.filename + '</span>';
 
 		} else {
-			outputHtml += '<a href="' + viewfsPath + mountPath + row.label + '/"><i class="fileIcon fa fa-folder-open"></i></a><span class="fileLabel" data-original="' + row.label + '">'
-					+ row.label + '</span>';
+			outputHtml += '<a href="' + viewfsPath + row.virtualPath + '"><i class="fileIcon fa fa-folder-open"></i></a><span class="fileLabel" data-original="' + row.filename + '">'
+					+ row.filename + '</span>';
 		}
 
 		return outputHtml;
@@ -156,7 +182,7 @@
 	window.actionEvents = {
 		'click .download' : function(e, value, row, index) {
 			window.location = baseURL + '/api/fs/download/' + mountPath
-					+ row.label + '?forceDownload=true';
+					+ row.filename + '?forceDownload=true';
 		},
 		'click .edit' : function(e, value, row, index) {
 			e.stopPropagation();
@@ -170,7 +196,7 @@
 			arr.push(row);
 			$(document).data('deleteRow', arr);
 			$(e.target).closest('a').notify({
-				title : getResource("text.confirmDelete").format(row.label),
+				title : getResource("text.confirmDelete").format(row.filename),
 				button : getResource("text.delete")
 			}, {
 				style : 'confirm',
@@ -201,14 +227,15 @@
 						var d = new $.Deferred;
 						var original = $(this).data('original');
 						$.post(
-								basePath + '/api/fs/rename/' + mountPath
+								basePath + '/api/fs/rename' + mountPath
 										+ original,
-								"toUri=" + basePath + '/api/fs/rename/'
+								"toUri=" + basePath + '/api/fs/rename'
 										+ mountPath + params.value,
 								function(data) {
 									
 									if (data.success) {
 										d.resolve();
+										$('#table').bootstrapTable('refresh');
 									} else {
 										d.reject(data.error);
 									}
@@ -279,14 +306,14 @@
 														var row = $(document).data('deleteRow');
 														
 														$.each(row, function(idx, row) {
-															getJSON('fs/delete/' + mountPath + row.label,
+															getJSON('fs/delete/' + mountPath + row.filename,
 																	null,
 																	function(data) {
 																		if (data.success) {
-																			showInformation(getResource('text.deleted').format(row.label));
+																			showInformation(getResource('text.deleted').format(row.filename));
 																			$('#table').bootstrapTable('refresh');
 																		} else {
-																			showError(getResource('text.deleteFailed').format(row.label));
+																			showError(getResource('text.deleteFailed').format(row.filename));
 																		}
 																	});
 														});
@@ -298,9 +325,11 @@
 									if (breadcrumbs[breadcrumbs.length - 1] == '') {
 										breadcrumbs.pop();
 									}
-									var currentPath = '';
+									var currentPath = '/';
+									$('#breadcrumbs').append(
+											'<li><a href="' + viewfsPath +  '/">ROOT</a></li>');
 									$.each(breadcrumbs, function(idx, obj) {
-										if(obj=='#') {
+										if(obj==='#' || obj==='') {
 											return;
 										}
 										currentPath += obj + '/';
@@ -354,6 +383,8 @@
 										clickToSelect : false,
 										search : true,
 										showColumns : true,
+										sortName: 'filename',
+										sortOrder: 'asc',
 										showRefresh : true,
 										showToggle : true,
 										sidePagination : 'server',
@@ -428,10 +459,10 @@
 				<thead>
 					<tr>
 						<th data-field="state" data-checkbox="true"></th>
-						<th data-field="label" data-formatter="nameFormatter">Name</th>
-						<th data-field="type">Type</th>
-						<th data-field="lastModified">Last Modified</th>
-						<th data-field="size">Size</th>
+						<th data-field="filename" data-sortable="true" data-formatter="nameFormatter">Name</th>
+						<th data-field="type" data-sortable="true">Type</th>
+						<th data-field="lastModified" data-sortable="true" data-formatter="dateFormatter">Last Modified</th>
+						<th data-field="size" data-sortable="true" data-formatter="sizeFormatter">Size</th>
 						<th data-field="action" data-formatter="actionFormatter"
 							data-events="actionEvents">Action</th>
 					</tr>

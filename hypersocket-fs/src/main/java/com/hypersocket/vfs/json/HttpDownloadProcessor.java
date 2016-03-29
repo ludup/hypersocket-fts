@@ -1,4 +1,4 @@
-package com.hypersocket.fs.json;
+package com.hypersocket.vfs.json;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -54,7 +54,7 @@ public class HttpDownloadProcessor implements DownloadProcessor {
 			DownloadStartedEvent evt = downloadEventProcessor.downloadStarted(resource, childPath, file, in, protocol);
 			
 			response.setContentType(mimeTypesMap.getContentType(evt.getTransformationFilename()));
-
+			
 			if ("true".equals(request.getParameter("forceDownload"))) {
 				response.setHeader("Content-disposition",
 						"attachment; filename=\"" + evt.getTransformationFilename() + "\"");

@@ -360,8 +360,9 @@ public class FileResourceController extends ResourceController {
 			FileResourceUpdate update, Set<Role> roles, boolean creating,
 			String username, String password) throws UnauthorizedException,
 			ResourceChangeException, ResourceCreationException {
+		
 		resource.setName(update.getName());
-
+		resource.setVirtualPath(FileUtils.checkEndsWithSlash(update.getVirtualPath()));
 		resource.setRealm(realm);
 		resource.setScheme(update.getScheme());
 		resource.setServer(update.getServer());

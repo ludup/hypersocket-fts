@@ -17,8 +17,8 @@ public class CreateFolderEvent extends FileOperationEvent {
 	}
 
 	public CreateFolderEvent(Object source, Throwable t,
-			Session currentSession, String mountName, String childPath, String protocol) {
-		super(source, "fs.createFolder", t, currentSession, mountName, childPath, protocol);
+			Session currentSession, String childPath, String protocol) {
+		super(source, "fs.createFolder", t, currentSession, childPath, protocol);
 	}
 
 	public String[] getResourceKeys() {

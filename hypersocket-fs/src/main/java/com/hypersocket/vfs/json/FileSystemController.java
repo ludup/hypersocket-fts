@@ -1,20 +1,15 @@
-package com.hypersocket.fs.json;
+package com.hypersocket.vfs.json;
 
 import java.io.IOException;
 import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.ListIterator;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.apache.commons.vfs2.FileType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,26 +23,28 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.hypersocket.auth.json.AuthenticatedController;
 import com.hypersocket.auth.json.AuthenticationRequired;
+import com.hypersocket.auth.json.ResourceController;
 import com.hypersocket.auth.json.UnauthorizedException;
-import com.hypersocket.fs.FileResource;
-import com.hypersocket.fs.FileResourceService;
-import com.hypersocket.fs.tree.TreeFile;
-import com.hypersocket.fs.tree.TreeFolder;
-import com.hypersocket.fs.tree.TreeList;
 import com.hypersocket.json.RequestStatus;
+import com.hypersocket.json.ResourceList;
 import com.hypersocket.json.ResourceStatus;
 import com.hypersocket.permissions.AccessDeniedException;
+import com.hypersocket.server.HypersocketServer;
 import com.hypersocket.session.json.SessionTimeoutException;
 import com.hypersocket.session.json.SessionUtils;
-import com.hypersocket.tables.BootstrapTablesResult;
+import com.hypersocket.tables.BootstrapTableResult;
+import com.hypersocket.tables.Column;
+import com.hypersocket.tables.ColumnSort;
+import com.hypersocket.tables.json.BootstrapTablePageProcessor;
 import com.hypersocket.upload.FileUpload;
 import com.hypersocket.upload.FileUploadService;
 import com.hypersocket.utils.FileUtils;
+import com.hypersocket.vfs.VirtualFile;
+import com.hypersocket.vfs.VirtualFileService;
 
 @Controller
-public class FileSystemController extends AuthenticatedController {
+public class FileSystemController extends ResourceController {
 
 	static Logger log = LoggerFactory.getLogger(FileSystemController.class);
 	
@@ -55,74 +52,125 @@ public class FileSystemController extends AuthenticatedController {
 	public static final String CONTENT_INPUTSTREAM = "ContentInputStream";
 	
 	@Autowired
-	FileResourceService mountService;
-
-	@Autowired
 	SessionUtils sessionUtils;
 	
 	@Autowired
 	FileUploadService fileUploadService; 
 	
-	@SuppressWarnings("rawtypes")
+	@Autowired
+	VirtualFileService fileService; 
+	
+	@Autowired
+	HypersocketServer server;
+	
 	@AuthenticationRequired
-	@RequestMapping(value = "fs/delete/**", method = RequestMethod.GET, produces = { "application/json" })
+	@RequestMapping(value = "fs/mounts", method = RequestMethod.GET, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
-	public ResourceStatus<?> delete(HttpServletRequest request,
+	public ResourceList<VirtualFile> getMounts(HttpServletRequest request,
 			HttpServletResponse response) throws AccessDeniedException,
 			UnauthorizedException, IOException, SessionTimeoutException {
 
 		setupAuthenticatedContext(sessionUtils.getSession(request),
 				sessionUtils.getLocale(request));
 		try {
-			
-			return new ResourceStatus(mountService.deleteURIFile(
-					request.getHeader("Host"), "api/fs/delete",
-					URLDecoder.decode(request.getRequestURI(), "UTF-8"), HTTP_PROTOCOL));
-
-		} finally {
-			clearAuthenticatedContext();
-		}
-	}
-
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	@AuthenticationRequired
-	@RequestMapping(value = "fs/createFolder/**", method = RequestMethod.GET, produces = { "application/json" })
-	@ResponseBody
-	@ResponseStatus(value = HttpStatus.OK)
-	public ResourceStatus<TreeFolder> createFolder(HttpServletRequest request,
-			HttpServletResponse response) throws AccessDeniedException,
-			UnauthorizedException, IOException, SessionTimeoutException {
-
-		setupAuthenticatedContext(sessionUtils.getSession(request),
-				sessionUtils.getLocale(request));
-		try {
-
-			String uri = URLDecoder.decode(request.getRequestURI(), "UTF-8");
-			
-			FileResource resource = mountService.getMountForURIPath(
-					request.getHeader("Host"), "api/fs/createFolder",
-					uri);
-
-			FileObject mountFile = mountService.resolveMountFile(resource);
-			
-			FileObject newFile = mountService.createURIFolder(
-					request.getHeader("Host"), "api/fs/createFolder",
-					uri, HTTP_PROTOCOL);
-
-			return new ResourceStatus(new TreeFolder(newFile, mountFile, resource), "");
-
+			return new ResourceList<VirtualFile>(fileService.getMounts());
 		} finally {
 			clearAuthenticatedContext();
 		}
 	}
 	
-	@SuppressWarnings("rawtypes")
+	@AuthenticationRequired
+	@RequestMapping(value = "fs/tree", method = RequestMethod.GET, produces = { "application/json" })
+	@ResponseBody
+	@ResponseStatus(value = HttpStatus.OK)
+	public TreeNode getTree(HttpServletRequest request,
+			HttpServletResponse response) throws AccessDeniedException,
+			UnauthorizedException, IOException, SessionTimeoutException {
+
+		setupAuthenticatedContext(sessionUtils.getSession(request),
+				sessionUtils.getLocale(request));
+		try {
+			Collection<VirtualFile> mounts = fileService.getMounts();
+			TreeNode rootNode = new TreeNode();
+			rootNode.setParent("#");
+			rootNode.setText("/");
+			rootNode.getState().opened = true;
+			
+			Map<String,TreeNode> nodes = new HashMap<String,TreeNode>();
+			for(VirtualFile file : mounts) {
+				if(file.getParent()!=null) {
+					TreeNode node = new TreeNode();
+					node.setText(file.getFilename());
+					node.setId(String.valueOf(file.getId()));
+					node.setParent(String.valueOf(file.getParent().getId()));
+					node.getState().opened = true;
+					
+					nodes.get(String.valueOf(file.getParent().getId())).children.add(node);
+					nodes.put(node.getId(), node);
+					
+				} else {
+					rootNode.setId(String.valueOf(file.getId()));
+					nodes.put(rootNode.getId(), rootNode);
+				}
+			}
+			return rootNode;
+		} finally {
+			clearAuthenticatedContext();
+		}
+	}
+	
+	@AuthenticationRequired
+	@RequestMapping(value = "fs/delete/**", method = RequestMethod.GET, produces = { "application/json" })
+	@ResponseBody
+	@ResponseStatus(value = HttpStatus.OK)
+	public ResourceStatus<Object> delete(HttpServletRequest request,
+			HttpServletResponse response) throws AccessDeniedException,
+			UnauthorizedException, IOException, SessionTimeoutException {
+
+		setupAuthenticatedContext(sessionUtils.getSession(request),
+				sessionUtils.getLocale(request));
+		try {
+			
+			String virtualPath = FileUtils.checkStartsWithSlash(
+					FileUtils.stripParentPath(server.getApiPath() + "/fs/delete", 
+							URLDecoder.decode(request.getRequestURI(), "UTF-8")));
+			if(fileService.deleteFile(virtualPath, HTTP_PROTOCOL)) {
+				return new ResourceStatus<Object>(true);
+			} else {
+				return new ResourceStatus<Object>(false);
+			}
+		} finally {
+			clearAuthenticatedContext();
+		}
+	}
+
+	@AuthenticationRequired
+	@RequestMapping(value = "fs/createFolder/**", method = RequestMethod.GET, produces = { "application/json" })
+	@ResponseBody
+	@ResponseStatus(value = HttpStatus.OK)
+	public ResourceStatus<VirtualFile> createFolder(HttpServletRequest request,
+			HttpServletResponse response) throws AccessDeniedException,
+			UnauthorizedException, IOException, SessionTimeoutException {
+
+		setupAuthenticatedContext(sessionUtils.getSession(request),
+				sessionUtils.getLocale(request));
+		try {
+
+			String virtualPath = FileUtils.checkStartsWithSlash(
+					FileUtils.stripParentPath(server.getApiPath() + "/fs/createFolder", 
+							URLDecoder.decode(request.getRequestURI(), "UTF-8")));
+			return new ResourceStatus<VirtualFile>(fileService.createUntitledFolder(virtualPath, HTTP_PROTOCOL));
+		} finally {
+			clearAuthenticatedContext();
+		}
+	}
+	
 	@AuthenticationRequired
 	@RequestMapping(value = "fs/rename/**", method = RequestMethod.POST, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
-	public ResourceStatus<?> rename(HttpServletRequest request,
+	public ResourceStatus<VirtualFile> rename(HttpServletRequest request,
 			HttpServletResponse response,
 			@RequestParam String toUri) throws AccessDeniedException,
 			UnauthorizedException, IOException, SessionTimeoutException {
@@ -131,11 +179,13 @@ public class FileSystemController extends AuthenticatedController {
 				sessionUtils.getLocale(request));
 		try {
 
-			return new ResourceStatus(mountService.renameURIFile(
-					request.getHeader("Host"), "api/fs/rename",
-					URLDecoder.decode(request.getRequestURI(), "UTF-8"),
-					URLDecoder.decode(toUri, "UTF-8"), HTTP_PROTOCOL));
-
+			String virtualPath = FileUtils.checkStartsWithSlash(
+					FileUtils.stripParentPath(server.getApiPath() + "/fs/rename", 
+							URLDecoder.decode(request.getRequestURI(), "UTF-8")));
+			String toVirtualPath = FileUtils.checkStartsWithSlash(
+					FileUtils.stripParentPath(server.getApiPath() + "/fs/rename", toUri));
+			
+			return new ResourceStatus<VirtualFile>(fileService.renameFile(virtualPath, toVirtualPath, HTTP_PROTOCOL));
 		} finally {
 			clearAuthenticatedContext();
 		}
@@ -146,25 +196,25 @@ public class FileSystemController extends AuthenticatedController {
 	@ResponseStatus(value = HttpStatus.OK)
 	public void downloadFile(HttpServletRequest request,
 			HttpServletResponse response,
-			@RequestParam String forceDownload) throws AccessDeniedException,
+			@RequestParam(required=false) Boolean forceDownload) throws AccessDeniedException,
 			UnauthorizedException, SessionTimeoutException {
 
 		setupAuthenticatedContext(sessionUtils.getSession(request),
 				sessionUtils.getLocale(request));
 		try {
 
-			String uri = URLDecoder.decode(request.getRequestURI(), "UTF-8");
-			mountService.downloadURIFile(request.getHeader("Host"), 
-					"api/fs/download", 
-					uri, new HttpDownloadProcessor(
+			String virtualPath = FileUtils.checkStartsWithSlash(
+					FileUtils.stripParentPath(server.getApiPath() + "/fs/download",
+							URLDecoder.decode(request.getRequestURI(), "UTF-8")));
+
+			fileService.downloadFile(virtualPath, new HttpDownloadProcessor(
 							request, 
 							response, 
 							0, 
 							Long.MAX_VALUE, 
 							HTTP_PROTOCOL, 
 							sessionUtils.getActiveSession(request)), 
-					HTTP_PROTOCOL);
-			
+							HTTP_PROTOCOL);
 
 		} catch (Exception e) {
 			if(log.isInfoEnabled()) {
@@ -193,11 +243,12 @@ public class FileSystemController extends AuthenticatedController {
 
 		try {
 
-			String uri = FileUtils.checkEndsWithSlash(URLDecoder.decode(request.getRequestURI(), "UTF-8"));
-			uri += FileUtils.lastPathElement(file.getOriginalFilename());
-
-			return new ResourceStatus<FileUpload>(mountService.uploadURIFile(request.getHeader("Host"), 
-					"api/fs/upload", uri, file.getInputStream(), null, HTTP_PROTOCOL));
+			String virtualPath = FileUtils.checkStartsWithSlash(FileUtils.stripParentPath(server.getApiPath() + "/fs/upload", 
+					URLDecoder.decode(request.getRequestURI(), "UTF-8")));
+			virtualPath = virtualPath + FileUtils.lastPathElement(file.getOriginalFilename());
+			
+			return new ResourceStatus<FileUpload>(fileService.uploadFile(
+					FileUtils.checkEndsWithNoSlash(virtualPath), file.getInputStream(), null, HTTP_PROTOCOL));
 			
 			
 		} finally {
@@ -205,12 +256,11 @@ public class FileSystemController extends AuthenticatedController {
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
 	@AuthenticationRequired
 	@RequestMapping(value = "fs/list/**", method = RequestMethod.GET, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
-	public TreeList list(HttpServletRequest request,
+	public ResourceList<VirtualFile> list(HttpServletRequest request,
 			HttpServletResponse response) throws AccessDeniedException,
 			UnauthorizedException, IOException, SessionTimeoutException {
 
@@ -218,35 +268,11 @@ public class FileSystemController extends AuthenticatedController {
 				sessionUtils.getLocale(request));
 		try {
 
-			@SuppressWarnings("rawtypes")
-			List folders = new ArrayList();
-			String uri = URLDecoder.decode(request.getRequestURI(), "UTF-8");
-			FileResource resource = mountService.getMountForURIPath(
-					request.getHeader("Host"), "api/fs/list",
-					uri);
-
-			FileObject mountFile = mountService.resolveMountFile(resource);
-
-			String childPath = mountService.resolveURIChildPath(resource,
-					"api/fs/list", uri);
-
-			FileObject file = mountFile.resolveFile(childPath);
-
-			for (FileObject f : file.getChildren()) {
-				if (f.getType() == FileType.FOLDER
-						&& (!f.isHidden() || resource.isShowHidden())) {
-					folders.add(new TreeFolder(f, mountFile, resource));
-				}
-			}
-
-			for (FileObject f : file.getChildren()) {
-				if (f.getType() == FileType.FILE
-						&& (!f.isHidden() || resource.isShowHidden())) {
-					folders.add(new TreeFile(f, mountFile));
-				}
-			}
-
-			return new TreeList(folders);
+			String virtualPath = FileUtils.checkStartsWithSlash(
+					FileUtils.stripParentPath(server.getApiPath() + "/fs/list", 
+							URLDecoder.decode(request.getRequestURI(), "UTF-8")));
+			
+			return new ResourceList<VirtualFile>(fileService.listChildren(virtualPath, HTTP_PROTOCOL));
 
 		} catch (FileSystemException e) {
 			throw e;
@@ -275,12 +301,11 @@ public class FileSystemController extends AuthenticatedController {
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
 	@AuthenticationRequired
 	@RequestMapping(value = "fs/search/**", method = RequestMethod.GET, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
-	public BootstrapTablesResult search(HttpServletRequest request,
+	public BootstrapTableResult search(HttpServletRequest request,
 			HttpServletResponse response) throws AccessDeniedException,
 			UnauthorizedException, IOException, SessionTimeoutException {
 
@@ -288,68 +313,29 @@ public class FileSystemController extends AuthenticatedController {
 				sessionUtils.getLocale(request));
 		try {
 
-			int offset = Integer.parseInt(request.getParameter("offset"));
-			int limit = Integer.parseInt(request.getParameter("limit"));
-//			String order = request.getParameter("order");
-			String search = request.getParameter("search");
+			final String virtualPath = FileUtils.checkStartsWithSlash(
+					FileUtils.stripParentPath(server.getApiPath() + "/fs/search", 
+							URLDecoder.decode(request.getRequestURI(), "UTF-8")));
 			
-			List<FileObject> filesAndFolders = new ArrayList<FileObject>();
-			String uri = URLDecoder.decode(request.getRequestURI(), "UTF-8");
-			
-			FileResource resource = mountService.getMountForURIPath(
-					request.getHeader("Host"), "api/fs/search",
-					uri);
-
-			FileObject mountFile = mountService.resolveMountFile(resource);
-
-			String childPath = mountService.resolveURIChildPath(resource,
-					"api/fs/search", uri);
-
-			long totalRecords = 0;
-			
-			FileObject file = mountFile.resolveFile(childPath);
-
-			for (FileObject f : file.getChildren()) {
-				if(StringUtils.isNotBlank(search) && f.getName().getBaseName().indexOf(search) == -1) {
-					continue;
-				}
-				if ((!f.isHidden() && !f.getName().getBaseName().startsWith(".")) || resource.isShowHidden()) {
-					filesAndFolders.add(f);
-					totalRecords++;
-				} 
-			}
-
-			Collections.sort(filesAndFolders, new Comparator<FileObject>() {
-
+			return processDataTablesRequest(request, new BootstrapTablePageProcessor() {
+				
 				@Override
-				public int compare(FileObject o1, FileObject o2) {
-					try {
-						if(o1.getType() == FileType.FILE) {
-							return 10000 + o1.getName().getBaseName().compareToIgnoreCase(o2.getName().getBaseName());
-						} else {
-							return o1.getName().getBaseName().compareToIgnoreCase(o2.getName().getBaseName());
-						}
-					} catch (FileSystemException e) {
-						return 0;
-					}
+				public Long getTotalCount(String searchColumn, String searchPattern)
+						throws UnauthorizedException, AccessDeniedException {
+					return fileService.getSearchCount(virtualPath, "filename", searchPattern);
+				}
+				
+				@Override
+				public Collection<?> getPage(String searchColumn, String searchPattern, int start, int length, ColumnSort[] sorting)
+						throws UnauthorizedException, AccessDeniedException {
+					return fileService.searchFiles(virtualPath, "filename", searchPattern, start, length, sorting, HTTP_PROTOCOL);
+				}
+				
+				@Override
+				public Column getColumn(String column) {
+					return FileSystemColumn.valueOf(column.toUpperCase());
 				}
 			});
-			
-			@SuppressWarnings("rawtypes")
-			List result = new ArrayList();
-			
-			ListIterator<FileObject> itr = filesAndFolders.listIterator(offset);
-			while(itr.hasNext() && limit > 0) {
-				FileObject f = itr.next();
-				if(f.getType()==FileType.FOLDER) {
-					result.add(new TreeFolder(f, mountFile, resource));
-				} else {
-					result.add(new TreeFile(f, mountFile));
-				}
-				limit--;
-			}
-			
-			return new BootstrapTablesResult(result, totalRecords);
 
 		} catch (FileSystemException e) {
 			request.getSession().setAttribute("lastError", e);

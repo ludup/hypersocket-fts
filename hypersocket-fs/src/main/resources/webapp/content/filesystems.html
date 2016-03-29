@@ -1,3 +1,11 @@
+<div id="virtualFileSystem" style="height: 400px">
+	<div class="col-md-6">
+		<div id="treeview"></div>
+	</div>
+	<div class="col-md-6">
+	</div>
+</div>
+
 <div id="tabMounts">
 
 	<div class="modal" id="addMountForm" tabindex="-1" role="dialog" dialog-for="tabMounts">
@@ -16,6 +24,16 @@
 									placeholder="" id="resourceName" maxlength="" name="resourceName" value="">
 								<div>
 									<span class="help-block" localize="mount.name.info"></span>
+								</div>
+							</div>
+						</div>
+						<div class="propertyItem form-group">
+							<label class="col-md-3 control-label" localize="mount.path.label"></label>
+							<div class="propertyValue col-md-9">
+								<input type="text" class="form-control"
+									placeholder="" id="virtualPath" maxlength="" name="virtualPath" value="">
+								<div>
+									<span class="help-block" localize="mount.path.info"></span>
 								</div>
 							</div>
 						</div>
@@ -142,6 +160,20 @@
 
 <script type="text/javascript">
 	$(document).ready(function() {
+				
+		getJSON('fs/tree', null, function(data) {
+			debugger;
+			$('#treeview').jstree({
+				  "core" : {
+				    "animation" : 0,
+				    "themes" : { "stripes" : false },
+				    'data' : data
+				  }
+			});
+    	});
+		
+		
+		
 				$('#tabMounts').localize();
 				
 				var usernameInput = $('#usernameField').textInput({
@@ -265,6 +297,7 @@
 					},
 					url : basePath + '/api/files/file'
 				});
+				
 				$('#resourceName').on('input', function(){
 					logo.defaultTextChanged();
 				});
@@ -311,7 +344,7 @@
 								iconClass: "fa-folder-open-o",
 								enabled: true,
 								action : function(resource) {
-									window.open('viewfs/' + resource.name,
+									window.open('viewfs' + resource.virtualPath,
 											'_blank',
 											'width=1024,height=800,toolbar=0,menubar=0,location=0,status=1,scrollbars=0,resizable=0,left=0,top=0');
 								}}],
@@ -341,6 +374,7 @@
 							    }
 								$('#resourceId').val('');
 								$('#resourceName').val('');
+								$('#virtualPath').val('');
 								
 								$('#serverName').val('');
 								$('#port').val('');
@@ -361,6 +395,7 @@
 								resource = new Object();
 								resource.id = $('#resourceId').val();
 								resource.name = $('#resourceName').val();
+								resource.virtualPath = $('#virtualPath').val();
 								resource.scheme = schemeButton.getValue();
 								resource.server = $('#serverName').val();
 								resource.port = $('#port').val();
@@ -381,6 +416,7 @@
 								
 								$('#resourceId').val(resource.id);
 								$('#resourceName').val(resource.name);
+								$('#virtualPath').val(resource.virtualPath);
 								schemeButton.setValue(resource.scheme);
 								schemeButton.disable();
 								

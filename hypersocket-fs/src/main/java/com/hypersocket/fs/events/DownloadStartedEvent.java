@@ -27,9 +27,9 @@ public class DownloadStartedEvent extends FileOperationEvent implements FileOutp
 	}
 
 	public DownloadStartedEvent(Object source,
-			Throwable t, Session currentSession, String mountName,
+			Throwable t, Session currentSession,
 			String childPath, String protocol) {
-		super(source, EVENT_RESOURCE_KEY, t, currentSession, mountName, childPath, protocol);
+		super(source, EVENT_RESOURCE_KEY, t, currentSession, childPath, protocol);
 	}
 
 	public String[] getResourceKeys() {
