@@ -60,15 +60,15 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 		
 		String filename;
 		VirtualFile parent = null;
+		VirtualFileType type;
 		
 		if(resource.getVirtualPath().equals("/")) {
-			filename = "__ROOT__";
+			return getRootFolder(resource.getRealm());
 		} else {
 			filename = FileUtils.lastPathElement(resource.getVirtualPath());
 			parent = reconcileParent(resource);
-		}
-		
-		return buildFile(new VirtualFile(),
+			
+			return buildFile(new VirtualFile(),
 					filename,
 					resource.getVirtualPath(), 
 					VirtualFileType.MOUNT, 
@@ -78,6 +78,9 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 					parent,
 					resource,
 					resource.getRealm());
+		}
+		
+		
 	}
 	
 	@Override
@@ -125,23 +128,29 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 	}
 	
 	@Override
-	@Transactional
-	public Map<String, VirtualFile> reconcileParents(FileResource resource) {
-		Map<String,VirtualFile> parents = new HashMap<String,VirtualFile>();
-		
-		VirtualFile rootFile = get("filename", "__ROOT__", VirtualFile.class, new FileResourceCriteria(resource));
+	public VirtualFile getRootFolder(Realm realm) {
+		VirtualFile rootFile = get("filename", "__ROOT__", VirtualFile.class);
 		if(rootFile==null) {
 			rootFile = buildFile(new VirtualFile(),
 					"__ROOT__",
 					"/",
-					VirtualFileType.FOLDER,
+					VirtualFileType.ROOT,
 					false,
 					0L,
 					System.currentTimeMillis(),
 					null,
 					null,
-					resource.getRealm());
+					realm);
 		}
+		return rootFile;
+	}
+	
+	@Override
+	@Transactional
+	public Map<String, VirtualFile> reconcileParents(FileResource resource) {
+		Map<String,VirtualFile> parents = new HashMap<String,VirtualFile>();
+		
+		VirtualFile rootFile = getRootFolder(resource.getRealm());
 		parents.put("/", rootFile);
 		VirtualFile currentParent = rootFile;
 		

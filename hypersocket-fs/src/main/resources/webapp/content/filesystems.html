@@ -1,11 +1,3 @@
-<div id="virtualFileSystem" style="height: 400px">
-	<div class="col-md-6">
-		<div id="treeview"></div>
-	</div>
-	<div class="col-md-6">
-	</div>
-</div>
-
 <div id="tabMounts">
 
 	<div class="modal" id="addMountForm" tabindex="-1" role="dialog" dialog-for="tabMounts">
@@ -155,111 +147,337 @@
 			</div>
 		</div>
 	</div>
-
 </div>
-
+<div class="row">
+	<div id="virtualFileSystemTree" class="col-md-4 panel panel-body">
+		<div id="treeview"></div>
+	</div>
+	<div id="virtualFileSystemInfo" class="col-md-8 panel panel-body">
+		<div class="col-md-4">
+			<h4>Resource Name:</h4>
+			<h4>Virtual Path:</h4>
+			<h4>Last Reconciled:</h4>
+			<h4>Scheme:</h4>
+		</div>
+		<div class="col-md-8">
+			<h4><span id="infResourceName">Downloads</span></h4>
+			<h4><span id="infVirtualPath">/downloads</span></h4>
+			<h4><span id="infLastReconcile">Tue, 3 May 2016 11:45</span></h4>
+			<h4><span id="infScheme">Local</span></h4>
+		</div>
+	</div>
+</div>
 <script type="text/javascript">
 	$(document).ready(function() {
 				
 		getJSON('fs/tree', null, function(data) {
-			debugger;
 			$('#treeview').jstree({
 				  "core" : {
 				    "animation" : 0,
 				    "themes" : { "stripes" : false },
 				    'data' : data
-				  }
+				  },
+				  "contextmenu": {
+					  "items": function(node, callback) {
+						  callback([{
+							  label: "Mount Folder",
+							  action: function() {
+								  debugger;
+							  }
+						  },{
+							label: "Edit",
+						     action: function() {
+								debugger;
+						     }
+						  },{
+					    	label: "Delete",
+						    action: function() {
+								  debugger;
+					        }
+						  }]);
+					  }
+				  },
+				  "plugins" : [
+				      "contextmenu"
+				  ]
 			});
     	});
 		
 		
 		
-				$('#tabMounts').localize();
-				
-				var usernameInput = $('#usernameField').textInput({
-					id: 'username',
-					url: 'realms/realm/userVariables/' + $(document).data('session').currentRealm.id,
-					getUrlData: function(data) {
-						return data.resources;
+		$('#tabMounts').localize();
+		
+		var usernameInput = $('#usernameField').textInput({
+			id: 'username',
+			url: 'realms/realm/userVariables/' + $(document).data('session').currentRealm.id,
+			getUrlData: function(data) {
+				return data.resources;
+			}
+		});
+		
+		var pathInput = $('#pathField').textInput({
+			id: 'path',
+			url: 'realms/realm/userVariables/' + $(document).data('session').currentRealm.id,
+			getUrlData: function(data) {
+				return data.resources;
+			}
+		});
+		
+		var passwordInput = $('#passwordField').textInput({
+			id: 'password',
+			inputType: 'password',
+			url: 'realms/realm/userVariables/' + $(document).data('session').currentRealm.id,
+			getUrlData: function(data) {
+				data.resources.push('password');
+				return data.resources;
+			}
+		});
+		
+		var schemeButton = $('#schemeButton').selectButton({
+			id: 'scheme',
+			url: 'mounts/schemes',
+			nameAttr: 'scheme',
+			valueAttr: 'scheme',
+			nameIsResourceKey: true,
+			resourceKeyTemplate: 'mount.{0}.label',
+			name: 'file',
+			value: 'file',
+			getUrlData: function(data) {
+				return data.resources;
+			},
+			changed: function(widget) {
+				var scheme = widget.getSelectedObject();
+				if(scheme.remote) {
+					if(getResourceNoDefault(scheme.scheme + '.server.label')!=null) {
+						$("label[for='server']").text(getResource(scheme.scheme + '.server.label'));
+					} else {
+						$("label[for='server']").text(getResource('mount.server.label'));
 					}
-				});
-				
-				var pathInput = $('#pathField').textInput({
-					id: 'path',
-					url: 'realms/realm/userVariables/' + $(document).data('session').currentRealm.id,
-					getUrlData: function(data) {
-						return data.resources;
+					$('.remoteDiv').show();
+					if(!scheme.showPort) {
+						$('.portDiv').hide();
 					}
-				});
-				
-				var passwordInput = $('#passwordField').textInput({
-					id: 'password',
-					inputType: 'password',
-					url: 'realms/realm/userVariables/' + $(document).data('session').currentRealm.id,
-					getUrlData: function(data) {
-						data.resources.push('password');
-						return data.resources;
+				} else {
+					$('.remoteDiv').hide();
+					$('#serverName').val('');
+					$('#port').val('');
+				}
+				if(scheme.supportsCredentials) {								
+					if(getResourceNoDefault(scheme.scheme + '.username.label')!=null) {
+						$("label[for='username']").text(getResource(scheme.scheme + '.username.label'));
+					} else {
+						$("label[for='username']").text(getResource('mount.username.label'));
 					}
-				});
-				
-				var schemeButton = $('#schemeButton').selectButton({
-					id: 'scheme',
-					url: 'mounts/schemes',
-					nameAttr: 'scheme',
-					valueAttr: 'scheme',
-					nameIsResourceKey: true,
-					resourceKeyTemplate: 'mount.{0}.label',
-					name: 'file',
-					value: 'file',
-					getUrlData: function(data) {
-						return data.resources;
+					if(getResourceNoDefault(scheme.scheme + '.username.info')!=null) {
+						$("span[localize='mount.username.info']").text(getResource(scheme.scheme + '.username.info'));
+					} else {
+						$("span[localize='mount.username.info']").text(getResource('mount.username.info'));
+					}
+					if(getResourceNoDefault(scheme.scheme + '.password.label')!=null) {
+						$("label[for='password']").text(getResource(scheme.scheme + '.password.label'));
+					} else {
+						$("label[for='password']").text(getResource('mount.password.label'));
+					}
+					if(getResourceNoDefault(scheme.scheme + '.password.info')!=null) {
+						$("span[localize='mount.password.info']").text(getResource(scheme.scheme + '.password.info'));
+					} else {
+						$("span[localize='mount.password.info']").text(getResource('mount.password.info'));
+					}
+					$('.credsDiv').show();
+				} else {
+					$('.credsDiv').hide();
+					$('#username').val('');
+					$('#password').val('');
+				}
+				$('#mountProperties').propertyPage({
+					url : 'mounts/template/' + (widget.getValue() ? widget.getValue() : 'file'),
+					showButtons : false,
+					useTemplates : true,
+					canUpdate : currentMenu.canUpdate,
+					additionalTabs : [ {
+						id : "tabFile",
+						name : getResource("mount.details.label")
 					},
-					changed: function(widget) {
-						var scheme = widget.getSelectedObject();
-						if(scheme.remote) {
-							if(getResourceNoDefault(scheme.scheme + '.server.label')!=null) {
-								$("label[for='server']").text(getResource(scheme.scheme + '.server.label'));
-							} else {
-								$("label[for='server']").text(getResource('mount.server.label'));
-							}
-							$('.remoteDiv').show();
-							if(!scheme.showPort) {
-								$('.portDiv').hide();
-							}
-						} else {
-							$('.remoteDiv').hide();
-							$('#serverName').val('');
-							$('#port').val('');
+					{
+						id : "tabAuth",
+						name : getResource("mount.auth.label")
+					},
+					{
+						id : "tabOptions",
+						name : getResource("mount.options.label")
+					},
+					{
+						id : "tabRoles",
+						name : getResource("label.roles")
+					},
+					{
+						id : "tabLogo",
+						name : getResource("mount.logo.label")
+					},]
+				});
+			}
+		});
+		
+		var logo = $('#logo').logoInput({
+			defaultTextCallback: function() {
+				return $('#resourceName').val();
+			},
+			typeCallback: function() {
+				// Matches that used by the client so the shape/colour will be the same
+				return 'FILE';
+			},
+			url : basePath + '/api/files/file'
+		});
+		
+		$('#resourceName').on('input', function(){
+			logo.defaultTextChanged();
+		});
+		
+		if(currentMenu.canCreate || currentMenu.canUpdate) {
+			getJSON('roles/list', null, function(data) {
+				$('#tabRoles').multipleSelect({
+					values : data.resources,
+					selectedIsObjectList : true,
+					resourceKey : 'mount'
+				});
+			});
+		}
+	
+
+		$('#tabMounts').ajaxResourcePage(
+				{
+					id : "Mounts",
+					tableUrl : "mounts/table",
+					title: getResource("filesystems.label"),
+					icon: 'fa-folder-open',
+					resourceUrl : "mounts/mount",
+					importUrl: 'mounts/import',
+					exportUrl: 'mounts/export',
+					logo: true,
+					logoResourceTypeCallback: function(resource) {
+						return 'FILE';
+					},
+					fields : [ {
+						name : "name",
+						sortable: true
+					}, {
+						name : "scheme",
+						isResourceKey : true,
+						sortable: true
+					}, {
+						name : "url"
+					} ],
+					resourceKey : "mount",
+					canCreate: currentMenu.canCreate,
+					canUpdate: currentMenu.canUpdate,
+					canDelete: currentMenu.canDelete,
+					additionalActions : [ { resourceKey: "openMount",
+						iconClass: "fa-folder-open-o",
+						enabled: true,
+						action : function(resource) {
+							window.open('viewfs' + resource.virtualPath,
+									'_blank',
+									'width=1024,height=800,toolbar=0,menubar=0,location=0,status=1,scrollbars=0,resizable=0,left=0,top=0');
+						}}],
+					validate : function() {
+
+						if ($('#resourceName').val() == '') {
+							showError("error.nameRequired");
+							return false;
 						}
-						if(scheme.supportsCredentials) {								
-							if(getResourceNoDefault(scheme.scheme + '.username.label')!=null) {
-								$("label[for='username']").text(getResource(scheme.scheme + '.username.label'));
-							} else {
-								$("label[for='username']").text(getResource('mount.username.label'));
+
+						if ($('#serverName').val() != '') {
+							if (!isValidHostname($('#serverName').val())) {
+								showError("error.hostnameInvalid");
+								return false;
 							}
-							if(getResourceNoDefault(scheme.scheme + '.username.info')!=null) {
-								$("span[localize='mount.username.info']").text(getResource(scheme.scheme + '.username.info'));
-							} else {
-								$("span[localize='mount.username.info']").text(getResource('mount.username.info'));
-							}
-							if(getResourceNoDefault(scheme.scheme + '.password.label')!=null) {
-								$("label[for='password']").text(getResource(scheme.scheme + '.password.label'));
-							} else {
-								$("label[for='password']").text(getResource('mount.password.label'));
-							}
-							if(getResourceNoDefault(scheme.scheme + '.password.info')!=null) {
-								$("span[localize='mount.password.info']").text(getResource(scheme.scheme + '.password.info'));
-							} else {
-								$("span[localize='mount.password.info']").text(getResource('mount.password.info'));
-							}
-							$('.credsDiv').show();
-						} else {
-							$('.credsDiv').hide();
-							$('#username').val('');
-							$('#password').val('');
 						}
+
+						return true;
+					},
+					clearDialog : function(isCreate) {
+						
+						schemeButton.enable();
+						schemeButton.setValue('file');
+						
+					    if(isCreate) {
+					    	schemeButton.changed();
+					    }
+						$('#resourceId').val('');
+						$('#resourceName').val('');
+						$('#virtualPath').val('');
+						
+						$('#serverName').val('');
+						$('#port').val('');
+						
+						pathInput.setValue('');
+						usernameInput.setValue('');
+						passwordInput.setValue('');
+						logo.clear();
+						
+						$('#readOnly').prop('checked', false);
+						$('#showHidden').prop('checked', false);
+						$('#showFolders').prop('checked', true);
+						
+						$('#tabRoles').multipleSelect();
+						
+					},
+					createResource : function() {
+						resource = new Object();
+						resource.id = $('#resourceId').val();
+						resource.name = $('#resourceName').val();
+						resource.virtualPath = $('#virtualPath').val();
+						resource.scheme = schemeButton.getValue();
+						resource.server = $('#serverName').val();
+						resource.port = $('#port').val();
+						resource.path = pathInput.getValue();
+						resource.username = usernameInput.getValue();
+						resource.password = passwordInput.getValue();
+						resource.readOnly = $('#readOnly').prop('checked') ? true : false;
+						resource.showHidden = $('#showHidden').prop('checked') ? true : false;
+						resource.showFolders = $('#showFolders').prop('checked') ? true : false;
+						resource.logo = logo.getValue();
+						resource.roles = $('#tabRoles').multipleSelectValues();
+						$('#mountProperties').saveProperties(true, function(items) {
+							resource.properties = items;
+						});
+						return resource;
+					},
+					displayResource : function(resource) {
+						
+						$('#resourceId').val(resource.id);
+						$('#resourceName').val(resource.name);
+						$('#virtualPath').val(resource.virtualPath);
+						schemeButton.setValue(resource.scheme);
+						schemeButton.disable();
+						
+						$('#serverName').val(resource.server);
+						$('#port').val(resource.port);
+						pathInput.setValue(resource.path);
+						usernameInput.setValue(resource.username);
+						passwordInput.setValue(resource.password);
+						
+						if(resource.logo == '')
+							logo.clear();
+						else
+							logo.setValue(resource.logo);
+						if(resource.readOnly) {
+							$('#readOnly').prop('checked', true);
+						}
+						if(resource.showHidden) {
+							$('#showHidden').prop('checked', true);
+						}
+						if(resource.showFolders) {
+							$('#showFolders').prop('checked', true);
+						}
+						$('#tabRoles').multipleSelect({
+							selected : resource.roles,
+							selectedIsObjectList : true,
+							resourceKey : 'mount'
+						});
+						
 						$('#mountProperties').propertyPage({
-							url : 'mounts/template/' + (widget.getValue() ? widget.getValue() : 'file'),
+							url : 'mounts/properties/' + resource.id,
 							showButtons : false,
 							useTemplates : true,
 							canUpdate : currentMenu.canUpdate,
@@ -284,198 +502,11 @@
 								name : getResource("mount.logo.label")
 							},]
 						});
+					},
+					complete : function() {
+						loadComplete();
 					}
 				});
-				
-				var logo = $('#logo').logoInput({
-					defaultTextCallback: function() {
-						return $('#resourceName').val();
-					},
-					typeCallback: function() {
-						// Matches that used by the client so the shape/colour will be the same
-						return 'FILE';
-					},
-					url : basePath + '/api/files/file'
-				});
-				
-				$('#resourceName').on('input', function(){
-					logo.defaultTextChanged();
-				});
-				
-				if(currentMenu.canCreate || currentMenu.canUpdate) {
-					getJSON('roles/list', null, function(data) {
-						$('#tabRoles').multipleSelect({
-							values : data.resources,
-							selectedIsObjectList : true,
-							resourceKey : 'mount'
-						});
-					});
-				}
-			
-
-				$('#tabMounts').ajaxResourcePage(
-						{
-							id : "Mounts",
-							tableUrl : "mounts/table",
-							title: getResource("filesystems.label"),
-							icon: 'fa-folder-open',
-							resourceUrl : "mounts/mount",
-							importUrl: 'mounts/import',
-							exportUrl: 'mounts/export',
-							logo: true,
-							logoResourceTypeCallback: function(resource) {
-								return 'FILE';
-							},
-							fields : [ {
-								name : "name",
-								sortable: true
-							}, {
-								name : "scheme",
-								isResourceKey : true,
-								sortable: true
-							}, {
-								name : "url"
-							} ],
-							resourceKey : "mount",
-							canCreate: currentMenu.canCreate,
-							canUpdate: currentMenu.canUpdate,
-							canDelete: currentMenu.canDelete,
-							additionalActions : [ { resourceKey: "openMount",
-								iconClass: "fa-folder-open-o",
-								enabled: true,
-								action : function(resource) {
-									window.open('viewfs' + resource.virtualPath,
-											'_blank',
-											'width=1024,height=800,toolbar=0,menubar=0,location=0,status=1,scrollbars=0,resizable=0,left=0,top=0');
-								}}],
-							validate : function() {
-
-								if ($('#resourceName').val() == '') {
-									showError("error.nameRequired");
-									return false;
-								}
-
-								if ($('#serverName').val() != '') {
-									if (!isValidHostname($('#serverName').val())) {
-										showError("error.hostnameInvalid");
-										return false;
-									}
-								}
-
-								return true;
-							},
-							clearDialog : function(isCreate) {
-								
-								schemeButton.enable();
-								schemeButton.setValue('file');
-								
-							    if(isCreate) {
-							    	schemeButton.changed();
-							    }
-								$('#resourceId').val('');
-								$('#resourceName').val('');
-								$('#virtualPath').val('');
-								
-								$('#serverName').val('');
-								$('#port').val('');
-								
-								pathInput.setValue('');
-								usernameInput.setValue('');
-								passwordInput.setValue('');
-								logo.clear();
-								
-								$('#readOnly').prop('checked', false);
-								$('#showHidden').prop('checked', false);
-								$('#showFolders').prop('checked', true);
-								
-								$('#tabRoles').multipleSelect();
-								
-							},
-							createResource : function() {
-								resource = new Object();
-								resource.id = $('#resourceId').val();
-								resource.name = $('#resourceName').val();
-								resource.virtualPath = $('#virtualPath').val();
-								resource.scheme = schemeButton.getValue();
-								resource.server = $('#serverName').val();
-								resource.port = $('#port').val();
-								resource.path = pathInput.getValue();
-								resource.username = usernameInput.getValue();
-								resource.password = passwordInput.getValue();
-								resource.readOnly = $('#readOnly').prop('checked') ? true : false;
-								resource.showHidden = $('#showHidden').prop('checked') ? true : false;
-								resource.showFolders = $('#showFolders').prop('checked') ? true : false;
-								resource.logo = logo.getValue();
-								resource.roles = $('#tabRoles').multipleSelectValues();
-								$('#mountProperties').saveProperties(true, function(items) {
-									resource.properties = items;
-								});
-								return resource;
-							},
-							displayResource : function(resource) {
-								
-								$('#resourceId').val(resource.id);
-								$('#resourceName').val(resource.name);
-								$('#virtualPath').val(resource.virtualPath);
-								schemeButton.setValue(resource.scheme);
-								schemeButton.disable();
-								
-								$('#serverName').val(resource.server);
-								$('#port').val(resource.port);
-								pathInput.setValue(resource.path);
-								usernameInput.setValue(resource.username);
-								passwordInput.setValue(resource.password);
-								
-								if(resource.logo == '')
-									logo.clear();
-								else
-									logo.setValue(resource.logo);
-								if(resource.readOnly) {
-									$('#readOnly').prop('checked', true);
-								}
-								if(resource.showHidden) {
-									$('#showHidden').prop('checked', true);
-								}
-								if(resource.showFolders) {
-									$('#showFolders').prop('checked', true);
-								}
-								$('#tabRoles').multipleSelect({
-									selected : resource.roles,
-									selectedIsObjectList : true,
-									resourceKey : 'mount'
-								});
-								
-								$('#mountProperties').propertyPage({
-									url : 'mounts/properties/' + resource.id,
-									showButtons : false,
-									useTemplates : true,
-									canUpdate : currentMenu.canUpdate,
-									additionalTabs : [ {
-										id : "tabFile",
-										name : getResource("mount.details.label")
-									},
-									{
-										id : "tabAuth",
-										name : getResource("mount.auth.label")
-									},
-									{
-										id : "tabOptions",
-										name : getResource("mount.options.label")
-									},
-									{
-										id : "tabRoles",
-										name : getResource("label.roles")
-									},
-									{
-										id : "tabLogo",
-										name : getResource("mount.logo.label")
-									},]
-								});
-							},
-							complete : function() {
-								loadComplete();
-							}
-						});
 
 			});
 </script>

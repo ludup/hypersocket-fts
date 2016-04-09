@@ -42,6 +42,7 @@ import com.hypersocket.upload.FileUploadService;
 import com.hypersocket.utils.FileUtils;
 import com.hypersocket.vfs.VirtualFile;
 import com.hypersocket.vfs.VirtualFileService;
+import com.hypersocket.vfs.VirtualFileType;
 
 @Controller
 public class FileSystemController extends ResourceController {
@@ -96,7 +97,7 @@ public class FileSystemController extends ResourceController {
 			rootNode.setParent("#");
 			rootNode.setText("/");
 			rootNode.getState().opened = true;
-			
+			rootNode.setFileType(VirtualFileType.ROOT);
 			Map<String,TreeNode> nodes = new HashMap<String,TreeNode>();
 			for(VirtualFile file : mounts) {
 				if(file.getParent()!=null) {
@@ -105,7 +106,7 @@ public class FileSystemController extends ResourceController {
 					node.setId(String.valueOf(file.getId()));
 					node.setParent(String.valueOf(file.getParent().getId()));
 					node.getState().opened = true;
-					
+					node.setFileType(file.getType());
 					nodes.get(String.valueOf(file.getParent().getId())).children.add(node);
 					nodes.put(node.getId(), node);
 					

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.hypersocket.vfs.VirtualFileType;
 
 public class TreeNode {
 
@@ -13,6 +14,7 @@ public class TreeNode {
 	String icon;
 	TreeState state = new TreeState();
 	List<TreeNode> children = new ArrayList<TreeNode>();
+	VirtualFileType fileType; 
 	
 	@JsonIgnore
 	public String getId() {
@@ -73,6 +75,18 @@ public class TreeNode {
 	public void setChildren(List<TreeNode> children) {
 		this.children = children;
 	}
+
+	
+
+	public VirtualFileType getFileType() {
+		return fileType;
+	}
+
+
+	public void setFileType(VirtualFileType fileType) {
+		this.fileType = fileType;
+	}
+
 
 
 	class TreeState {

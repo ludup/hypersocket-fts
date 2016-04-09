@@ -193,6 +193,7 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 		jQueryUIContentHandler.addAlias("^/viewfs/.*$", "content/fileview.html");
 		indexPage.addScript("${uiPath}/js/jstree.js");
 		indexPage.addStyleSheet("${uiPath}/css/themes/default/style.min.css");
+		indexPage.addStyleSheet("${uiPath}/css/fs.css");
 		
 		if (log.isDebugEnabled()) {
 			log.debug("FileResourceService constructed");

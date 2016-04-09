@@ -7,6 +7,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 
 import com.hypersocket.fs.FileResource;
+import com.hypersocket.realm.Realm;
 import com.hypersocket.repository.AbstractRepository;
 import com.hypersocket.tables.ColumnSort;
 
@@ -46,5 +47,7 @@ public interface VirtualFileRepository extends AbstractRepository<Long> {
 	int removeReconciledFolder(VirtualFile toDelete);
 
 	Collection<VirtualFile> getMounts();
+
+	VirtualFile getRootFolder(Realm realm);
 
 }

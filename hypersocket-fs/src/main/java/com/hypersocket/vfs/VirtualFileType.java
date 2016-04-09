@@ -2,5 +2,5 @@ package com.hypersocket.vfs;
 
 public enum VirtualFileType {
 
-	FILE, FOLDER, MOUNT
+	FILE, FOLDER, MOUNT, ROOT
 }
