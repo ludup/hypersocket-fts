@@ -43,7 +43,28 @@
 
 	$.fn.editable.defaults.mode = 'inline';
 
-
+	function createFsUrl(path, operation, virtualFile, additionalParams) {
+		
+		var url = basePath + path + operation + virtualFile.virtualPath;
+		if(virtualFile.conflicted) {
+			url += '?conflicted=true&vfsid=' + virtualFile.id;
+			if(additionalParams) {
+				urk += "&" + additionalParams;
+			}
+		} else if(additionalParams) {
+			url += '?' + additionalParams;
+		}
+		return url;
+	}
+	
+	function createApiUrl(operation, virtualFile, additionalParams) {
+		return createFsUrl('/api/fs/', operation, virtualFile, additionalParams);
+	}
+	
+	function createViewUrl(virtualFile, additionalParams) {
+		return createFsUrl('/ui/', 'viewfs', virtualFile, additionalParams);
+	}
+	
 	function actionFormatter(value, row, index) {
 
 		var additionalActions = $(document).data('actions');
@@ -141,7 +162,7 @@
 
 		debugger;
 		var outputHtml = '';
-		if (row.type != 'FOLDER' && row.type != 'MOUNT') {
+		if (row.type != 'FOLDER' && row.type != 'MOUNTED_FOLDER') {
 
 			var className = "fa-file-o";
 			var canOpen = true;
@@ -159,8 +180,7 @@
 			}
 
 			if (canOpen) {
-				outputHtml += '<a href="' + baseURL + '/api/fs/download'
-						+ row.virtualPath + '?forceDownload=false">';
+				outputHtml += '<a href="' + createApiUrl('download', row, 'forceDownload=false') + '">';
 			}
 			outputHtml += '<i class="fileIcon fa ' + className + '"></i>';
 
@@ -169,13 +189,13 @@
 			}
 
 			outputHtml += '<span class="fileLabel' + (row.conflicted ? ' conflicted' : '') + '" data-original="' 
-					+ row.filename + '">'
+					+ row.filename + '" data-unique="' + row.id + '">'
 					+ row.displayName + '</span>';
 
 		} else {
-			outputHtml += '<a href="' + viewfsPath + row.virtualPath + '"><i class="fileIcon fa fa-folder-open"></i></a><span class="fileLabel' 
+			outputHtml += '<a href="' + createViewUrl(row) + '"><i class="fileIcon fa fa-folder-open"></i></a><span class="fileLabel' 
 					+ (row.conflicted ? ' conflicted' : '') + '" data-original="' 
-					+ row.filename + '">'
+					+ row.filename + '" data-unique="' + row.id + '">'
 					+ row.displayName + '</span>';
 		}
 
@@ -184,7 +204,7 @@
 
 	window.actionEvents = {
 		'click .download' : function(e, value, row, index) {
-			window.location = baseURL + '/api/fs/download' + row.virtualPath + '?forceDownload=true';
+			window.location = createApiUrl('download', row, 'forceDownload=true');
 		},
 		'click .edit' : function(e, value, row, index) {
 			e.stopPropagation();
@@ -227,12 +247,11 @@
 						return $(this).closest('td').find('.fileLabel').data('original');
 					},
 					url : function(params) {
-						
+						debugger;
+						var row = $('#table').bootstrapTable('getRowByUniqueId', $(this).data('unique'));
 						var d = new $.Deferred;
 						var original = $(this).data('original');
-						$.post(
-								basePath + '/api/fs/rename' + mountPath
-										+ original,
+						$.post( createApiUrl('rename', row, 'forceDownload=false'),
 								"toUri=" + basePath + '/api/fs/rename'
 										+ mountPath + params.value,
 								function(data) {
@@ -310,7 +329,7 @@
 														var row = $(document).data('deleteRow');
 														
 														$.each(row, function(idx, row) {
-															getJSON('fs/delete/' + mountPath + row.displayName,
+															getJSON(createApiUrl('delete', row),
 																	null,
 																	function(data) {
 																		if (data.success) {
@@ -391,6 +410,7 @@
 										sortOrder: 'asc',
 										showRefresh : true,
 										showToggle : true,
+										uniqueId: 'id',
 										sidePagination : 'server',
 										onLoadSuccess : function(data) {
 											rebindEditable();

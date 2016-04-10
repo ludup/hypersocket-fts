@@ -302,8 +302,9 @@ public class FileSystemController extends ResourceController {
 
 		try {
 
-			String virtualPath = FileUtils.checkStartsWithSlash(FileUtils.stripParentPath(server.getApiPath() + "/fs/upload", 
-					URLDecoder.decode(request.getRequestURI(), "UTF-8")));
+			String virtualPath = FileUtils.checkEndsWithSlash(
+					FileUtils.checkStartsWithSlash(FileUtils.stripParentPath(server.getApiPath() + "/fs/upload", 
+					URLDecoder.decode(request.getRequestURI(), "UTF-8"))));
 			virtualPath = virtualPath + FileUtils.lastPathElement(file.getOriginalFilename());
 			
 			return new ResourceStatus<FileUpload>(fileService.uploadFile(

@@ -70,4 +70,12 @@ public interface VirtualFileService extends AuthenticatedService {
 
 	Collection<FileResource> getRootMounts() throws AccessDeniedException;
 
+	Boolean deleteFile(VirtualFile file, String proto) throws IOException, AccessDeniedException;
+
+	VirtualFile renameFile(VirtualFile fromFile, String toVirtualPath, String proto)
+			throws IOException, AccessDeniedException;
+
+	void downloadFile(VirtualFile file, HttpDownloadProcessor processor, String proto)
+			throws AccessDeniedException, IOException;
+
 }

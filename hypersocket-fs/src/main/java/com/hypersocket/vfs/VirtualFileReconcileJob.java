@@ -50,6 +50,11 @@ public class VirtualFileReconcileJob extends AbstractReconcileJob<FileResource> 
 	int filesUpdated;
 	int filesCreated;
 	int filesDeleted;
+	int foldersCreated;
+	int foldersUpdated;
+	int foldersDeleted;
+	
+	List<String> conflictedPaths = new ArrayList<String>();
 	
 	int numOperations;
 	int errors;
@@ -85,6 +90,7 @@ public class VirtualFileReconcileJob extends AbstractReconcileJob<FileResource> 
 						if(isConflicted(virtualFiles, resource)) {
 							childDisplayName = String.format("%s (%s)", filename, resource.getName());
 							childConflicted = true;
+							conflictedPaths.add(folder.getVirtualPath() + filename);
 						}
 						
 						for(VirtualFile virtual : virtualFiles) {
@@ -111,6 +117,7 @@ public class VirtualFileReconcileJob extends AbstractReconcileJob<FileResource> 
 								resource);
 						if(childFolder==null) {
 							childFolder = repository.reconcileNewFolder(childDisplayName, folder, obj, resource, childConflicted);
+							foldersCreated++;
 						}
 						reconcileFolder(childDisplayName, obj, resource, childFolder, childConflicted);
 					} else {
@@ -132,6 +139,7 @@ public class VirtualFileReconcileJob extends AbstractReconcileJob<FileResource> 
 					}
 					if(toDelete.isFolder()) {
 						filesDeleted += repository.removeReconciledFolder(toDelete);
+						foldersDeleted++;
 					} else {
 						repository.removeReconciledFile(toDelete);
 						filesDeleted++;

@@ -28,7 +28,7 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 	@Override
 	@Transactional(readOnly=true)
 	public Collection<VirtualFile> getVirtualFiles(VirtualFile parent, FileResource... resources) {
-		return list("parent", parent, VirtualFile.class, new FileResourceCriteria(resources));
+		return list("parent", parent, VirtualFile.class, new FileResourceCriteria(resources), new ConflictCriteria());
 	}
 
 	@Override
@@ -40,13 +40,13 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 	@Override
 	@Transactional(readOnly=true)
 	public VirtualFile getVirtualFileByResource(String virtualPath, FileResource... resources) {
-		return get(VirtualFile.class, new VirtualPathCriteria(virtualPath), new FileResourceCriteria(resources));
+		return get(VirtualFile.class, new VirtualPathCriteria(virtualPath), new FileResourceCriteria(resources), new ConflictCriteria());
 	}
 	
 	@Override
 	@Transactional(readOnly=true)
 	public VirtualFile getVirtualFile(String virtualPath) {
-		return get(VirtualFile.class, new VirtualPathCriteria(virtualPath));
+		return get(VirtualFile.class, new VirtualPathCriteria(virtualPath), new ConflictCriteria());
 	}
 		
 	@Override
@@ -284,7 +284,7 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 	@Override
 	@Transactional(readOnly=true)
 	public Collection<VirtualFile> search(String searchColumn, String search, int start, int length, ColumnSort[] sort, VirtualFile parent, FileResource... resources) {
-		return super.search(VirtualFile.class, searchColumn, search, start, length, sort, new ParentCriteria(parent), new FileResourceCriteria(resources));
+		return super.search(VirtualFile.class, searchColumn, search, start, length, sort, new ParentCriteria(parent), new FileResourceCriteria(resources), new ConflictCriteria());
 	}
 
 	@Override
