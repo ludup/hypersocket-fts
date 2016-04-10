@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileType;
 import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.criterion.Order;
@@ -33,15 +34,21 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 	@Override
 	@Transactional(readOnly=true)
 	public VirtualFile getMountFile(FileResource resource) {
-		return get("mount", resource, VirtualFile.class, new VirtualFileTypeCriteria(VirtualFileType.MOUNT));
+		return get("mount", resource, VirtualFile.class, new VirtualFileTypeCriteria(VirtualFileType.MOUNTED_FOLDER, VirtualFileType.MOUNTED_FILE));
 	}
 	
 	@Override
 	@Transactional(readOnly=true)
-	public VirtualFile getVirtualFile(String virtualPath, FileResource... resources) {
+	public VirtualFile getVirtualFileByResource(String virtualPath, FileResource... resources) {
 		return get(VirtualFile.class, new VirtualPathCriteria(virtualPath), new FileResourceCriteria(resources));
 	}
 	
+	@Override
+	@Transactional(readOnly=true)
+	public VirtualFile getVirtualFile(String virtualPath) {
+		return get(VirtualFile.class, new VirtualPathCriteria(virtualPath));
+	}
+		
 	@Override
 	@Transactional(readOnly=true)
 	public Collection<VirtualFile> getReconciledFiles(VirtualFile parent) {
@@ -56,13 +63,13 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 	
 	@Override
 	@Transactional
-	public VirtualFile reconcileMount(FileResource resource, FileObject fileObject) throws FileSystemException {
+	public VirtualFile reconcileMount(String displayName, FileResource resource, 
+			FileObject fileObject) throws FileSystemException {
 		
 		String filename;
 		VirtualFile parent = null;
-		VirtualFileType type;
 		
-		if(resource.getVirtualPath().equals("/")) {
+		if(resource.getVirtualPath().equals("/") && fileObject.getType()!=FileType.FILE) {
 			return getRootFolder(resource.getRealm());
 		} else {
 			filename = FileUtils.lastPathElement(resource.getVirtualPath());
@@ -70,13 +77,15 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 			
 			return buildFile(new VirtualFile(),
 					filename,
+					displayName,
 					resource.getVirtualPath(), 
-					VirtualFileType.MOUNT, 
+					fileObject.getType()==FileType.FILE ? VirtualFileType.MOUNTED_FILE : VirtualFileType.MOUNTED_FOLDER, 
 					!resource.isReadOnly(), 
-					0L, 
+					fileObject.getType()==FileType.FILE ? fileObject.getContent().getSize() : 0L, 
 					fileObject.getContent().getLastModifiedTime(), 
 					parent,
 					resource,
+					!displayName.equals(filename),
 					resource.getRealm());
 		}
 		
@@ -85,37 +94,43 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 	
 	@Override
 	@Transactional
-	public VirtualFile reconcileNewFolder(VirtualFile parent, FileObject fileObject) throws FileSystemException {
+	public VirtualFile reconcileNewFolder(String displayName, VirtualFile parent, FileObject fileObject, 
+			FileResource resource, boolean conflicted) throws FileSystemException {
 		
 		String filename = fileObject.getName().getBaseName();
 		
 		return buildFile(new VirtualFile(),
 					filename,
+					displayName,
 					FileUtils.checkEndsWithSlash(parent.getVirtualPath() + filename) , 
 					VirtualFileType.FOLDER, 
-					parent.isMounted() && !parent.getMount().isReadOnly(), 
+					parent.isMounted() && !resource.isReadOnly(), 
 					0L, 
 					fileObject.getContent().getLastModifiedTime(), 
 					parent,
-					parent.getMount(),
+					resource,
+					conflicted,
 					parent.getRealm());
 	}
 	
 	@Override
 	@Transactional
-	public VirtualFile reconcileFolder(VirtualFile folder, FileObject fileObject) throws FileSystemException {
+	public VirtualFile reconcileFolder(VirtualFile folder, FileObject fileObject, 
+			FileResource resource, boolean conflicted) throws FileSystemException {
 		
 		String filename = fileObject.getName().getBaseName();
 		
 		return buildFile(folder,
 					filename,
+					filename,
 					FileUtils.checkEndsWithSlash(folder.getParent().getVirtualPath() + filename) , 
 					VirtualFileType.FOLDER, 
-					folder.getParent().isMounted() && !folder.getParent().getMount().isReadOnly(), 
+					folder.getParent().isMounted() && !resource.isReadOnly(), 
 					0L, 
 					fileObject.getContent().getLastModifiedTime(), 
 					folder.getParent(),
-					folder.getParent().getMount(),
+					resource,
+					conflicted,
 					folder.getRealm());
 	}
 	
@@ -134,12 +149,14 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 			rootFile = buildFile(new VirtualFile(),
 					"__ROOT__",
 					"/",
+					"/",
 					VirtualFileType.ROOT,
 					false,
 					0L,
 					System.currentTimeMillis(),
 					null,
 					null,
+					false,
 					realm);
 		}
 		return rootFile;
@@ -162,6 +179,7 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 				parent = buildFile(
 						new VirtualFile(),
 						FileUtils.stripPath(path),
+						FileUtils.stripPath(path),
 						path,
 						VirtualFileType.FOLDER,
 						false,
@@ -169,6 +187,7 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 						System.currentTimeMillis(),
 						currentParent,
 						null,
+						false,
 						resource.getRealm());
 			}
 			currentParent = parent;
@@ -178,13 +197,15 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 		return parents;
 	}
 	
-	VirtualFile buildFile(VirtualFile file, String filename, String virtualPath, 
+	VirtualFile buildFile(VirtualFile file, String filename, String displayName, String virtualPath, 
 			VirtualFileType type, boolean writable,
-			Long size, Long lastModified, VirtualFile parent, FileResource resource,
+			Long size, Long lastModified, VirtualFile parent, 
+			FileResource resource, boolean conflicted,
 			Realm realm) {
 		
 		file.setRealm(realm);
 		file.setFilename(filename);
+		file.setDisplayName(displayName);
 		file.setVirtualPath(virtualPath);
 		file.setType(type);
 		file.setWritable(writable);
@@ -192,12 +213,14 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 		file.setLastModified(lastModified);
 		file.setParent(parent);
 		file.setMount(resource);
+		file.setConflicted(conflicted);
 		file.setHash(VirtualFileUtils.generateHash(filename, 
 				virtualPath, 
 				type.ordinal(), 
 				lastModified, 
 				size, 
-				writable));
+				writable,
+				conflicted));
 		save(file);
 		return file;
 	}
@@ -210,9 +233,10 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 
 	@Override
 	@Transactional
-	public VirtualFile reconcileFile(FileObject obj, FileResource resource, VirtualFile parent) throws FileSystemException {
+	public VirtualFile reconcileFile(String displayName, FileObject obj, FileResource resource, VirtualFile parent) throws FileSystemException {
 		return buildFile(new VirtualFile(), 
 				obj.getName().getBaseName(), 
+				displayName,
 				FileUtils.checkEndsWithSlash(parent.getVirtualPath()) + obj.getName().getBaseName(), 
 				VirtualFileType.FILE, 
 				!resource.isReadOnly(), 
@@ -220,14 +244,16 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 				obj.getContent().getLastModifiedTime(), 
 				parent, 
 				resource,
+				!displayName.equals(obj.getName().getBaseName()),
 				resource.getRealm());
 	}
 	
 	@Override
 	@Transactional
-	public VirtualFile reconcileFile(FileObject obj, FileResource resource, VirtualFile virtual, VirtualFile parent) throws FileSystemException {
+	public VirtualFile reconcileFile(String displayName, FileObject obj, FileResource resource, VirtualFile virtual, VirtualFile parent) throws FileSystemException {
 		return buildFile(virtual, 
-				obj.getName().getBaseName(), 
+				obj.getName().getBaseName(),
+				displayName,
 				FileUtils.checkEndsWithSlash(parent.getVirtualPath()) + obj.getName().getBaseName(), 
 				VirtualFileType.FILE, 
 				!resource.isReadOnly(), 
@@ -235,6 +261,7 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 				obj.getContent().getLastModifiedTime(), 
 				parent, 
 				resource,
+				!displayName.equals(obj.getName().getBaseName()),
 				resource.getRealm());
 	}
 	
@@ -255,8 +282,9 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 			}
 			filesToDelete++;
 		}
-		Query update = createQuery("delete from VirtualFile where parent = :parent", true);
+		Query update = createQuery("delete from VirtualFile where parent = :parent and mount = :mount", true);
 		update.setEntity("parent", toDelete);
+		update.setEntity("mount", toDelete.getMount());
 		update.executeUpdate();
 		
 		return filesToDelete;
@@ -272,7 +300,7 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 			public void configure(Criteria criteria) {
 				criteria.add(
 						Restrictions.or(
-						Restrictions.eq("type", VirtualFileType.MOUNT),
+						Restrictions.eq("type", VirtualFileType.MOUNTED_FOLDER),
 						Restrictions.isNull("mount")));
 				criteria.addOrder(Order.asc("id"));
 			}

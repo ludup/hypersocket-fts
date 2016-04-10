@@ -97,7 +97,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	@Override
 	public VirtualFile getFile(String virtualPath) throws FileNotFoundException, AccessDeniedException {
 		
-		VirtualFile file = virtualRepository.getVirtualFile(virtualPath, getPrincipalResources());
+		VirtualFile file = virtualRepository.getVirtualFileByResource(virtualPath, getPrincipalResources());
 		if(file==null) {
 			throw new FileNotFoundException(virtualPath);
 		}
@@ -149,7 +149,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			VirtualFile parent = getFile(parentPath);
 			
 			FileObject newFolder = resolver.processRequest(virtualPath);
-			return virtualRepository.reconcileFile(newFolder, parent.getMount(), parent);
+			return virtualRepository.reconcileFile(newFolder.getName().getBaseName(), newFolder, parent.getMount(), parent);
 		}
 	}
 	
@@ -170,7 +170,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			VirtualFile parent = getFile(parentPath);
 			
 			FileObject newFolder = resolver.processRequest(virtualPath);
-			return virtualRepository.reconcileNewFolder(parent, newFolder);
+			return virtualRepository.reconcileNewFolder(newFolder.getName().getBaseName(), parent, newFolder, parent.getMount(), false);
 			
 		}
 	}
@@ -180,12 +180,23 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		
 		virtualPath = FileUtils.checkEndsWithSlash(normalise(virtualPath));
 		
+		String newName = "untitled folder";
+		int i = 1;
+		while(true) {
+			try {
+				getFile(FileUtils.checkEndsWithSlash(virtualPath) + newName);				
+				newName = "untitled folder " + i++;
+			} catch (FileNotFoundException e) {
+				break;
+			}
+		}
+		
 		VirtualFile parentFile = getFile(virtualPath);
 
-		CreateFolderFileResolver resolver = new CreateFolderFileResolver(null, proto);
+		CreateFolderFileResolver resolver = new CreateFolderFileResolver(newName, proto);
 		
 		FileObject newFolder = resolver.processRequest(virtualPath);
-		return virtualRepository.reconcileNewFolder(parentFile, newFolder);
+		return virtualRepository.reconcileNewFolder(newFolder.getName().getBaseName(), parentFile, newFolder, parentFile.getMount(), false);
 	}
 
 	@Override
@@ -207,12 +218,17 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			}
 			
 			VirtualFile parent = getFile(FileUtils.stripLastPathElement(toVirtualPath));
-
+			VirtualFile existingFile = virtualRepository.getVirtualFile(toVirtualPath);
+		
 			if(fromFile.isFolder()) {
-				return virtualRepository.reconcileFolder(fromFile, resolver.getToFile());
+				return virtualRepository.reconcileFolder(fromFile, resolver.getToFile(), fromFile.getMount(), existingFile!=null);
 			} else {
+				String displayName = fromFile.getFilename();
+				if(existingFile!=null) {
+					displayName = String.format("%s (%s)", displayName, parent.getMount().getName());
+				}
 				virtualRepository.removeReconciledFile(fromFile);	
-				return virtualRepository.reconcileFile(resolver.getToFile(), parent.getMount(), parent);
+				return virtualRepository.reconcileFile(displayName, resolver.getToFile(), parent.getMount(), parent);
 			}
 		}
 	}
@@ -223,14 +239,19 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		fromPath = normalise(fromPath);
 		toPath = normalise(toPath);
 
-		VirtualFile fromFile = getFile(fromPath);
 		VirtualFile toParent = getFile(FileUtils.stripLastPathElement(toPath));
 		
 		CopyFileResolver resolver = new CopyFileResolver(proto);
 		boolean success = resolver.processRequest(fromPath, toPath);
 
+		VirtualFile existingFile = virtualRepository.getVirtualFile(toPath);
+		
+		String displayName = FileUtils.lastPathElement(fromPath);
+		if(existingFile!=null) {
+			displayName = String.format("%s (%s)", displayName, toParent.getMount().getName());
+		}
 		if(success) {
-			virtualRepository.reconcileFile(resolver.getToFile(), toParent.getMount(), toParent);
+			virtualRepository.reconcileFile(displayName, resolver.getToFile(), toParent.getMount(), toParent);
 			return true;
 		}
 		return false;
@@ -298,7 +319,13 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 						processor.processUpload(resource, resolveVFSFile(parentFile.getMount()), childPath, file);
 					}
 					
-					virtualRepository.reconcileFile(file, resource, 
+					VirtualFile existingFile = virtualRepository.getVirtualFile(virtualPath);
+					
+					String displayName = FileUtils.lastPathElement(virtualPath);
+					if(existingFile!=null) {
+						displayName = String.format("%s (%s)", displayName, parentFile.getMount().getName());
+					}
+					virtualRepository.reconcileFile(displayName, file, resource, 
 							VirtualFileServiceImpl.this.getFile(FileUtils.stripLastPathElement(virtualPath)));
 					return upload;
 
@@ -327,7 +354,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 
 	@Override
 	public long getSearchCount(String virtualPath, String searchColumn, String search) throws AccessDeniedException {
-		VirtualFile file = virtualRepository.getVirtualFile(virtualPath, getPrincipalResources());
+		VirtualFile file = virtualRepository.getVirtualFileByResource(virtualPath, getPrincipalResources());
 		return virtualRepository.getCount(VirtualFile.class, searchColumn, search, new ParentCriteria(file));
 	}
 
@@ -339,7 +366,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			int limit,
 			ColumnSort[] sort,
 			String proto) throws AccessDeniedException {
-		VirtualFile parent = virtualRepository.getVirtualFile(virtualPath, getPrincipalResources());
+		VirtualFile parent = virtualRepository.getVirtualFileByResource(virtualPath, getPrincipalResources());
 		return virtualRepository.search(searchColumn, search, offset, limit, sort, parent, getPrincipalResources());
 	}
 
@@ -444,15 +471,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		FileObject onFileResolved(FileResource resource, String childPath, FileObject file, String virtualPath)
 				throws IOException {
 			
-			FileObject newFile = file.resolveFile(newName != null ? newName : "untitled folder");
-
-			if (newName == null) {
-				int i = 2;
-				while (newFile.exists()) {
-					newFile = file.resolveFile("untitled folder " + i++);
-				}
-			}
-
+			FileObject newFile = file.resolveFile(newName);
 			boolean exists = newFile.exists();
 
 			if (!exists) {

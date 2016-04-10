@@ -168,12 +168,12 @@
 				outputHtml += '</a>';
 			}
 
-			outputHtml += '<span class="fileLabel" data-original="' + row.filename + '">'
-					+ row.filename + '</span>';
+			outputHtml += '<span class="fileLabel" data-original="' + row.displayName + '">'
+					+ row.displayName + '</span>';
 
 		} else {
-			outputHtml += '<a href="' + viewfsPath + row.virtualPath + '"><i class="fileIcon fa fa-folder-open"></i></a><span class="fileLabel" data-original="' + row.filename + '">'
-					+ row.filename + '</span>';
+			outputHtml += '<a href="' + viewfsPath + row.virtualPath + '"><i class="fileIcon fa fa-folder-open"></i></a><span class="fileLabel" data-original="' + row.displayName + '">'
+					+ row.displayName + '</span>';
 		}
 
 		return outputHtml;
@@ -182,7 +182,7 @@
 	window.actionEvents = {
 		'click .download' : function(e, value, row, index) {
 			window.location = baseURL + '/api/fs/download/' + mountPath
-					+ row.filename + '?forceDownload=true';
+					+ row.displayName + '?forceDownload=true';
 		},
 		'click .edit' : function(e, value, row, index) {
 			e.stopPropagation();
@@ -196,7 +196,7 @@
 			arr.push(row);
 			$(document).data('deleteRow', arr);
 			$(e.target).closest('a').notify({
-				title : getResource("text.confirmDelete").format(row.filename),
+				title : getResource("text.confirmDelete").format(row.displayName),
 				button : getResource("text.delete")
 			}, {
 				style : 'confirm',
@@ -219,7 +219,7 @@
 					toggle : 'manual',
 					validate : function(value) {
 						if ($.trim(value) == '') {
-							return getResource('text.filenameCannotBeEmpty');
+							return getResource('text.displayNameCannotBeEmpty');
 						}
 					},
 					url : function(params) {
@@ -306,14 +306,14 @@
 														var row = $(document).data('deleteRow');
 														
 														$.each(row, function(idx, row) {
-															getJSON('fs/delete/' + mountPath + row.filename,
+															getJSON('fs/delete/' + mountPath + row.displayName,
 																	null,
 																	function(data) {
 																		if (data.success) {
-																			showInformation(getResource('text.deleted').format(row.filename));
+																			showInformation(getResource('text.deleted').format(row.displayName));
 																			$('#table').bootstrapTable('refresh');
 																		} else {
-																			showError(getResource('text.deleteFailed').format(row.filename));
+																			showError(getResource('text.deleteFailed').format(row.displayName));
 																		}
 																	});
 														});

@@ -21,20 +21,20 @@ public interface VirtualFileRepository extends AbstractRepository<Long> {
 
 	void removeReconciledFile(VirtualFile toDelete);
 
-	VirtualFile reconcileFile(FileObject obj, FileResource resource, VirtualFile parent) throws FileSystemException;
+	VirtualFile reconcileFile(String displayName, FileObject obj, FileResource resource, VirtualFile parent) throws FileSystemException;
 
-	VirtualFile reconcileFile(FileObject obj, FileResource resource, VirtualFile virtual, VirtualFile parent)
+	VirtualFile reconcileFile(String displayName, FileObject obj, FileResource resource, VirtualFile virtual, VirtualFile parent)
 			throws FileSystemException;
 
-	VirtualFile reconcileFolder(VirtualFile folder, FileObject fileObject) throws FileSystemException;
+	VirtualFile reconcileFolder(VirtualFile folder, FileObject fileObject, FileResource resource, boolean conflicted) throws FileSystemException;
 
-	VirtualFile reconcileNewFolder(VirtualFile parent, FileObject fileObject) throws FileSystemException;
+	VirtualFile reconcileNewFolder(String displayName, VirtualFile parent, FileObject fileObject, FileResource resource, boolean conflicted) throws FileSystemException;
 
-	VirtualFile reconcileMount(FileResource resource, FileObject fileObject) throws FileSystemException;
+	VirtualFile reconcileMount(String displayName, FileResource resource, FileObject fileObject) throws FileSystemException;
 
 	Collection<VirtualFile> getVirtualFiles(VirtualFile parent, FileResource... resources);
 
-	VirtualFile getVirtualFile(String virtualPath, FileResource... resources);
+	VirtualFile getVirtualFileByResource(String virtualPath, FileResource... resources);
 
 	VirtualFile getReconciledFile(String virtualPath);
 
@@ -42,12 +42,14 @@ public interface VirtualFileRepository extends AbstractRepository<Long> {
 
 	Collection<VirtualFile> search(String searchColumn, String search, int start, int length, ColumnSort[] sort, 
 			VirtualFile parent,
-			FileResource[] resources);
+			FileResource... resources);
 
 	int removeReconciledFolder(VirtualFile toDelete);
 
 	Collection<VirtualFile> getMounts();
 
 	VirtualFile getRootFolder(Realm realm);
+
+	VirtualFile getVirtualFile(String virtualPath);
 
 }

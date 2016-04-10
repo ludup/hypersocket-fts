@@ -42,14 +42,17 @@ public class VirtualFile extends AbstractEntity<Long> {
 	@Column(name="filename")
 	String filename;
 	
-	@Column(name="readable")
-	Boolean readable;
+	@Column(name="display_name")
+	String displayName;
 	
 	@Column(name="writable")
 	Boolean writable;
 	
 	@OneToOne
 	FileResource mount;
+	
+	@Column(name="conflicted")
+	Boolean conflicted;
 	
 	@Column(name="hash")
 	int hash;
@@ -151,7 +154,7 @@ public class VirtualFile extends AbstractEntity<Long> {
 	}
 	
 	public boolean isFolder() {
-		return type==VirtualFileType.FOLDER || type==VirtualFileType.MOUNT;
+		return type==VirtualFileType.FOLDER || type==VirtualFileType.MOUNTED_FOLDER;
 	}
 	
 	public boolean isFile() {
@@ -159,6 +162,24 @@ public class VirtualFile extends AbstractEntity<Long> {
 	}
 	
 	public boolean isMount() {
-		return type==VirtualFileType.MOUNT;
+		return type==VirtualFileType.MOUNTED_FOLDER;
 	}
+
+	public String getDisplayName() {
+		return displayName;
+	}
+
+	public void setDisplayName(String displayName) {
+		this.displayName = displayName;
+	}
+
+	public Boolean getConflicted() {
+		return conflicted!=null && conflicted.booleanValue();
+	}
+
+	public void setConflicted(Boolean conflicted) {
+		this.conflicted = conflicted;
+	}
+	
+	
 }
