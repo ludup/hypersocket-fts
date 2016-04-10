@@ -56,18 +56,16 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 	}
 	
 	@Override
-	@Transactional(readOnly=true)
-	public VirtualFile getReconciledFile(String virtualPath) {
-		return get(VirtualFile.class, new VirtualPathCriteria(virtualPath));
-	}
-	
-	@Override
 	@Transactional
 	public VirtualFile reconcileMount(String displayName, FileResource resource, 
-			FileObject fileObject) throws FileSystemException {
+			FileObject fileObject, VirtualFile virtualFile) throws FileSystemException {
 		
 		String filename;
 		VirtualFile parent = null;
+		
+		if(virtualFile==null) {
+			virtualFile = new VirtualFile();
+		}
 		
 		if(resource.getVirtualPath().equals("/") && fileObject.getType()!=FileType.FILE) {
 			return getRootFolder(resource.getRealm());
@@ -75,7 +73,7 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 			filename = FileUtils.lastPathElement(resource.getVirtualPath());
 			parent = reconcileParent(resource);
 			
-			return buildFile(new VirtualFile(),
+			return buildFile(virtualFile,
 					filename,
 					displayName,
 					resource.getVirtualPath(), 
@@ -115,14 +113,32 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 	
 	@Override
 	@Transactional
-	public VirtualFile reconcileFolder(VirtualFile folder, FileObject fileObject, 
+	public VirtualFile createVirtualFolder(String displayName, VirtualFile parent) {
+		
+		return buildFile(new VirtualFile(),
+				displayName,
+					displayName,
+					FileUtils.checkEndsWithSlash(parent.getVirtualPath() + displayName) , 
+					VirtualFileType.FOLDER, 
+					true, 
+					0L, 
+					System.currentTimeMillis(), 
+					parent,
+					null,
+					false,
+					parent.getRealm());
+	}
+	
+	@Override
+	@Transactional
+	public VirtualFile reconcileFolder(String displayName, VirtualFile folder, FileObject fileObject, 
 			FileResource resource, boolean conflicted) throws FileSystemException {
 		
 		String filename = fileObject.getName().getBaseName();
 		
 		return buildFile(folder,
 					filename,
-					filename,
+					displayName,
 					FileUtils.checkEndsWithSlash(folder.getParent().getVirtualPath() + filename) , 
 					VirtualFileType.FOLDER, 
 					folder.getParent().isMounted() && !resource.isReadOnly(), 
@@ -300,7 +316,7 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 			public void configure(Criteria criteria) {
 				criteria.add(
 						Restrictions.or(
-						Restrictions.eq("type", VirtualFileType.MOUNTED_FOLDER),
+						Restrictions.in("type", new VirtualFileType[] { VirtualFileType.MOUNTED_FOLDER }),
 						Restrictions.isNull("mount")));
 				criteria.addOrder(Order.asc("id"));
 			}

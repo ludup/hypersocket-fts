@@ -26,17 +26,15 @@ public interface VirtualFileRepository extends AbstractRepository<Long> {
 	VirtualFile reconcileFile(String displayName, FileObject obj, FileResource resource, VirtualFile virtual, VirtualFile parent)
 			throws FileSystemException;
 
-	VirtualFile reconcileFolder(VirtualFile folder, FileObject fileObject, FileResource resource, boolean conflicted) throws FileSystemException;
+	VirtualFile reconcileFolder(String displayName, VirtualFile folder, FileObject fileObject, FileResource resource, boolean conflicted) throws FileSystemException;
 
 	VirtualFile reconcileNewFolder(String displayName, VirtualFile parent, FileObject fileObject, FileResource resource, boolean conflicted) throws FileSystemException;
 
-	VirtualFile reconcileMount(String displayName, FileResource resource, FileObject fileObject) throws FileSystemException;
+	VirtualFile reconcileMount(String displayName, FileResource resource, FileObject fileObject, VirtualFile virtualFile) throws FileSystemException;
 
 	Collection<VirtualFile> getVirtualFiles(VirtualFile parent, FileResource... resources);
 
 	VirtualFile getVirtualFileByResource(String virtualPath, FileResource... resources);
-
-	VirtualFile getReconciledFile(String virtualPath);
 
 	Collection<VirtualFile> getReconciledFiles(VirtualFile parent);
 
@@ -51,5 +49,7 @@ public interface VirtualFileRepository extends AbstractRepository<Long> {
 	VirtualFile getRootFolder(Realm realm);
 
 	VirtualFile getVirtualFile(String virtualPath);
+
+	VirtualFile createVirtualFolder(String displayName, VirtualFile parent);
 
 }

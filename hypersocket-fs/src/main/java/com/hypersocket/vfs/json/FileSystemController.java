@@ -2,8 +2,10 @@ package com.hypersocket.vfs.json;
 
 import java.io.IOException;
 import java.net.URLDecoder;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -26,6 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.hypersocket.auth.json.AuthenticationRequired;
 import com.hypersocket.auth.json.ResourceController;
 import com.hypersocket.auth.json.UnauthorizedException;
+import com.hypersocket.fs.FileResource;
 import com.hypersocket.json.RequestStatus;
 import com.hypersocket.json.ResourceList;
 import com.hypersocket.json.ResourceStatus;
@@ -75,38 +78,72 @@ public class FileSystemController extends ResourceController {
 		setupAuthenticatedContext(sessionUtils.getSession(request),
 				sessionUtils.getLocale(request));
 		try {
-			return new ResourceList<VirtualFile>(fileService.getMounts());
+			return new ResourceList<VirtualFile>(fileService.getMountedFolders());
 		} finally {
 			clearAuthenticatedContext();
 		}
 	}
+
 	
 	@AuthenticationRequired
 	@RequestMapping(value = "fs/tree", method = RequestMethod.GET, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
-	public TreeNode getTree(HttpServletRequest request,
+	public Collection<TreeNode> getTree(HttpServletRequest request,
 			HttpServletResponse response) throws AccessDeniedException,
 			UnauthorizedException, IOException, SessionTimeoutException {
 
 		setupAuthenticatedContext(sessionUtils.getSession(request),
 				sessionUtils.getLocale(request));
 		try {
-			Collection<VirtualFile> mounts = fileService.getMounts();
+			
 			TreeNode rootNode = new TreeNode();
 			rootNode.setParent("#");
 			rootNode.setText("/");
 			rootNode.getState().opened = true;
 			rootNode.setFileType(VirtualFileType.ROOT);
+			rootNode.setType("default");
+			rootNode.setVirtualPath("/");
+			
+			List<TreeNode> results = new ArrayList<TreeNode>();
+			results.add(rootNode);
+
+			Collection<FileResource> mounts = fileService.getRootMounts();
+			
+			for(FileResource resource : mounts) {
+				TreeNode node = new TreeNode();
+				node.setParent("#");
+				node.setText(resource.getName());
+				node.getState().opened = true;
+				node.setFileType(VirtualFileType.MOUNTED_FOLDER);
+				node.setType("mount");
+				node.setVirtualPath(resource.getVirtualPath());
+				results.add(node);
+			}
+			
 			Map<String,TreeNode> nodes = new HashMap<String,TreeNode>();
-			for(VirtualFile file : mounts) {
+			for(VirtualFile file : fileService.getMountedFolders()) {
 				if(file.getParent()!=null) {
 					TreeNode node = new TreeNode();
-					node.setText(file.getFilename());
+					node.setText(file.getDisplayName());
+					if(file.isMounted()) {
+						node.setResourceId(file.getMount().getId());
+					}
 					node.setId(String.valueOf(file.getId()));
 					node.setParent(String.valueOf(file.getParent().getId()));
 					node.getState().opened = true;
 					node.setFileType(file.getType());
+					node.setVirtualPath(file.getVirtualPath());
+					
+					switch(file.getType()) {
+					case MOUNTED_FOLDER:
+					case MOUNTED_FILE:
+						node.setType("mount");
+						break;
+					default:
+						node.setType("default");
+					}
+					
 					nodes.get(String.valueOf(file.getParent().getId())).children.add(node);
 					nodes.put(node.getId(), node);
 					
@@ -115,7 +152,7 @@ public class FileSystemController extends ResourceController {
 					nodes.put(rootNode.getId(), rootNode);
 				}
 			}
-			return rootNode;
+			return results;
 		} finally {
 			clearAuthenticatedContext();
 		}
@@ -146,6 +183,27 @@ public class FileSystemController extends ResourceController {
 		}
 	}
 
+	@AuthenticationRequired
+	@RequestMapping(value = "fs/createVirtualFolder/**", method = RequestMethod.GET, produces = { "application/json" })
+	@ResponseBody
+	@ResponseStatus(value = HttpStatus.OK)
+	public ResourceStatus<VirtualFile> createVirtualFolder(HttpServletRequest request,
+			HttpServletResponse response) throws AccessDeniedException,
+			UnauthorizedException, IOException, SessionTimeoutException {
+
+		setupAuthenticatedContext(sessionUtils.getSession(request),
+				sessionUtils.getLocale(request));
+		try {
+
+			String virtualPath = FileUtils.checkStartsWithSlash(
+					FileUtils.stripParentPath(server.getApiPath() + "/fs/createVirtualFolder", 
+							URLDecoder.decode(request.getRequestURI(), "UTF-8")));
+			return new ResourceStatus<VirtualFile>(fileService.createVirtualFolder(virtualPath));
+		} finally {
+			clearAuthenticatedContext();
+		}
+	}
+	
 	@AuthenticationRequired
 	@RequestMapping(value = "fs/createFolder/**", method = RequestMethod.GET, produces = { "application/json" })
 	@ResponseBody

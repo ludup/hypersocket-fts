@@ -54,14 +54,14 @@ public class VirtualFileReconcileJob extends AbstractReconcileJob<FileResource> 
 	int numOperations;
 	int errors;
 
-	private void reconcileFolder(FileObject fileObject, FileResource resource, VirtualFile folder, boolean conflicted) throws FileSystemException {
+	private void reconcileFolder(String displayName, FileObject fileObject, FileResource resource, VirtualFile folder, boolean conflicted) throws FileSystemException {
 		
 		if(log.isDebugEnabled()) {
 			log.debug("Reconciling folder " + folder.getVirtualPath());
 		}
 		
 		if(folder.getType()==VirtualFileType.FOLDER) {
-			repository.reconcileFolder(folder, fileObject, resource, conflicted);
+			repository.reconcileFolder(displayName, folder, fileObject, resource, conflicted);
 		}
 		
 		Map<String,List<VirtualFile>> reconciledChildren = new HashMap<String,List<VirtualFile>>();
@@ -90,7 +90,7 @@ public class VirtualFileReconcileJob extends AbstractReconcileJob<FileResource> 
 						for(VirtualFile virtual : virtualFiles) {
 							if(virtual.getMount().equals(resource)) {
 								if(obj.getType()==FileType.FOLDER || obj.getType()==FileType.FILE_OR_FOLDER) {
-									reconcileFolder(obj, resource, virtual, childConflicted);
+									reconcileFolder(childDisplayName, obj, resource, virtual, childConflicted);
 									reconciled = true;
 								} else {
 									if(hasChanged(childDisplayName, obj, resource, virtual)) {
@@ -106,12 +106,13 @@ public class VirtualFileReconcileJob extends AbstractReconcileJob<FileResource> 
 						continue;
 					}
 					if(obj.getType()==FileType.FOLDER || obj.getType()==FileType.FILE_OR_FOLDER) {
-						VirtualFile childFolder = repository.getReconciledFile(
-								FileUtils.checkEndsWithSlash(folder.getVirtualPath()) + obj.getName().getBaseName());
+						VirtualFile childFolder = repository.getVirtualFileByResource(
+								FileUtils.checkEndsWithSlash(folder.getVirtualPath()) + obj.getName().getBaseName(),
+								resource);
 						if(childFolder==null) {
 							childFolder = repository.reconcileNewFolder(childDisplayName, folder, obj, resource, childConflicted);
 						}
-						reconcileFolder(obj, resource, childFolder, childConflicted);
+						reconcileFolder(childDisplayName, obj, resource, childFolder, childConflicted);
 					} else {
 						reconcileFile(childDisplayName, obj, resource, null, folder);
 					}
@@ -126,7 +127,7 @@ public class VirtualFileReconcileJob extends AbstractReconcileJob<FileResource> 
 			
 			for(List<VirtualFile> toDeleteList : reconciledChildren.values()) {
 				for(VirtualFile toDelete : toDeleteList) {
-					if(!toDelete.getMount().equals(resource)) {
+					if(!toDelete.isMounted() || !toDelete.getMount().equals(resource)) {
 						continue;
 					}
 					if(toDelete.isFolder()) {
@@ -218,9 +219,9 @@ public class VirtualFileReconcileJob extends AbstractReconcileJob<FileResource> 
 		FileObject fileObject = resourceService.getFileObject(resource);
 		VirtualFile existingPath = repository.getVirtualFile(resource.getVirtualPath());
 		VirtualFile virtualFile = repository.getMountFile(resource);
-		if(virtualFile==null) {
-			virtualFile = repository.reconcileMount(fileObject.getName().getBaseName(), resource, fileObject);
-		}
+		virtualFile = repository.reconcileMount(
+				FileUtils.lastPathElement(resource.getVirtualPath()), 
+					resource, fileObject, virtualFile);
 		
 		String displayName = fileObject.getName().getBaseName();
 		if(existingPath!=null) {
@@ -229,7 +230,7 @@ public class VirtualFileReconcileJob extends AbstractReconcileJob<FileResource> 
 		switch(virtualFile.getType()) {
 		case MOUNTED_FOLDER:
 		case ROOT:
-			reconcileFolder(fileObject, resource, virtualFile, existingPath!=null);
+			reconcileFolder(displayName, fileObject, resource, virtualFile, existingPath!=null);
 			break;
 		default:
 			reconcileFile(displayName, fileObject, resource, virtualFile, virtualFile.getParent());

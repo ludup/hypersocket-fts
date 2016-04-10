@@ -32,6 +32,10 @@ body {
 	margin-right: 10px;
 }
 
+.conflicted {
+	color: red;
+}
+
 .fixed-table-toolbar {
 	margin-top: 10px;
 	padding-right: 10px;

@@ -64,6 +64,10 @@ public interface VirtualFileService extends AuthenticatedService {
 
 	VirtualFile createUntitledFolder(String virtualPath, String proto) throws IOException, AccessDeniedException;
 
-	Collection<VirtualFile> getMounts() throws AccessDeniedException;
+	Collection<VirtualFile> getMountedFolders() throws AccessDeniedException;
+
+	VirtualFile createVirtualFolder(String virtualPath) throws IOException, AccessDeniedException;
+
+	Collection<FileResource> getRootMounts() throws AccessDeniedException;
 
 }

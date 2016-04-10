@@ -153,57 +153,104 @@
 		<div id="treeview"></div>
 	</div>
 	<div id="virtualFileSystemInfo" class="col-md-8 panel panel-body">
-		<div class="col-md-4">
-			<h4>Resource Name:</h4>
-			<h4>Virtual Path:</h4>
-			<h4>Last Reconciled:</h4>
-			<h4>Scheme:</h4>
+		<div class="col-md-12">
+			<h4>Virtual File System</h4>
+			<p>Here you can mount external files and folders to create a Virtual File System for your users.</p>
+			
 		</div>
-		<div class="col-md-8">
-			<h4><span id="infResourceName">Downloads</span></h4>
-			<h4><span id="infVirtualPath">/downloads</span></h4>
-			<h4><span id="infLastReconcile">Tue, 3 May 2016 11:45</span></h4>
-			<h4><span id="infScheme">Local</span></h4>
-		</div>
+		
+		
+<!-- 		<div class="col-md-4"> -->
+<!-- 			<h4>Resource Name:</h4> -->
+<!-- 			<h4>Virtual Path:</h4> -->
+<!-- 			<h4>Last Reconciled:</h4> -->
+<!-- 			<h4>Scheme:</h4> -->
+<!-- 		</div> -->
+<!-- 		<div class="col-md-8"> -->
+<!-- 			<h4><span id="infResourceName">Downloads</span></h4> -->
+<!-- 			<h4><span id="infVirtualPath">/downloads</span></h4> -->
+<!-- 			<h4><span id="infLastReconcile">Tue, 3 May 2016 11:45</span></h4> -->
+<!-- 			<h4><span id="infScheme">Local</span></h4> -->
+<!-- 		</div> -->
 	</div>
 </div>
 <script type="text/javascript">
 	$(document).ready(function() {
-				
-		getJSON('fs/tree', null, function(data) {
-			$('#treeview').jstree({
-				  "core" : {
-				    "animation" : 0,
-				    "themes" : { "stripes" : false },
-				    'data' : data
-				  },
-				  "contextmenu": {
-					  "items": function(node, callback) {
+	
+		var tree = $('#treeview').jstree({
+			  "core" : {
+			    "animation" : 0,
+			    "multiple" : true,
+			    "check_callback" : true,
+			    "themes" : { "stripes" : false },
+			    'data' : {
+			    	"url": basePath + '/api/fs/tree'
+			    }
+			    
+			  }, "types" : {
+			        "mount" : {
+			          "icon" : "fa fa-hdd-o"
+			        }
+			  }, 
+			  "contextmenu": {
+				  "items": function(node, callback) {
+					  if(node.original.fileType==='MOUNTED_FOLDER') {
 						  callback([{
-							  label: "Mount Folder",
-							  action: function() {
-								  debugger;
-							  }
-						  },{
 							label: "Edit",
 						     action: function() {
-								debugger;
+ 								getJSON('mounts/mount/' + node.original.resourceId, null, function(data) {
+ 									resourcePage.showEdit(data.resource);
+ 								});
 						     }
 						  },{
 					    	label: "Delete",
 						    action: function() {
-								  debugger;
+						    	getJSON('mounts/mount/' + node.original.resourceId, null, function(data) {
+						    		resourcePage.deleteResource(data.resource);
+								});
 					        }
 						  }]);
+					  } else {
+						  callback([{
+							  label: "Mount File System",
+							  action: function() {
+								  resourcePage.showCreate();
+							  }
+						  },{
+							  label: "Create Virtual Folder",
+							  action: function() {
+								  getJSON('fs/createVirtualFolder' + node.original.virtualPath + 'untitled folder', null, function(data) {
+									  var ref = $('#treeview').jstree(true);
+									  ref.refresh();
+								  });
+							  }
+						  },{
+							  label: "Rename",
+							  action: function() {
+								var ref = $('#treeview').jstree(true);
+								sel = ref.get_selected();
+								if(!sel.length) { return false; }
+								sel = sel[0];
+								ref.edit(sel);
+							  }
+						  }]);
 					  }
-				  },
-				  "plugins" : [
-				      "contextmenu"
-				  ]
-			});
-    	});
+					  
+				  }
+			  },
+			  "plugins" : [
+			      "contextmenu", "crrm", "types"
+			  ]
+		}).bind("rename.jstree", function(e, data){
+		    var oldText = data.rslt.old_name;
+		    var newText = data.rslt.new_name;
+		    //do your thing
+		});
 		
-		
+		$('.jstree-leaf').on('dblclick', function(){
+			$('#treeview').jstree("edit");
+		});
+
 		
 		$('#tabMounts').localize();
 		
@@ -344,7 +391,7 @@
 		}
 	
 
-		$('#tabMounts').ajaxResourcePage(
+		var resourcePage = $('#tabMounts').ajaxResourcePage(
 				{
 					id : "Mounts",
 					tableUrl : "mounts/table",

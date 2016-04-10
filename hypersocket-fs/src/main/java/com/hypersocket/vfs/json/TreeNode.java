@@ -12,20 +12,29 @@ public class TreeNode {
 	String parent;
 	String text;
 	String icon;
+	String virtualPath;
 	TreeState state = new TreeState();
 	List<TreeNode> children = new ArrayList<TreeNode>();
 	VirtualFileType fileType; 
+	Long resourceId;
+	String type;
 	
 	@JsonIgnore
 	public String getId() {
 		return id;
 	}
 
-
 	public void setId(String id) {
 		this.id = id;
 	}
 
+	public Long getResourceId() {
+		return resourceId;
+	}
+	
+	public void setResourceId(Long resourceId) {
+		this.resourceId = resourceId;
+	}
 
 	public String getParent() {
 		return parent;
@@ -85,6 +94,22 @@ public class TreeNode {
 
 	public void setFileType(VirtualFileType fileType) {
 		this.fileType = fileType;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	public String getVirtualPath() {
+		return virtualPath;
+	}
+
+	public void setVirtualPath(String virtualPath) {
+		this.virtualPath = virtualPath;
 	}
 
 

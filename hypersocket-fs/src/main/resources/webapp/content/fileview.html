@@ -168,11 +168,14 @@
 				outputHtml += '</a>';
 			}
 
-			outputHtml += '<span class="fileLabel" data-original="' + row.displayName + '">'
+			outputHtml += '<span class="fileLabel' + (row.conflicted ? ' conflicted' : '') + '" data-original="' 
+					+ row.filename + '">'
 					+ row.displayName + '</span>';
 
 		} else {
-			outputHtml += '<a href="' + viewfsPath + row.virtualPath + '"><i class="fileIcon fa fa-folder-open"></i></a><span class="fileLabel" data-original="' + row.displayName + '">'
+			outputHtml += '<a href="' + viewfsPath + row.virtualPath + '"><i class="fileIcon fa fa-folder-open"></i></a><span class="fileLabel' 
+					+ (row.conflicted ? ' conflicted' : '') + '" data-original="' 
+					+ row.filename + '">'
 					+ row.displayName + '</span>';
 		}
 
@@ -181,13 +184,11 @@
 
 	window.actionEvents = {
 		'click .download' : function(e, value, row, index) {
-			window.location = baseURL + '/api/fs/download/' + mountPath
-					+ row.displayName + '?forceDownload=true';
+			window.location = baseURL + '/api/fs/download' + row.virtualPath + '?forceDownload=true';
 		},
 		'click .edit' : function(e, value, row, index) {
 			e.stopPropagation();
-			$('tr[data-index="' + index + '"]').find('.fileLabel').editable(
-					'toggle');
+			$('tr[data-index="' + index + '"]').find('.fileLabel').editable('toggle');
 		},
 		'click .delete' : function(e, value, row, index) {
 
@@ -221,6 +222,9 @@
 						if ($.trim(value) == '') {
 							return getResource('text.displayNameCannotBeEmpty');
 						}
+					},
+					value: function() {
+						return $(this).closest('td').find('.fileLabel').data('original');
 					},
 					url : function(params) {
 						

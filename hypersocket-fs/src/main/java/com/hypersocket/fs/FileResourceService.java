@@ -27,4 +27,6 @@ public interface FileResourceService extends
 
 	FileResourceScheme getScheme(String scheme);
 
+	Collection<FileResource> getResourcesByVirtualPath(String string) throws AccessDeniedException;
+
 }

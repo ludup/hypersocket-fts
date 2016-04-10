@@ -397,4 +397,12 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 		});
 	}
 
+	@Override
+	public Collection<FileResource> getResourcesByVirtualPath(String virtualPath) throws AccessDeniedException {
+		
+		assertPermission(FileResourcePermission.READ);
+		
+		return resourceRepository.getResourcesByVirtualPath(virtualPath);
+	}
+
 }
