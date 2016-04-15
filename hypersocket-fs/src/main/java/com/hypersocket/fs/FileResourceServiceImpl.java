@@ -1073,7 +1073,7 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 		}
 
 		@Override
-		public long writeFile(Realm realm, String uuid, InputStream in) throws IOException {
+		public long writeFile(Realm realm, String filename, String uuid, InputStream in) throws IOException {
 
 			long bytesIn = 0;
 
