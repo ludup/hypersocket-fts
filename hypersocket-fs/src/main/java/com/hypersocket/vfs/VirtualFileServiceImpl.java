@@ -83,15 +83,24 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	
 
 	@Override
-	public Collection<VirtualFile> getMountedFolders() throws AccessDeniedException {
+	public Collection<VirtualFile> getVirtualFolders() throws AccessDeniedException {
 		
 		assertPermission(FileResourcePermission.READ);
 		
-		return virtualRepository.getMounts();
+		return virtualRepository.getVirtualFolders();
 	}
+	
 	@Override
 	public VirtualFile getRootFolder() throws FileNotFoundException, AccessDeniedException {
 		return getFile("/");
+	}
+	
+	@Override
+	public Collection<FileResource> getNonRootMounts() throws AccessDeniedException {
+		 
+		assertPermission(FileResourcePermission.READ);
+		
+		return fileService.getNonRootResources();
 	}
 	
 	@Override
@@ -104,6 +113,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	
 	@Override
 	public VirtualFile getFile(String virtualPath) throws FileNotFoundException, AccessDeniedException {
+		
 		
 		VirtualFile file = virtualRepository.getVirtualFileByResource(virtualPath, getPrincipalResources());
 		if(file==null) {
@@ -250,6 +260,12 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			throw new FileExistsException(toVirtualPath);
 		} catch(FileNotFoundException ex) {
 			
+			if(!fromFile.isMounted()) {
+				/**
+				 * Rename a virtual folder
+				 */
+				return virtualRepository.renameVirtualFolder(fromFile, toVirtualPath);
+			}
 			RenameFileResolver resolver = new RenameFileResolver(proto);
 			if(!resolver.processRequest(fromFile, toVirtualPath)) {
 				throw new IOException(String.format("Failed to rename file %s to %s", fromFile.getVirtualPath(), toVirtualPath));

@@ -5,3 +5,7 @@
 #virtualFileSystemInfo {
 	height: 400px;
 }
+
+.jstree-default .jstree-themeicon-custom {
+	margin-right: 5px;	
+}

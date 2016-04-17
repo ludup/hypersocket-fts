@@ -402,7 +402,15 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 		
 		assertPermission(FileResourcePermission.READ);
 		
-		return resourceRepository.getResourcesByVirtualPath(virtualPath);
+		return resourceRepository.getResourcesByVirtualPath(virtualPath, getCurrentRealm());
+	}
+	
+	@Override
+	public Collection<FileResource> getNonRootResources() throws AccessDeniedException {
+		
+		assertPermission(FileResourcePermission.READ);
+		
+		return resourceRepository.getNonRootResources(getCurrentRealm());
 	}
 
 }

@@ -65,7 +65,7 @@ public class VirtualFileReconcileJob extends AbstractReconcileJob<FileResource> 
 			log.debug("Reconciling folder " + folder.getVirtualPath());
 		}
 		
-		if(folder.getType()==VirtualFileType.FOLDER) {
+		if(!FileUtils.checkStartsWithNoSlash(resource.getVirtualPath()).equals(FileUtils.checkStartsWithNoSlash(folder.getVirtualPath()))) {
 			repository.reconcileFolder(displayName, folder, fileObject, resource, conflicted);
 		}
 		
@@ -225,20 +225,18 @@ public class VirtualFileReconcileJob extends AbstractReconcileJob<FileResource> 
 		}
 		
 		FileObject fileObject = resourceService.getFileObject(resource);
-		VirtualFile existingPath = repository.getVirtualFile(resource.getVirtualPath());
-		VirtualFile virtualFile = repository.getMountFile(resource);
-		virtualFile = repository.reconcileMount(
-				FileUtils.lastPathElement(resource.getVirtualPath()), 
-					resource, fileObject, virtualFile);
+		if(!fileObject.exists()) {
+			fileObject.createFolder();
+		}
+		
+		VirtualFile virtualFile = repository.getVirtualFile(resource.getVirtualPath());
 		
 		String displayName = fileObject.getName().getBaseName();
-		if(existingPath!=null) {
-			displayName = String.format("%s (%s)", displayName, resource.getName());
-		}
 		switch(virtualFile.getType()) {
+		case FOLDER:
 		case MOUNTED_FOLDER:
 		case ROOT:
-			reconcileFolder(displayName, fileObject, resource, virtualFile, existingPath!=null);
+			reconcileFolder(displayName, fileObject, resource, virtualFile, false);
 			break;
 		default:
 			reconcileFile(displayName, fileObject, resource, virtualFile, virtualFile.getParent());

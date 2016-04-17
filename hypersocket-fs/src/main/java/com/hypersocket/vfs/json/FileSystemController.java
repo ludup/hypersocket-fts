@@ -78,7 +78,7 @@ public class FileSystemController extends ResourceController {
 		setupAuthenticatedContext(sessionUtils.getSession(request),
 				sessionUtils.getLocale(request));
 		try {
-			return new ResourceList<VirtualFile>(fileService.getMountedFolders());
+			return new ResourceList<VirtualFile>(fileService.getVirtualFolders());
 		} finally {
 			clearAuthenticatedContext();
 		}
@@ -112,17 +112,19 @@ public class FileSystemController extends ResourceController {
 			
 			for(FileResource resource : mounts) {
 				TreeNode node = new TreeNode();
-				node.setParent("#");
+				node.setParent(rootNode.id);
 				node.setText(resource.getName());
 				node.getState().opened = true;
-				node.setFileType(VirtualFileType.MOUNTED_FOLDER);
+				node.setFileType(VirtualFileType.FOLDER);
 				node.setType("mount");
 				node.setVirtualPath(resource.getVirtualPath());
-				results.add(node);
+				node.setResourceId(resource.getId());
+				rootNode.children.add(node);
 			}
 			
-			Map<String,TreeNode> nodes = new HashMap<String,TreeNode>();
-			for(VirtualFile file : fileService.getMountedFolders()) {
+			Map<String,TreeNode> nodesById = new HashMap<String,TreeNode>();
+			Map<String,TreeNode> nodesByPath = new HashMap<String,TreeNode>();
+			for(VirtualFile file : fileService.getVirtualFolders()) {
 				if(file.getParent()!=null) {
 					TreeNode node = new TreeNode();
 					node.setText(file.getDisplayName());
@@ -134,24 +136,32 @@ public class FileSystemController extends ResourceController {
 					node.getState().opened = true;
 					node.setFileType(file.getType());
 					node.setVirtualPath(file.getVirtualPath());
-					
-					switch(file.getType()) {
-					case MOUNTED_FOLDER:
-					case MOUNTED_FILE:
-						node.setType("mount");
-						break;
-					default:
-						node.setType("default");
-					}
-					
-					nodes.get(String.valueOf(file.getParent().getId())).children.add(node);
-					nodes.put(node.getId(), node);
+					node.setType("default");
+
+					nodesById.get(String.valueOf(file.getParent().getId())).children.add(node);
+					nodesByPath.put(FileUtils.checkEndsWithSlash(file.getVirtualPath()), node);
+					nodesById.put(node.getId(), node);
 					
 				} else {
 					rootNode.setId(String.valueOf(file.getId()));
-					nodes.put(rootNode.getId(), rootNode);
+					nodesById.put(rootNode.getId(), rootNode);
 				}
 			}
+			
+			for(FileResource resource : fileService.getNonRootMounts()) {
+				TreeNode node = new TreeNode();
+				TreeNode parent = nodesByPath.get(FileUtils.checkEndsWithSlash(resource.getVirtualPath()));
+				node.setId(String.valueOf(resource.getId()));
+				node.setParent(parent.id);
+				node.setText(resource.getName());
+				node.getState().opened = true;
+				node.setResourceId(resource.getId());
+				node.setFileType(VirtualFileType.FOLDER);
+				node.setType("mount");
+				node.setVirtualPath(resource.getVirtualPath());
+				parent.children.add(node);
+			}
+			
 			return results;
 		} finally {
 			clearAuthenticatedContext();
@@ -226,7 +236,7 @@ public class FileSystemController extends ResourceController {
 	}
 	
 	@AuthenticationRequired
-	@RequestMapping(value = "fs/rename/**", method = RequestMethod.POST, produces = { "application/json" })
+	@RequestMapping(value = "fs/rename/**", method = { RequestMethod.POST, RequestMethod.GET }, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
 	public ResourceStatus<VirtualFile> rename(HttpServletRequest request,

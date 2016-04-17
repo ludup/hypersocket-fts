@@ -6,6 +6,7 @@ import java.util.Map;
 
 import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.properties.PropertyCategory;
+import com.hypersocket.realm.Realm;
 import com.hypersocket.resource.AbstractAssignableResourceService;
 import com.hypersocket.resource.ResourceChangeException;
 import com.hypersocket.resource.ResourceCreationException;
@@ -28,5 +29,7 @@ public interface FileResourceService extends
 	FileResourceScheme getScheme(String scheme);
 
 	Collection<FileResource> getResourcesByVirtualPath(String string) throws AccessDeniedException;
+
+	Collection<FileResource> getNonRootResources() throws AccessDeniedException;
 
 }

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.hypersocket.utils.FileUtils;
 import com.hypersocket.vfs.VirtualFileType;
 
 public class TreeNode {
@@ -13,6 +14,7 @@ public class TreeNode {
 	String text;
 	String icon;
 	String virtualPath;
+	String parentPath;
 	TreeState state = new TreeState();
 	List<TreeNode> children = new ArrayList<TreeNode>();
 	VirtualFileType fileType; 
@@ -112,7 +114,9 @@ public class TreeNode {
 		this.virtualPath = virtualPath;
 	}
 
-
+	public String getParentPath() {
+		return FileUtils.stripLastPathElement(virtualPath);
+	}
 
 	class TreeState {
 		boolean opened;

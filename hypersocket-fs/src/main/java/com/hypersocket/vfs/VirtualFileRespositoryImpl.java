@@ -308,18 +308,36 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 
 	@Override
 	@Transactional(readOnly=true)
-	public Collection<VirtualFile> getMounts() {
+	public Collection<VirtualFile> getVirtualFolders() {
 		
 		return list(VirtualFile.class, new CriteriaConfiguration() {
 			
 			@Override
 			public void configure(Criteria criteria) {
 				criteria.add(
-						Restrictions.or(
-						Restrictions.in("type", new VirtualFileType[] { VirtualFileType.MOUNTED_FOLDER }),
+						Restrictions.and(
+						Restrictions.in("type", new VirtualFileType[] { VirtualFileType.FOLDER, VirtualFileType.ROOT }),
 						Restrictions.isNull("mount")));
 				criteria.addOrder(Order.asc("id"));
 			}
 		});
+	}
+
+	@Override
+	public VirtualFile renameVirtualFolder(VirtualFile fromFolder, String toFolder) {
+		 
+		String newName = FileUtils.lastPathElement(toFolder);
+		return buildFile(fromFolder,
+					newName,
+					newName,
+					FileUtils.checkEndsWithSlash(toFolder) , 
+					VirtualFileType.FOLDER, 
+					true, 
+					0L, 
+					System.currentTimeMillis(), 
+					fromFolder.getParent(),
+					null,
+					false,
+					fromFolder.getRealm());
 	}
 }

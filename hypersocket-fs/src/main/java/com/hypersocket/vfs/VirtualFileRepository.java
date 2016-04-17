@@ -44,12 +44,14 @@ public interface VirtualFileRepository extends AbstractRepository<Long> {
 
 	int removeReconciledFolder(VirtualFile toDelete);
 
-	Collection<VirtualFile> getMounts();
+	Collection<VirtualFile> getVirtualFolders();
 
 	VirtualFile getRootFolder(Realm realm);
 
 	VirtualFile getVirtualFile(String virtualPath);
 
 	VirtualFile createVirtualFolder(String displayName, VirtualFile parent);
+
+	VirtualFile renameVirtualFolder(VirtualFile fromFolder, String toFolder);
 
 }

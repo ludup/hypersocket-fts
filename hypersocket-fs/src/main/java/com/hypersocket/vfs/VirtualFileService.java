@@ -64,7 +64,7 @@ public interface VirtualFileService extends AuthenticatedService {
 
 	VirtualFile createUntitledFolder(String virtualPath, String proto) throws IOException, AccessDeniedException;
 
-	Collection<VirtualFile> getMountedFolders() throws AccessDeniedException;
+	Collection<VirtualFile> getVirtualFolders() throws AccessDeniedException;
 
 	VirtualFile createVirtualFolder(String virtualPath) throws IOException, AccessDeniedException;
 
@@ -77,5 +77,7 @@ public interface VirtualFileService extends AuthenticatedService {
 
 	void downloadFile(VirtualFile file, HttpDownloadProcessor processor, String proto)
 			throws AccessDeniedException, IOException;
+
+	Collection<FileResource> getNonRootMounts() throws AccessDeniedException;
 
 }

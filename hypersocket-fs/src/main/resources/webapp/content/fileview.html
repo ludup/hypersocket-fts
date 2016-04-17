@@ -384,6 +384,8 @@
 
 										$('#uploadWrapper').multipleFileUpload({
 											  showDownloadButton: false,
+											  showRemoveLine: false,
+											  showEmptyRow: true,
 										      url: basePath + '/api/fs/upload/' + currentPath
 										});
 
@@ -492,6 +494,9 @@
 					</tr>
 				</thead>
 			</table>
+			</div>
+			<div class="row">
+				<div id="uploadWrapper" class="col-md-12"></div>
 			</div>
 			<div id="uploadWrapper"></div>
 		</div>

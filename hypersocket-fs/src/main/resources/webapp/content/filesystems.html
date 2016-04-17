@@ -157,6 +157,11 @@
 			<h4>Virtual File System</h4>
 			<p>Here you can mount external files and folders to create a Virtual File System for your users.</p>
 			
+			<p>Build up your file system by creating virtual folders <i class="fa fa-folder-open-o"></i> and then mount any number of external file 
+			systems <i class="fa fa-hdd-o"></i> to it. The files from the root folder of the mount will be mounted
+			directly in the virtual folder. For example mounting the local folder <em>/home/user</em> to the virtual path <em>/home</em> will see
+			the file <em>/home/user/readme.txt</em> mapped to the virtual file system path <em>/home/readme.txt</em>.</p>
+			
 		</div>
 		
 		
@@ -177,11 +182,47 @@
 <script type="text/javascript">
 	$(document).ready(function() {
 	
+		$('#treeview').on('rename_node.jstree', function(node, data){
+			debugger;
+		    var oldText = data.old;
+		    var newText = data.text;
+		    getJSON('fs/rename' + data.node.original.virtualPath + "?toUri=" + basePath + "/api/fs/rename" + data.node.original.parentPath + newText, null, function(data) {
+				 if(!data.success) {
+					 showError(data.message);
+				 }
+				 var ref = $('#treeview').jstree(true);
+				 ref.refresh(); 
+			  }, function() {
+				  var ref = $('#treeview').jstree(true);
+				  ref.refresh();
+				 return true;
+		      });
+		});
+		
+		$('.jstree-leaf').on('dblclick', function(){
+			$('#treeview').jstree("edit");
+		});
+		
 		var tree = $('#treeview').jstree({
 			  "core" : {
 			    "animation" : 0,
 			    "multiple" : true,
-			    "check_callback" : true,
+			    "check_callback" : function (operation, node, node_parent, node_position, more) {
+	                switch (operation) {
+	                    case "move_node":
+	                        return false;
+	                        break;
+	                    case "copy_node":
+	                        return false;
+	                        break;
+	                    case "create_node":
+	                        return operation === 'create_node' ? true : false;
+	                        break;
+	                    case "rename_node":
+	                    	return node_parent.id ==='#' ? false : true;
+	                        
+	                }
+	            },
 			    "themes" : { "stripes" : false },
 			    'data' : {
 			    	"url": basePath + '/api/fs/tree'
@@ -189,35 +230,63 @@
 			    
 			  }, "types" : {
 			        "mount" : {
-			          "icon" : "fa fa-hdd-o"
-			        }
+			          "icon" : "fa fa-2x fa-hdd-o"
+			        },
+			        "default" : {
+				          "icon" : "fa fa-2x fa-folder-open-o"
+				        }
 			  }, 
 			  "contextmenu": {
 				  "items": function(node, callback) {
-					  if(node.original.fileType==='MOUNTED_FOLDER') {
+					  debugger;
+					  if(node.original.type==='mount') {
 						  callback([{
-							label: "Edit",
+							label: getResource("text.edit"),
 						     action: function() {
+						    	$(document).data('virtualPath', node.original.virtualPath);
  								getJSON('mounts/mount/' + node.original.resourceId, null, function(data) {
  									resourcePage.showEdit(data.resource);
  								});
 						     }
 						  },{
-					    	label: "Delete",
+					    	label: getResource("text.delete"),
 						    action: function() {
 						    	getJSON('mounts/mount/' + node.original.resourceId, null, function(data) {
 						    		resourcePage.deleteResource(data.resource);
 								});
 					        }
 						  }]);
-					  } else {
+					  } else if(node.original.fileType==='ROOT') { 
 						  callback([{
-							  label: "Mount File System",
+							  label: getResource("mountFiles.text"),
 							  action: function() {
-								  resourcePage.showCreate();
+								  $(document).data('virtualPath', '/');
+								  resourcePage.showCreate(new function() {
+									  var ref = $('#treeview').jstree(true);
+									  ref.refresh();
+								  });
 							  }
 						  },{
-							  label: "Create Virtual Folder",
+							  label: getResource("createFolder.text"),
+							  action: function() {
+								  getJSON('fs/createVirtualFolder' + node.original.virtualPath + 'untitled folder', null, function(data) {
+									  var ref = $('#treeview').jstree(true);
+									  ref.refresh();
+								  });
+							  }
+						  }]);
+					  } else {
+						  callback([{
+							  label: getResource("mountFiles.text"),
+							  action: function() {
+								  $(document).data('virtualPath', node.original.virtualPath);
+								  resourcePage.showCreate(new function() {
+									  var ref = $('#treeview').jstree(true);
+									  ref.refresh();
+								  });
+							  }
+						  },{
+							  label: getResource("createFolder.text"),
 							  action: function() {
 								  getJSON('fs/createVirtualFolder' + node.original.virtualPath + 'untitled folder', null, function(data) {
 									  var ref = $('#treeview').jstree(true);
@@ -225,7 +294,7 @@
 								  });
 							  }
 						  },{
-							  label: "Rename",
+							  label: getResource("text.rename"),
 							  action: function() {
 								var ref = $('#treeview').jstree(true);
 								sel = ref.get_selected();
@@ -241,16 +310,7 @@
 			  "plugins" : [
 			      "contextmenu", "crrm", "types"
 			  ]
-		}).bind("rename.jstree", function(e, data){
-		    var oldText = data.rslt.old_name;
-		    var newText = data.rslt.new_name;
-		    //do your thing
 		});
-		
-		$('.jstree-leaf').on('dblclick', function(){
-			$('#treeview').jstree("edit");
-		});
-
 		
 		$('#tabMounts').localize();
 		
@@ -390,12 +450,17 @@
 			});
 		}
 	
-
+		var refreshFunc = function() {
+			var ref = $('#treeview').jstree(true);
+			ref.refresh(); 
+		};
+		
 		var resourcePage = $('#tabMounts').ajaxResourcePage(
 				{
 					id : "Mounts",
 					tableUrl : "mounts/table",
 					title: getResource("filesystems.label"),
+					infoHtml: getResource('filesystems.infoHtml'),
 					icon: 'fa-folder-open',
 					resourceUrl : "mounts/mount",
 					importUrl: 'mounts/import',
@@ -453,7 +518,14 @@
 						$('#resourceId').val('');
 						$('#resourceName').val('');
 						$('#virtualPath').val('');
+						$('#virtualPath').attr('disabled', false);
 						
+						if($(document).data('virtualPath')!=null) {
+							$('#virtualPath').val($(document).data('virtualPath'));
+							$(document).data('virtualPath', null);
+							$('#virtualPath').attr('disabled', true);
+							
+						}
 						$('#serverName').val('');
 						$('#port').val('');
 						
@@ -550,10 +622,12 @@
 							},]
 						});
 					},
+					resourceUpdated: refreshFunc,
+					resourceCreated: refreshFunc,
+					resourceDeleted:refreshFunc,
 					complete : function() {
 						loadComplete();
 					}
 				});
-
 			});
 </script>
