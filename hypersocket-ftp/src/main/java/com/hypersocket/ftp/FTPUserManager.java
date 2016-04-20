@@ -2,6 +2,7 @@ package com.hypersocket.ftp;
 
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import org.apache.commons.codec.binary.Base64;
@@ -63,7 +64,7 @@ public class FTPUserManager implements UserManager {
 					.createAuthenticationState(FTPServiceImpl.AUTHENTICATION_SCHEME_RESOURCE_KEY,
 							auth.getUserMetadata()
 							.getInetAddress().getHostAddress(), environment,
-							configurationService.getDefaultLocale());
+							Locale.getDefault());
 			return state;
 		} catch (UnsupportedEncodingException e) {
 			throw new IllegalStateException("Surely all environments support UTF-8?");

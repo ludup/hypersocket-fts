@@ -7,6 +7,7 @@ import java.net.InetAddress;
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import javax.annotation.PostConstruct;
 
@@ -393,7 +394,7 @@ public class FTPServiceImpl implements FTPService,
 				FtpServerFactory serverFactory = new FtpServerFactory();
 	
 				certificateService.setCurrentSession(sessionService.getSystemSession(), 
-						configurationService.getDefaultLocale());
+						Locale.getDefault());
 				
 				KeyStore keystore = certificateService.getDefaultCertificate();
 				
