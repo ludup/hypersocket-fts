@@ -23,6 +23,11 @@ import com.hypersocket.utils.FileUtils;
 @JsonDeserialize(using=FileResourceDeserializer.class)
 public class FileResource extends AssignableResource  {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 4890173886479512286L;
+
 	@Column(name = "scheme")
 	String scheme;
 
