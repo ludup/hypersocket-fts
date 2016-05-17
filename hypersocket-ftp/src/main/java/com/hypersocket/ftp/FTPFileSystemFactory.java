@@ -1,5 +1,7 @@
 package com.hypersocket.ftp;
 
+import java.util.Locale;
+
 import org.apache.ftpserver.ftplet.FileSystemFactory;
 import org.apache.ftpserver.ftplet.FileSystemView;
 import org.apache.ftpserver.ftplet.FtpException;
@@ -56,12 +58,12 @@ public class FTPFileSystemFactory implements FileSystemFactory {
 	}
 	
 	public void setupSessionContext(Session session) {
-		fileService.setCurrentSession(session, configurationService.getDefaultLocale());
-		realmService.setCurrentSession(session, configurationService.getDefaultLocale());
-		permissionService.setCurrentSession(session, configurationService.getDefaultLocale());
-		authenticationService.setCurrentSession(session, configurationService.getDefaultLocale());
-		sessionService.setCurrentSession(session, configurationService.getDefaultLocale());
-		configurationService.setCurrentSession(session, configurationService.getDefaultLocale());
+		fileService.setCurrentSession(session, Locale.getDefault());
+		realmService.setCurrentSession(session, Locale.getDefault());
+		permissionService.setCurrentSession(session, Locale.getDefault());
+		authenticationService.setCurrentSession(session, Locale.getDefault());
+		sessionService.setCurrentSession(session, Locale.getDefault());
+		configurationService.setCurrentSession(session, Locale.getDefault());
 	}
 	
 	public void clearSessionContext() {
