@@ -32,12 +32,10 @@ public class CopyFileEvent extends FileOperationEvent {
 	}
 	
 	public CopyFileEvent(Object source, Exception e,
-			Session currentSession, String name, String fromChildPath,
-			String toResource, String toChildPath, String protocol) {
-		super(source, "fs.copyFile", e, currentSession, name, fromChildPath, protocol);
-		addAttribute(ATTR_TO_RESOURCE_NAME,
-				toResource);
-		addAttribute(ATTR_TO_FILE_PATH, toFilePath = "/" + name + FileUtils.checkStartsWithSlash(sourcePath));
+			Session currentSession, String fromChildPath,
+			String toChildPath, String protocol) {
+		super(source, "fs.copyFile", e, currentSession, fromChildPath, protocol);
+//		addAttribute(ATTR_TO_FILE_PATH, toFilePath = "/" + name + FileUtils.checkStartsWithSlash(sourcePath));
 		addAttribute(ATTR_TO_RESOURCE_PATH, toChildPath = FileUtils.checkStartsWithNoSlash(toChildPath));
 		addAttribute(ATTR_TO_FILENAME, toFilename = FileUtils.lastPathElement(sourcePath));
 	}

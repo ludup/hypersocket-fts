@@ -8,6 +8,7 @@ public class FileResourceUpdate {
 
 	Long id;
 	String name;
+	String virtualPath;
 	String scheme;
 	String server;
 	Integer port;
@@ -38,6 +39,14 @@ public class FileResourceUpdate {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public String getVirtualPath() {
+		return virtualPath;
+	}
+
+	public void setVirtualPath(String virtualPath) {
+		this.virtualPath = virtualPath;
 	}
 
 	public Long[] getRoles() {

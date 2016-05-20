@@ -43,6 +43,14 @@ public abstract class FileOperationEvent extends ResourceSessionEvent {
 		addAttribute(ATTR_PROTOCOL, protocol);
 	}
 	
+	public FileOperationEvent(Object source, String resourceKey, Throwable e,
+			Session session, String sourcePath, String protocol) {
+		super(source, resourceKey, e, session);
+		addAttribute(ATTR_FILE_PATH, sourceResource + FileUtils.checkStartsWithSlash(sourcePath));
+		addAttribute(ATTR_FILE_NAME, filename = FileUtils.lastPathElement(sourcePath));
+		addAttribute(ATTR_PROTOCOL, protocol);
+	}
+	
 	public String getResourceBundle() {
 		return FileResourceServiceImpl.RESOURCE_BUNDLE;
 	}

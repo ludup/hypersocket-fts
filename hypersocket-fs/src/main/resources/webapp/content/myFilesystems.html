@@ -1,48 +1,439 @@
-<div id="tabMounts">
-
+<div class="panel panel-default">
+<div class="panel-heading">
+	<h2><i class="fa fa-folder-open-o"></i><span class="break"></span>My Files</h2>
 </div>
-
+<div id="viewfs" class="panel-body">
+		<div id="navigation">
+			<ol id="breadcrumbs" class="breadcrumb"></ol>
+		</div>
+		<div id="viewfsContent">
+			<div id="tableWrapper">
+			<table id="table">
+				<thead>
+					<tr>
+						<th data-field="state" data-checkbox="true"></th>
+						<th data-field="filename" data-sortable="true" data-formatter="nameFormatter">Name</th>
+						<th data-field="type" data-sortable="true">Type</th>
+						<th data-field="lastModified" data-sortable="true" data-formatter="dateFormatter">Last Modified</th>
+						<th data-field="size" data-sortable="true" data-formatter="sizeFormatter">Size</th>
+						<th data-field="action" data-formatter="actionFormatter" data-events="actionEvents">Action</th>
+					</tr>
+				</thead>
+			</table>
+			</div>
+		</div>
+	</div>
+	<div id="additionalActions"></div>
+</div>
+<script src="${uiPath}/js/notify.min.js"></script>
 <script type="text/javascript">
-	$(document).ready(function() {
-				$('#tabMounts').localize();
 
-				$('#tabMounts').ajaxResourcePage(
-						{
-							id : "personalMounts",
-							tableUrl : "mounts/personal",
-							title: getResource("filesystems.label"),
-							icon: 'fa-folder-open',
-							logo: true,
-							defaultView: 'logo',
-							logoResourceTypeCallback: function(resource) {
-								return 'FILE';
-							},
-							resourceUrl : "mount",
-							fields : [ {
-								name : "name"
-							}, {
-								name : "scheme",
-								isResourceKey : true
-							}, {
-								name : "url"
-							} ],
-							resourceKey : "mount",
-							canCreate: false,
-							canUpdate: false,
-							canDelete: false,
-							disableEditView: true,
-							additionalActions : [{ resourceKey: "openMount",
-								iconClass: "fa-folder-open-o",
-								enabled: true,
-								action : function(resource) {
-									window.open('viewfs/' + resource.name,
-											'_blank',
-											'width=1024,height=800,toolbar=0,menubar=0,location=0,status=1,scrollbars=0,resizable=0,left=0,top=0');
-								}}],
-							complete : function() {
-								loadComplete();
+	var mountPath = '/'
+	var cwd = mountPath;
+
+	$.fn.editable.defaults.mode = 'inline';
+
+	function createFsUrl(path, operation, virtualFile, additionalParams) {
+		
+		var url = basePath + path + operation + virtualFile.virtualPath;
+		if(virtualFile.conflicted) {
+			url += '?conflicted=true&vfsid=' + virtualFile.id;
+			if(additionalParams) {
+				urk += "&" + additionalParams;
+			}
+		} else if(additionalParams) {
+			url += '?' + additionalParams;
+		}
+		return url;
+	}
+	
+	function createApiUrl(operation, virtualFile, additionalParams) {
+		return createFsUrl('/api/fs/', operation, virtualFile, additionalParams);
+	}
+	
+	function createViewUrl(virtualFile, additionalParams) {
+		return createFsUrl('/ui/', 'viewfs', virtualFile, additionalParams);
+	}
+	
+	function actionFormatter(value, row, index) {
+
+		var additionalActions = $(document).data('actions');
+		var actionHtml = '';
+		
+		if(additionalActions && additionalActions.length > 0) {
+			actionHtml += '<div id="dropdown_' + index + '" class="btn-group"><a class="btn btn-success row-additional dropdown-toggle" data-toggle="dropdown" href="#"><i class="fa fa-gears"></i></a>';
+			actionHtml += '<ul class="dropdown-menu dropdown-menu-right" role="menu">';
+			$.each(additionalActions,
+					function(x, act) {
+						if (act.enabled) {
+							actionHtml += '<li><a class="row-' + act.resourceKey + '" href="#"><span>' + getResource(act.resourceKey + ".label") + '</span>&nbsp;&nbsp;<i class="fa ' + act.iconClass + '"></i></a></li>';
+	
+							$(document).off('click',
+								'#dropdown_' + index + ' .row-' + act.resourceKey);
+	
+							$(document).on(
+								'click',
+								'#dropdown_' + index + ' .row-' + act.resourceKey,
+								function() {
+									path = row.virtualPath;
+									act.action(path, row, function(resource) {
+										
+									});
+								});
+						}
+			});
+			actionHtml += '</ul></div>';
+			
+			$(document).on('show.bs.dropdown', '#Actions' + index, function () {
+				var dropdown = $(this);
+				var resource = row
+				$.each(additionalActions, function(x, act) {
+					if(act.enabled) {
+						if(act.displayFunction && act.displayFunction != '') {
+							var display = window[act.displayFunction].apply(null, [resource]);
+							var el = $('.row-' + act.resourceKey, dropdown);   
+							if(display) {
+								el.show();
+							} else {
+								el.hide();
 							}
+						}
+						if(act.enableFunction && act.enableFunction != '') {
+							if(!window[act.enableFunction].apply(null, [resource])) {
+								var el = $('.row-' + act.resourceKey, dropdown);    
+								el.parent().addClass('disabled');
+								el.attr('disabled', true);
+							}
+						} 
+					}
+					
+				});
+			});
+		}
+		
+		actionHtml += '<a class="delete tableAction btn btn-danger btn-action"><i class="fa fa-trash fa-fw"></i></a>';
+		actionHtml += '<a class="edit tableAction btn btn-primary btn-action"><i class="fa fa-edit fa-fw"></i></a>';
+
+		if (row.type != "Folder") {
+			actionHtml += '<a class="download tableAction btn btn-success btn-action"><i class="fa fa-download fa-fw"></i></a>';
+		} else {
+			actionHtml += '<a href="#"><i class="fa fa-fw" style="width: 15px;"></i></a>';
+		}
+
+		return actionHtml;
+	}
+
+	function sizeFormatter(value, row, index) {
+		return formatBytes(row.size, 0);
+	}
+	
+	function dateFormatter(value, row, index) {
+		
+		debugger;
+		var today = new Date();
+		var yesterday = (function(d){ d.setDate(d.getDate()-1); return d})(new Date);
+		var fileDate = new Date(row.lastModified);
+		
+		var todayStr = today.format('yyyy-mm-dd');
+		var yesterdayStr = yesterday.format('yyyy-mm-dd');
+		var fileStr = fileDate.format('yyyy-mm-dd');
+		
+		if(todayStr === fileStr) {
+			return getResource("today.text") + " " + fileDate.format("HH:MM");	
+		} else if(yesterdayStr === fileStr) {
+			return getResource("yesterday.text") + " " + fileDate.format("HH:MM");
+		} else {
+			return fileDate.format("d mmmm yyyy HH:MM");	
+		}
+		
+	}
+	
+	function nameFormatter(value, row, index) {
+
+		var outputHtml = '';
+		if (row.type != 'FOLDER' && row.type != 'MOUNTED_FOLDER') {
+
+			var className = "fa-file-o";
+			var canOpen = true;
+			if (row.type == 'application/zip') {
+				className = "fa-file-zip-o";
+				canOpen = false;
+			} else if (row.type == 'image/jpeg') {
+				className = "fa-file-image-o";
+			} else if (row.type == 'image/x-png') {
+				className = "fa-file-image-o";
+			} else if (row.type == 'application/pdf') {
+				className = "fa-file-pdf-o";
+			} else {
+				canOpen = false;
+			}
+
+			if (canOpen) {
+				outputHtml += '<a class="download" href="#" data-path="' + row.virtualPath + '">';
+			}
+			outputHtml += '<i class="fileIcon fa ' + className + '"></i>';
+
+			if (canOpen) {
+				outputHtml += '</a>';
+			}
+
+			outputHtml += '<span class="fileLabel' + (row.conflicted ? ' conflicted' : '') + '" data-original="' 
+					+ row.filename + '" data-unique="' + row.id + '">'
+					+ row.displayName + '</span>';
+
+		} else {
+			outputHtml += '<a class="open" href="#" data-path="' + row.virtualPath + '"><i class="fileIcon fa fa-folder-open"></i></a><span class="fileLabel' 
+					+ (row.conflicted ? ' conflicted' : '') + '" data-original="' 
+					+ row.filename + '" data-unique="' + row.id + '">'
+					+ row.displayName + '</span>';
+		}
+
+		return outputHtml;
+	}
+
+	window.actionEvents = {
+		'click .download' : function(e, value, row, index) {
+			window.location = createApiUrl('download', row, 'forceDownload=true');
+		},
+		'click .edit' : function(e, value, row, index) {
+			e.stopPropagation();
+			$('tr[data-index="' + index + '"]').find('.fileLabel').editable('toggle');
+		},
+		'click .delete' : function(e, value, row, index) {
+
+			$('.notifyjs-confirm-base .no').trigger('click');
+			var arr = new Array();
+			arr.push(row);
+			$(document).data('deleteRow', arr);
+			$(e.target).closest('a').notify({
+				title : getResource("text.confirmDelete").format(row.displayName),
+				button : getResource("text.delete")
+			}, {
+				style : 'confirm',
+				position : 'left middle',
+				autoHide : false,
+				clickToHide : false,
+				showDuration : 100
+			});
+		}
+	};
+	
+
+
+	function rebindEditable() {
+		
+		$('#breadcrumbs').empty();
+		var breadcrumbs = mountPath.split('/');
+		if (breadcrumbs[breadcrumbs.length - 1] == '') {
+			breadcrumbs.pop();
+		}
+		var currentPath = '/';
+		$('#breadcrumbs').append(
+				'<li><a href="#" class="open" data-path="/">ROOT</a></li>');
+		$.each(breadcrumbs, function(idx, obj) {
+			if(obj==='#' || obj==='') {
+				return;
+			}
+			currentPath += obj + '/';
+			if (idx < breadcrumbs.length - 1) {
+				$('#breadcrumbs').append(
+						'<li><a href="#" class="open" data-path="' + currentPath + '">'
+								+ decodeURIComponent(obj) + '</a></li>');
+			} else {
+				$('#breadcrumbs').append(
+						'<li class="active">' + decodeURIComponent(obj)
+								+ '</li>');
+
+			}
+
+		});
+		
+		$('.open').off('click');
+		$('.open').on('click', function() {
+			mountPath = $(this).data('path');
+			$('#table').bootstrapTable('refresh', {url: basePath + '/api/fs/search' + mountPath});
+		});
+		
+		$('.fileLabel').editable(
+				{
+					type : 'text',
+					title : 'Enter new filename',
+					showbuttons : false,
+					toggle : 'manual',
+					validate : function(value) {
+						if ($.trim(value) == '') {
+							return getResource('text.displayNameCannotBeEmpty');
+						}
+					},
+					value: function() {
+						return $(this).closest('td').find('.fileLabel').data('original');
+					},
+					url : function(params) {
+						debugger;
+						var row = $('#table').bootstrapTable('getRowByUniqueId', $(this).data('unique'));
+						var d = new $.Deferred;
+						var original = $(this).data('original');
+						$.post( createApiUrl('rename', row, 'forceDownload=false'),
+								"toUri=" + basePath + '/api/fs/rename'
+										+ mountPath + params.value,
+								function(data) {
+									
+									if (data.success) {
+										d.resolve();
+										$('#table').bootstrapTable('refresh');
+									} else {
+										d.reject(data.error);
+									}
+								}, "json").fail(function(e) {
+							d.reject(e);
 						});
 
-			});
+						return d.promise();
+
+					}
+				});
+	};
+	$(document).ready(
+					function() {
+
+						
+							 
+							 loadResources(function() {
+
+								 getJSON('menus/tableActions/fileActions', null, function(data) {
+										
+										var actions = new Array();
+										
+										if(data.resources.length > 0) {
+											$.each(data.resources, function(idx, action) {
+												var div = action.resourceKey + 'Div';
+												$('#additionalActions').append('<div id="' + div + '"></div>');
+												$('#' + div).load(uiPath + 'content/' + action.url + '.html');
+												actions.push({
+													resourceKey : action.resourceKey,
+													iconClass : action.iconClass,
+													action : function(resource, row, callback) {
+														if($('#' + action.resourceKey).data('action')) {
+															$('#' + action.resourceKey).data('action')(resource, row, callback);
+														}
+													},
+													enabled : true,
+													enableFunction: action.enableFunction,
+													displayFunction: action.displayFunction
+												});
+											});
+										 }
+										
+										 $(document).data('actions', actions);
+										
+										 $.notify.addStyle(
+											'confirm',
+											{
+												html : "<div>"
+														+ "<div class='clearfix'>"
+														+ "<div class='title' data-notify-html='title'/>"
+														+ "<div class='buttons'>"
+														+ "<button class='btn btn-primary no'>Cancel</button>"
+														+ "<button class='btn btn-danger yes' data-notify-text='button'></button>"
+														+ "</div>" + "</div>"
+														+ "</div>"
+											});
+
+									$(document).on('click',
+											'.notifyjs-confirm-base .no', function() {
+												$(this).trigger('notify-hide');
+											});
+
+									$(document).on('click',
+													'.notifyjs-confirm-base .yes',
+													function() {
+														
+														var row = $(document).data('deleteRow');
+														
+														$.each(row, function(idx, row) {
+															getJSON(createApiUrl('delete', row),
+																	null,
+																	function(data) {
+																		if (data.success) {
+																			showInformation(getResource('text.deleted').format(row.displayName));
+																			$('#table').bootstrapTable('refresh');
+																		} else {
+																			showError(getResource('text.deleteFailed').format(row.displayName));
+																		}
+																	});
+														});
+														
+														$(this).trigger('notify-hide');
+													});
+
+									
+									$('#table').bootstrapTable({
+										url : basePath + '/api/fs/search' + mountPath,
+										queryParams: function(params) {
+ 											params._ = new Date().getTime();
+											return params;
+										},
+										pagination : true,
+										page : 1,
+										pageSize : 5,
+										pageList : [ 5, 10, 20, 50, 100 ],
+										clickToSelect : false,
+										search : true,
+										showColumns : true,
+										sortName: 'filename',
+										sortOrder: 'asc',
+										showRefresh : true,
+										showToggle : true,
+										uniqueId: 'id',
+										sidePagination : 'server',
+										onLoadSuccess : function(data) {
+											rebindEditable();
+											loadComplete();
+										},
+										onLoadError: function(status) {
+											getJSON(basePath + '/api/fs/lastError', null, function(data) {
+												showError(data.message);
+											});
+										}
+									});
+									
+									$('.fixed-table-toolbar').find('.btn-group').first().prepend('<button id="multipleDelete" class="btn btn-default" type="button" name="multipleDelete" title="Delete"><i class="fa fa-trash"></i></button>');
+									$('.fixed-table-toolbar').find('.btn-group').first().prepend('<button id="newFolderButton" class="btn btn-default" type="button" name="newFolder" title="New Folder"><i class="fa fa-folder-open"></i></button>');
+
+									$('#multipleDelete').click(
+											function(e) {
+										
+												var arr = $('#table').bootstrapTable('getSelections');
+												if(arr.length > 0) {
+													$(document).data('deleteRow', arr);
+													$('#multipleDelete').notify({
+														title : getResource("text.confirmMultipleDelete").format(arr.length),
+														button : getResource("text.delete")
+													}, {
+														style : 'confirm',
+														position : 'left middle',
+														autoHide : false,
+														clickToHide : false,
+														showDuration : 100
+													});
+												}
+									});
+									
+									$('#newFolderButton').click(
+											function(e) {
+												
+												getJSON('fs/createFolder'
+														+ mountPath, null, function(data) {
+													$('#table').bootstrapTable(
+															'append', data.resource);
+													rebindEditable();
+													$('.fileLabel').last().editable(
+															'toggle');
+												});
+									});
+								});
+						});
+						
+						
+					});
 </script>

@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component;
 
 import com.hypersocket.events.SystemEvent;
 import com.hypersocket.fs.FileResource;
-import com.hypersocket.fs.FileResourceService;
 import com.hypersocket.i18n.I18NService;
 import com.hypersocket.properties.ResourceTemplateRepository;
 import com.hypersocket.realm.Realm;
@@ -22,6 +21,7 @@ import com.hypersocket.tasks.TaskProviderService;
 import com.hypersocket.triggers.AbstractTaskResult;
 import com.hypersocket.triggers.TriggerResourceService;
 import com.hypersocket.triggers.ValidationException;
+import com.hypersocket.vfs.VirtualFileService;
 
 @Component
 public class CreateFileTask extends AbstractTaskProvider {
@@ -41,7 +41,7 @@ public class CreateFileTask extends AbstractTaskProvider {
 	CreateFileTaskRepository repository;
 
 	@Autowired
-	FileResourceService fileResourceService;
+	VirtualFileService fileService;
 
 	@Autowired
 	TriggerResourceService triggerService;
@@ -84,31 +84,25 @@ public class CreateFileTask extends AbstractTaskProvider {
 
 		String path = processTokenReplacements(repository.getValue(task, "file.path"), event);
 
-		if (log.isInfoEnabled()) {
-			log.info("Path " + path);
-		}
 		try {
 			int index = path.lastIndexOf("/");
 			String parentPath = path.substring(0, index);
 			String name = path.substring(index + 1, path.length());
 
 			if (task.getResourceKey().equals(ACTION_MKDIR)) {
-
-				fileResourceService.createFolder(parentPath, name, PROTOCOL);
+				
+				fileService.createFolder(path, PROTOCOL);
 			} else if (task.getResourceKey().equals(ACTION_DELETE_FILE)) {
 
-				fileResourceService.deleteFile(path, PROTOCOL);
+				fileService.deleteFile(path, PROTOCOL);
 			} else if (task.getResourceKey().equals(ACTION_TRUNCATE_FILE)
 					|| task.getResourceKey().equals(ACTION_TOUCH_FILE)) {
 
-				FileResource resource = fileResourceService.getMountForPath(path);
-				String childPath = fileResourceService.resolveChildPath(resource, path);
-				FileObject file = fileResourceService.resolveMountFile(resource);
-				file = file.resolveFile(childPath);
+				FileObject file = fileService.getFileObject(path);
 				
 				if (task.getResourceKey().equals(ACTION_TRUNCATE_FILE)
 						&& file.exists()) {
-					fileResourceService.deleteFile(path, PROTOCOL);
+					fileService.deleteFile(path, PROTOCOL);
 					file.createFile();
 					
 				} else if (task.getResourceKey().equals(ACTION_TRUNCATE_FILE)

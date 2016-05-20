@@ -318,6 +318,28 @@ public class FileResourceController extends ResourceController {
 		}
 	}
 
+	@AuthenticationRequired
+	@RequestMapping(value = "mounts/mount/{id}", method = RequestMethod.GET, produces = { "application/json" })
+	@ResponseBody
+	@ResponseStatus(value = HttpStatus.OK)
+	public ResourceStatus<FileResource> getResource(
+			HttpServletRequest request, HttpServletResponse response,
+			@PathVariable("id") Long id) throws AccessDeniedException,
+			UnauthorizedException, SessionTimeoutException {
+
+		setupAuthenticatedContext(sessionUtils.getSession(request),
+				sessionUtils.getLocale(request));
+		try {
+
+			return new ResourceStatus<FileResource>(mountService.getResourceById(id));
+
+		} catch (ResourceException e) {
+			return new ResourceStatus<FileResource>(false, e.getMessage());
+		} finally {
+			clearAuthenticatedContext();
+		}
+	}
+	
 	@SuppressWarnings("unchecked")
 	@AuthenticationRequired
 	@RequestMapping(value = "mounts/mount/{id}", method = RequestMethod.DELETE, produces = { "application/json" })
@@ -360,8 +382,9 @@ public class FileResourceController extends ResourceController {
 			FileResourceUpdate update, Set<Role> roles, boolean creating,
 			String username, String password) throws UnauthorizedException,
 			ResourceChangeException, ResourceCreationException {
+		
 		resource.setName(update.getName());
-
+		resource.setVirtualPath(FileUtils.checkEndsWithSlash(update.getVirtualPath()));
 		resource.setRealm(realm);
 		resource.setScheme(update.getScheme());
 		resource.setServer(update.getServer());
