@@ -102,7 +102,7 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 					displayName,
 					FileUtils.checkEndsWithSlash(parent.getVirtualPath() + filename) , 
 					VirtualFileType.FOLDER, 
-					parent.isMounted() && !resource.isReadOnly(), 
+					!resource.isReadOnly(), 
 					0L, 
 					fileObject.getContent().getLastModifiedTime(), 
 					parent,
@@ -120,7 +120,7 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 					displayName,
 					FileUtils.checkEndsWithSlash(parent.getVirtualPath() + displayName) , 
 					VirtualFileType.FOLDER, 
-					true, 
+					false, 
 					0L, 
 					System.currentTimeMillis(), 
 					parent,
@@ -141,7 +141,7 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 					displayName,
 					FileUtils.checkEndsWithSlash(folder.getParent().getVirtualPath() + filename) , 
 					VirtualFileType.FOLDER, 
-					folder.getParent().isMounted() && !resource.isReadOnly(), 
+					!resource.isReadOnly(), 
 					0L, 
 					fileObject.getContent().getLastModifiedTime(), 
 					folder.getParent(),
@@ -159,6 +159,7 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 	}
 	
 	@Override
+	@Transactional
 	public VirtualFile getRootFolder(Realm realm) {
 		VirtualFile rootFile = get("filename", "__ROOT__", VirtualFile.class);
 		if(rootFile==null) {
@@ -288,6 +289,7 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 	}
 
 	@Override
+	@Transactional
 	public int removeReconciledFolder(VirtualFile toDelete) {
 		
 		int filesToDelete = 0;
@@ -303,6 +305,8 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 		update.setEntity("mount", toDelete.getMount());
 		update.executeUpdate();
 		
+		delete(toDelete);
+		flush();
 		return filesToDelete;
 	}
 
@@ -324,6 +328,7 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 	}
 
 	@Override
+	@Transactional
 	public VirtualFile renameVirtualFolder(VirtualFile fromFolder, String toFolder) {
 		 
 		String newName = FileUtils.lastPathElement(toFolder);
@@ -339,5 +344,17 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 					null,
 					false,
 					fromFolder.getRealm());
+	}
+
+	@Override
+	@Transactional(readOnly=true)
+	public VirtualFile getVirtualFileById(Long id) {
+		return get("id", id, VirtualFile.class);
+	}
+
+	@Override
+	@Transactional
+	public void saveFile(VirtualFile file) {
+		save(file);
 	}
 }

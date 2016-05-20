@@ -195,6 +195,7 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 		indexPage.addStyleSheet("${uiPath}/css/themes/default/style.min.css");
 		indexPage.addStyleSheet("${uiPath}/css/fs.css");
 		
+		
 		if (log.isDebugEnabled()) {
 			log.debug("FileResourceService constructed");
 		}

@@ -1,5 +1,6 @@
 package com.hypersocket.vfs;
 
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -36,13 +37,13 @@ public class VirtualFile extends AbstractEntity<Long> {
 	@Column(name="last_modified")
 	Long lastModified;
 	
-	@Column(name="virtual_path")
+	@Column(name="virtual_path", length=8000)
 	String virtualPath;
 	
-	@Column(name="filename")
+	@Column(name="filename", length=256)
 	String filename;
 	
-	@Column(name="display_name")
+	@Column(name="display_name", length=512)
 	String displayName;
 	
 	@Column(name="writable")
@@ -53,6 +54,9 @@ public class VirtualFile extends AbstractEntity<Long> {
 	
 	@Column(name="conflicted")
 	Boolean conflicted;
+	
+	@OneToOne
+	FileResource defaultMount;
 	
 	@Column(name="hash")
 	int hash;
@@ -122,7 +126,7 @@ public class VirtualFile extends AbstractEntity<Long> {
 	}
 
 	public FileResource getMount() {
-		return mount;
+		return mount == null ? getDefaultMount() : mount;
 	}
 
 	public void setMount(FileResource mount) {
@@ -154,7 +158,7 @@ public class VirtualFile extends AbstractEntity<Long> {
 	}
 	
 	public boolean isFolder() {
-		return type==VirtualFileType.FOLDER || type==VirtualFileType.MOUNTED_FOLDER;
+		return type==VirtualFileType.FOLDER || type==VirtualFileType.MOUNTED_FOLDER || type==VirtualFileType.ROOT;
 	}
 	
 	public boolean isFile() {
@@ -180,6 +184,13 @@ public class VirtualFile extends AbstractEntity<Long> {
 	public void setConflicted(Boolean conflicted) {
 		this.conflicted = conflicted;
 	}
+
+	public void setDefaultMount(FileResource defaultMount) {
+		this.defaultMount = defaultMount;
+	}
 	
+	public FileResource getDefaultMount() {
+		return defaultMount;
+	}
 	
 }

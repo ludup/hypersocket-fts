@@ -11,9 +11,9 @@ import org.apache.commons.vfs2.FileObject;
 import com.hypersocket.auth.AuthenticatedService;
 import com.hypersocket.fs.FileResource;
 import com.hypersocket.fs.UploadProcessor;
-import com.hypersocket.json.ResourceList;
 import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.realm.UserVariableReplacement;
+import com.hypersocket.resource.ResourceChangeException;
 import com.hypersocket.tables.ColumnSort;
 import com.hypersocket.upload.FileUpload;
 import com.hypersocket.vfs.json.HttpDownloadProcessor;
@@ -79,5 +79,11 @@ public interface VirtualFileService extends AuthenticatedService {
 			throws AccessDeniedException, IOException;
 
 	Collection<FileResource> getNonRootMounts() throws AccessDeniedException;
+
+	Collection<FileResource> getMountsForPath(String virtualPath) throws FileNotFoundException, AccessDeniedException;
+
+	VirtualFile getFileById(Long id) throws AccessDeniedException;
+
+	void setDefaultMount(VirtualFile file, FileResource mount) throws AccessDeniedException, ResourceChangeException;
 
 }

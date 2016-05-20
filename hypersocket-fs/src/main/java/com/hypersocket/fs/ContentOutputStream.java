@@ -7,6 +7,9 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 
 import com.hypersocket.utils.FileUtils;
+import com.hypersocket.vfs.VirtualFile;
+import com.hypersocket.vfs.VirtualFileRepository;
+import com.hypersocket.vfs.VirtualFileServiceImpl;
 
 public class ContentOutputStream extends OutputStream {
 
@@ -18,10 +21,21 @@ public class ContentOutputStream extends OutputStream {
 	UploadEventProcessor eventProcessor;
 	long bytesIn = 0;
 	String protocol;
+	String virtualPath;
+	VirtualFile parentFile;
+	VirtualFileRepository virtualRepository;
 	
-	public ContentOutputStream(FileResource resource, String childPath,
-			FileObject file, OutputStream out, long position, long started,
-			UploadEventProcessor eventProcessor, String protocol)
+	public ContentOutputStream(FileResource resource, 
+			String childPath,
+			String virtualPath,
+			VirtualFileRepository virtualRepository,
+			VirtualFile parentFile,
+			FileObject file, 
+			OutputStream out, 
+			long position, 
+			long started,
+			UploadEventProcessor eventProcessor,
+			String protocol)
 			throws FileSystemException {
 		this.out = out;
 		this.started = started;
@@ -30,6 +44,9 @@ public class ContentOutputStream extends OutputStream {
 		this.childPath = childPath;
 		this.eventProcessor = eventProcessor;
 		this.protocol = protocol;
+		this.virtualPath = virtualPath;
+		this.parentFile = parentFile;
+		this.virtualRepository = virtualRepository;
 	}
 
 	@Override
@@ -54,6 +71,7 @@ public class ContentOutputStream extends OutputStream {
 			bytesIn += len;
 		} catch (IOException e) {
 			FileUtils.closeQuietly(out);
+			reconcileFile();
 			eventProcessor.uploadFailed(resource, childPath, file, bytesIn, e,
 					protocol);
 			out = null;
@@ -67,10 +85,20 @@ public class ContentOutputStream extends OutputStream {
 		if (out != null) {
 			FileUtils.closeQuietly(out);
 			out = null;
-			// Event callback
+			reconcileFile();
 			eventProcessor.uploadComplete(resource, childPath, file,
 					bytesIn, started, protocol);
+			
 		}
 	}
 
+	private void reconcileFile() throws FileSystemException {
+		VirtualFile existingFile = virtualRepository.getVirtualFile(virtualPath);
+		
+		String displayName = FileUtils.lastPathElement(virtualPath);
+		if(existingFile!=null) {
+			displayName = String.format("%s (%s)", displayName, parentFile.getMount().getName());
+		}
+		virtualRepository.reconcileFile(displayName, file, resource, parentFile);
+	}
 }

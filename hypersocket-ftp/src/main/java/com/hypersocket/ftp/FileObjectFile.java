@@ -5,20 +5,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hypersocket.fs.FileResource;
 import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.session.Session;
 import com.hypersocket.utils.FileUtils;
+import com.hypersocket.vfs.VirtualFile;
 
 public class FileObjectFile extends AbstractFtpFile {
 
 	static Logger log = LoggerFactory.getLogger(FileObjectFile.class);
 
+	VirtualFile virtualFile;
 	
 	FileObjectFile(Session session, FTPFileSystemFactory factory, String path) {
 		super(session, factory, path);
@@ -67,7 +66,11 @@ public class FileObjectFile extends AbstractFtpFile {
 	}
 
 	public long getLastModified() {
-		checkFile();
+		try {
+			checkFile();
+		} catch (IOException e) {
+			throw new IllegalStateException(e);
+		}
 		return file.getLastModified();
 	}
 
@@ -84,12 +87,27 @@ public class FileObjectFile extends AbstractFtpFile {
 	}
 
 	public boolean isRemovable() {
-		checkFile();
+		try {
+			checkFile();
+		} catch (IOException e) {
+			throw new IllegalStateException(e);
+		}
 		return file.getWritable();
 	}
 
 	public boolean isWritable() {
-		checkFile();
-		return file.getWritable();
+		try {
+			checkFile();
+			return file.getWritable();
+		} catch (IOException e) {
+			VirtualFile parentFile;
+			try {
+				parentFile = factory.getService().getFile(FileUtils.stripLastPathElement(absolutePath));
+				return parentFile.getWritable();
+			} catch (FileNotFoundException | AccessDeniedException e1) {
+				return false;
+			}
+			
+		}
 	}
 }

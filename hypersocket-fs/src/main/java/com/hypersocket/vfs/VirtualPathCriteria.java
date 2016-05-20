@@ -10,7 +10,7 @@ public class VirtualPathCriteria implements CriteriaConfiguration {
 
 	String virtualPath;
 
-	VirtualPathCriteria(String virtualPath) {
+	public VirtualPathCriteria(String virtualPath) {
 		this.virtualPath = virtualPath;
 	}
 	

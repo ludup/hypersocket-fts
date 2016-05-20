@@ -19,8 +19,8 @@
 								</div>
 							</div>
 						</div>
-						<div class="propertyItem form-group">
-							<label class="col-md-3 control-label" localize="mount.path.label"></label>
+						<div class="propertyItem form-group" style="display: none">
+							<label class="col-md-3 control-label" localize="virtualPath.label"></label>
 							<div class="propertyValue col-md-9">
 								<input type="text" class="form-control"
 									placeholder="" id="virtualPath" maxlength="" name="virtualPath" value="">
@@ -148,42 +148,144 @@
 		</div>
 	</div>
 </div>
-<div class="row">
+<div id="virtualFileSystemView">
 	<div id="virtualFileSystemTree" class="col-md-4 panel panel-body">
 		<div id="treeview"></div>
 	</div>
 	<div id="virtualFileSystemInfo" class="col-md-8 panel panel-body">
-		<div class="col-md-12">
-			<h4>Virtual File System</h4>
-			<p>Here you can mount external files and folders to create a Virtual File System for your users.</p>
+		<div id="defaultPanel" class="col-md-12">
+			<p><strong>Here you can create a virtual file system for your users. To do this you can...</strong></p>
 			
-			<p>Build up your file system by creating virtual folders <i class="fa fa-folder-open-o"></i> and then mount any number of external file 
-			systems <i class="fa fa-hdd-o"></i> to it. The files from the root folder of the mount will be mounted
-			directly in the virtual folder. For example mounting the local folder <em>/home/user</em> to the virtual path <em>/home</em> will see
-			the file <em>/home/user/readme.txt</em> mapped to the virtual file system path <em>/home/readme.txt</em>.</p>
+			<p>Build up your file system by creating <strong>Virtual Folders</strong>. These are represented in the tree 
+			view as the open folder icon&nbsp;<i class="fa fa-folder-open-o"></i>. <strong>Virtual Folders</strong> act 
+			as a point to mount your external files. Each folder can contain any
+			number of mounts. If you mount an external folder then the files within that folder are included in the 
+			listing of the virtual folder. Similarly you can mount a single file to be included in the Virtual Folder.</p>
+			<p>Right click on a Virtual Folder in the tree view to access the context menu.</p>
+			<p><img src="${uiPath}/content/images/virtualFolderMenu.png" height="75"></p>
+
+			<p><strong>Mount</strong> any number of external file systems to your Virtual Folders. These are represented 
+			in the tree	view as the disk icon&nbsp;<i class="fa fa-hdd-o"></i>.	<strong>Mounts</strong> are assignable to 
+			Roles so only users within those Roles will be able to see and access the files within it.</p>
+			<p>After you have created a Mount right click on its icon in the tree view to access its context menu.</p>
+			<p><img src="${uiPath}/content/images/mountMenu.png" height="75"></p>
 			
+			<p>Some other things to note about the file system...</p>
+
+			<p><i class="fa fa-hand-o-right"></i> A Virtual Folder at the top most level is read-only by default. Folders beneath the Virtual Folder declared by
+			Mounts will have the permissions of the mount. You can set the Default Mount property of the Virtual Folder to 
+			enable uploads and folder creation within the Virtual Folder. These operations will be performed on the Mount selected.</p>
+		
+			<p><i class="fa fa-hand-o-right"></i> When multiple Mounts are defined on a single Virtual Folder its possible that there could be conflicting filenames.
+			In this case the first Mount to declare a filename wins and all other files are marked as conflicted and will not be
+			accessible. 
+			</p>
+		</div>
+		<div id="folderPanel" class="col-md-12" style="display: none">
+			<div class="col-md-4">
+				<h4>Folder Name:</h4>
+				<h4>Virtual Path:</h4>
+				<h4>Default Mount:</h4>
+			</div>
+			<div class="col-md-8">
+				<h4><span id="infFolderName"></span></h4>
+				<h4><span id="infFolderPath"></span></h4>
+				<div id="defaultMounts"></div>
+			</div>		
+		</div>
+		<div id="mountPanel" class="col-md-12" style="display: none">
+			<div class="col-md-4">
+				<h4>Resource Name:</h4>
+				<h4>Virtual Path:</h4>
+				<h4>Last Modified:</h4>
+				<h4>Scheme:</h4>
+			</div>
+			<div class="col-md-8">
+				<h4><span id="infResourceName"></span></h4>
+				<h4><span id="infVirtualPath"></span></h4>
+				<h4><span id="infLastReconcile"></span></h4>
+				<h4><span id="infScheme"></span></h4>
+			</div>	
 		</div>
 		
-		
-<!-- 		<div class="col-md-4"> -->
-<!-- 			<h4>Resource Name:</h4> -->
-<!-- 			<h4>Virtual Path:</h4> -->
-<!-- 			<h4>Last Reconciled:</h4> -->
-<!-- 			<h4>Scheme:</h4> -->
-<!-- 		</div> -->
-<!-- 		<div class="col-md-8"> -->
-<!-- 			<h4><span id="infResourceName">Downloads</span></h4> -->
-<!-- 			<h4><span id="infVirtualPath">/downloads</span></h4> -->
-<!-- 			<h4><span id="infLastReconcile">Tue, 3 May 2016 11:45</span></h4> -->
-<!-- 			<h4><span id="infScheme">Local</span></h4> -->
-<!-- 		</div> -->
+
 	</div>
 </div>
 <script type="text/javascript">
+
+	function displayScheme(scheme, url) {
+		if(scheme.remote) {
+			if(getResourceNoDefault(scheme.scheme + '.server.label')!=null) {
+				$("label[for='server']").text(getResource(scheme.scheme + '.server.label'));
+			} else {
+				$("label[for='server']").text(getResource('mount.server.label'));
+			}
+			$('.remoteDiv').show();
+			if(!scheme.showPort) {
+				$('.portDiv').hide();
+			}
+		} else {
+			$('.remoteDiv').hide();
+			$('#serverName').val('');
+			$('#port').val('');
+		}
+		if(scheme.supportsCredentials) {								
+			if(getResourceNoDefault(scheme.scheme + '.username.label')!=null) {
+				$("label[for='username']").text(getResource(scheme.scheme + '.username.label'));
+			} else {
+				$("label[for='username']").text(getResource('mount.username.label'));
+			}
+			if(getResourceNoDefault(scheme.scheme + '.username.info')!=null) {
+				$("span[localize='mount.username.info']").text(getResource(scheme.scheme + '.username.info'));
+			} else {
+				$("span[localize='mount.username.info']").text(getResource('mount.username.info'));
+			}
+			if(getResourceNoDefault(scheme.scheme + '.password.label')!=null) {
+				$("label[for='password']").text(getResource(scheme.scheme + '.password.label'));
+			} else {
+				$("label[for='password']").text(getResource('mount.password.label'));
+			}
+			if(getResourceNoDefault(scheme.scheme + '.password.info')!=null) {
+				$("span[localize='mount.password.info']").text(getResource(scheme.scheme + '.password.info'));
+			} else {
+				$("span[localize='mount.password.info']").text(getResource('mount.password.info'));
+			}
+			$('.credsDiv').show();
+		} else {
+			$('.credsDiv').hide();
+			$('#username').val('');
+			$('#password').val('');
+		}
+		$('#mountProperties').propertyPage({
+			url : 'mounts/' + url,
+			showButtons : false,
+			useTemplates : true,
+			canUpdate : currentMenu.canUpdate,
+			additionalTabs : [ {
+				id : "tabFile",
+				name : getResource("mount.details.label")
+			},
+			{
+				id : "tabAuth",
+				name : getResource("mount.auth.label")
+			},
+			{
+				id : "tabOptions",
+				name : getResource("mount.options.label")
+			},
+			{
+				id : "tabRoles",
+				name : getResource("label.roles")
+			},
+			{
+				id : "tabLogo",
+				name : getResource("mount.logo.label")
+			},]
+		});
+	}
 	$(document).ready(function() {
 	
 		$('#treeview').on('rename_node.jstree', function(node, data){
-			debugger;
 		    var oldText = data.old;
 		    var newText = data.text;
 		    getJSON('fs/rename' + data.node.original.virtualPath + "?toUri=" + basePath + "/api/fs/rename" + data.node.original.parentPath + newText, null, function(data) {
@@ -206,7 +308,7 @@
 		var tree = $('#treeview').jstree({
 			  "core" : {
 			    "animation" : 0,
-			    "multiple" : true,
+			    "multiple" : false,
 			    "check_callback" : function (operation, node, node_parent, node_position, more) {
 	                switch (operation) {
 	                    case "move_node":
@@ -220,7 +322,8 @@
 	                        break;
 	                    case "rename_node":
 	                    	return node_parent.id ==='#' ? false : true;
-	                        
+	                    default:
+							break;
 	                }
 	            },
 			    "themes" : { "stripes" : false },
@@ -238,9 +341,10 @@
 			  }, 
 			  "contextmenu": {
 				  "items": function(node, callback) {
-					  debugger;
+
 					  if(node.original.type==='mount') {
-						  callback([{
+						  callback([						    
+						    {
 							label: getResource("text.edit"),
 						     action: function() {
 						    	$(document).data('virtualPath', node.original.virtualPath);
@@ -248,7 +352,8 @@
  									resourcePage.showEdit(data.resource);
  								});
 						     }
-						  },{
+						  },
+						  {
 					    	label: getResource("text.delete"),
 						    action: function() {
 						    	getJSON('mounts/mount/' + node.original.resourceId, null, function(data) {
@@ -276,7 +381,8 @@
 							  }
 						  }]);
 					  } else {
-						  callback([{
+						  
+						  var items = [{
 							  label: getResource("mountFiles.text"),
 							  action: function() {
 								  $(document).data('virtualPath', node.original.virtualPath);
@@ -294,20 +400,25 @@
 								  });
 							  }
 						  },{
-							  label: getResource("text.rename"),
-							  action: function() {
-								var ref = $('#treeview').jstree(true);
-								sel = ref.get_selected();
-								if(!sel.length) { return false; }
-								sel = sel[0];
-								ref.edit(sel);
-							  }
-						  },{
 							  label: "Delete",
 							  action: function() {
 								
 							  }
-						  }]);
+						  }];
+						  if(node.children.length == 0) {
+							  items.push({
+								  label: getResource("text.rename"),
+								  action: function() {
+									var ref = $('#treeview').jstree(true);
+									sel = ref.get_selected();
+									if(!sel.length) { return false; }
+									sel = sel[0];
+									ref.edit(sel);
+								  }
+							  });
+						  }
+						  
+						  callback(items);
 					  }
 					  
 				  }
@@ -315,6 +426,76 @@
 			  "plugins" : [
 			      "contextmenu", "crrm", "types"
 			  ]
+		});
+		
+		$('#treeview').on('changed.jstree', function (e, selected) {
+			if(!selected || !selected.node) {
+				return;
+			}
+		    if(selected.node.original.type === 'mount') {
+				getJSON('mounts/mount/' + selected.node.original.resourceId, null, function(data) {
+
+					if(!data.success) {
+						showError(data.message);
+					} else {
+						$('#infResourceName').text(data.resource.name);
+				    	$('#infVirtualPath').text(data.resource.virtualPath);
+				    	$('#infLastReconcile').text(new Date(data.resource.modifiedDate).format("ddd d mmm yyyy, HH:MM"));
+				    	$('#infScheme').text(getResource('mount.' + data.resource.scheme + '.label'));
+				    	
+				    	
+				    	$('#mountPanel').show();
+				    	$('#defaultPanel').hide();
+				    	$('#folderPanel').hide();
+					}
+				});
+		    	
+		    } else {
+		    	
+		    	getJSON('fs/mountsByPath' + selected.node.original.virtualPath, null, function(data) {
+
+		    		if(!data.success) {
+		    			showError(data.message);
+		    		} else {
+		    			getJSON('fs/file/' + selected.node.original.resourceId, null, function(file) {
+
+				    		$('#infFolderName').text(file.resource.filename);
+					    	$('#infFolderPath').text(file.resource.virtualPath);
+					    	$('#defaultMounts').empty();
+					    	var writableMounts = [];
+					    	$.each(data.resources, function(idx, obj) {
+					    		if(!obj.readOnly) {
+					    			writableMounts.push(obj);
+					    		}
+					    	});
+					    	$('#defaultMounts').selectButton({
+					    		options: writableMounts,
+					    		value: (file.resource.defaultMount ? file.resource.defaultMount.id : 0),
+					    		emptySelectionAllowed: true,
+					    		emptySelectionText: '&lt;No Default&gt;',
+					    		nameAttr: "name",
+					    		valueAttr: "id",
+					    		changed: function(widget) {
+					    			
+									var mount = widget.getSelectedObject();
+					    			getJSON('fs/setDefaultMount/' + selected.node.original.resourceId + '/' + (mount ? mount.id : 0), null, function(data) {
+					    				if(!data.success) {
+					    					showError(data.message);
+					    					widget.setValue((file.resource.defaultMount ? file.resource.defaultMount.id : 0));
+					    				}
+					    			});
+					    			
+					    			configuring = false;
+					    		}
+					    	});
+					    	$('#folderPanel').show();
+					    	$('#defaultPanel').hide();
+					    	$('#mountPanel').hide();
+		    			});
+		    		}
+		    	});
+		    	
+		    }
 		});
 		
 		$('#tabMounts').localize();
@@ -359,74 +540,7 @@
 			},
 			changed: function(widget) {
 				var scheme = widget.getSelectedObject();
-				if(scheme.remote) {
-					if(getResourceNoDefault(scheme.scheme + '.server.label')!=null) {
-						$("label[for='server']").text(getResource(scheme.scheme + '.server.label'));
-					} else {
-						$("label[for='server']").text(getResource('mount.server.label'));
-					}
-					$('.remoteDiv').show();
-					if(!scheme.showPort) {
-						$('.portDiv').hide();
-					}
-				} else {
-					$('.remoteDiv').hide();
-					$('#serverName').val('');
-					$('#port').val('');
-				}
-				if(scheme.supportsCredentials) {								
-					if(getResourceNoDefault(scheme.scheme + '.username.label')!=null) {
-						$("label[for='username']").text(getResource(scheme.scheme + '.username.label'));
-					} else {
-						$("label[for='username']").text(getResource('mount.username.label'));
-					}
-					if(getResourceNoDefault(scheme.scheme + '.username.info')!=null) {
-						$("span[localize='mount.username.info']").text(getResource(scheme.scheme + '.username.info'));
-					} else {
-						$("span[localize='mount.username.info']").text(getResource('mount.username.info'));
-					}
-					if(getResourceNoDefault(scheme.scheme + '.password.label')!=null) {
-						$("label[for='password']").text(getResource(scheme.scheme + '.password.label'));
-					} else {
-						$("label[for='password']").text(getResource('mount.password.label'));
-					}
-					if(getResourceNoDefault(scheme.scheme + '.password.info')!=null) {
-						$("span[localize='mount.password.info']").text(getResource(scheme.scheme + '.password.info'));
-					} else {
-						$("span[localize='mount.password.info']").text(getResource('mount.password.info'));
-					}
-					$('.credsDiv').show();
-				} else {
-					$('.credsDiv').hide();
-					$('#username').val('');
-					$('#password').val('');
-				}
-				$('#mountProperties').propertyPage({
-					url : 'mounts/template/' + (widget.getValue() ? widget.getValue() : 'file'),
-					showButtons : false,
-					useTemplates : true,
-					canUpdate : currentMenu.canUpdate,
-					additionalTabs : [ {
-						id : "tabFile",
-						name : getResource("mount.details.label")
-					},
-					{
-						id : "tabAuth",
-						name : getResource("mount.auth.label")
-					},
-					{
-						id : "tabOptions",
-						name : getResource("mount.options.label")
-					},
-					{
-						id : "tabRoles",
-						name : getResource("label.roles")
-					},
-					{
-						id : "tabLogo",
-						name : getResource("mount.logo.label")
-					},]
-				});
+				displayScheme(scheme,'template/' + (scheme && scheme.scheme ? scheme.scheme : 'file'));
 			}
 		});
 		
@@ -488,14 +602,6 @@
 					canCreate: currentMenu.canCreate,
 					canUpdate: currentMenu.canUpdate,
 					canDelete: currentMenu.canDelete,
-					additionalActions : [ { resourceKey: "openMount",
-						iconClass: "fa-folder-open-o",
-						enabled: true,
-						action : function(resource) {
-							window.open('viewfs' + resource.virtualPath,
-									'_blank',
-									'width=1024,height=800,toolbar=0,menubar=0,location=0,status=1,scrollbars=0,resizable=0,left=0,top=0');
-						}}],
 					validate : function() {
 
 						if ($('#resourceName').val() == '') {
@@ -533,6 +639,9 @@
 						}
 						$('#serverName').val('');
 						$('#port').val('');
+						
+						$('.remoteDiv').hide();
+						$('.credsDiv').hide();
 						
 						pathInput.setValue('');
 						usernameInput.setValue('');
@@ -572,8 +681,6 @@
 						$('#resourceId').val(resource.id);
 						$('#resourceName').val(resource.name);
 						$('#virtualPath').val(resource.virtualPath);
-						schemeButton.setValue(resource.scheme);
-						schemeButton.disable();
 						
 						$('#serverName').val(resource.server);
 						$('#port').val(resource.port);
@@ -600,36 +707,29 @@
 							resourceKey : 'mount'
 						});
 						
-						$('#mountProperties').propertyPage({
-							url : 'mounts/properties/' + resource.id,
-							showButtons : false,
-							useTemplates : true,
-							canUpdate : currentMenu.canUpdate,
-							additionalTabs : [ {
-								id : "tabFile",
-								name : getResource("mount.details.label")
-							},
-							{
-								id : "tabAuth",
-								name : getResource("mount.auth.label")
-							},
-							{
-								id : "tabOptions",
-								name : getResource("mount.options.label")
-							},
-							{
-								id : "tabRoles",
-								name : getResource("label.roles")
-							},
-							{
-								id : "tabLogo",
-								name : getResource("mount.logo.label")
-							},]
-						});
+						schemeButton.setValue(resource.scheme);
+						var scheme = schemeButton.getSelectedObject();
+						displayScheme(scheme,'properties/' + resource.id);
+						
+						schemeButton.disable();
 					},
 					resourceUpdated: refreshFunc,
 					resourceCreated: refreshFunc,
 					resourceDeleted:refreshFunc,
+					additionalViews: [ { name: "VirtualFileSystem",
+						id: 'folder',
+						div: '#virtualFileSystemView',
+						icon: 'fa-folder-open-o',
+						onShow: function() {
+							$('.fixed-table-toolbar').hide();
+							$('.fixed-table-pagination').remove();
+							$('#tabMountsActions').hide();
+						},
+						onHide: function() {
+							
+						}
+					}], 
+					defaultView: 'folder',
 					complete : function() {
 						loadComplete();
 					}

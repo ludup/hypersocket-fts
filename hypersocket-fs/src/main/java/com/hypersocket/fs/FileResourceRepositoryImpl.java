@@ -11,6 +11,7 @@ import com.hypersocket.realm.Realm;
 import com.hypersocket.realm.RealmRestriction;
 import com.hypersocket.repository.CriteriaConfiguration;
 import com.hypersocket.resource.AbstractAssignableResourceRepositoryImpl;
+import com.hypersocket.vfs.VirtualPathCriteria;
 
 @Repository
 public class FileResourceRepositoryImpl extends
@@ -25,7 +26,7 @@ public class FileResourceRepositoryImpl extends
 	@Override
 	@Transactional(readOnly=true)
 	public Collection<FileResource> getResourcesByVirtualPath(String virtualPath, Realm realm) {
-		return list("virtualPath", virtualPath, FileResource.class, new RealmRestriction(realm));
+		return list(FileResource.class, new VirtualPathCriteria(virtualPath), new RealmRestriction(realm));
 	}
 
 	@Override

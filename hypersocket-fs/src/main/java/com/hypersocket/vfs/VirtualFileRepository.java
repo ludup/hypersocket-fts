@@ -54,4 +54,8 @@ public interface VirtualFileRepository extends AbstractRepository<Long> {
 
 	VirtualFile renameVirtualFolder(VirtualFile fromFolder, String toFolder);
 
+	VirtualFile getVirtualFileById(Long id);
+
+	void saveFile(VirtualFile file);
+
 }

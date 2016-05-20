@@ -26,7 +26,7 @@ public abstract class AbstractFtpFile implements FtpFile {
 	final FTPFileSystemFactory factory;
 	final String absolutePath;
 	
-	VirtualFile file;
+	protected VirtualFile file;
 	
 	AbstractFtpFile(Session session, FTPFileSystemFactory factory, String absolutePath) {
 		this.session = session;
@@ -34,18 +34,17 @@ public abstract class AbstractFtpFile implements FtpFile {
 		this.absolutePath = absolutePath;
 	}
 
-	protected void checkFile() {
+	protected void checkFile() throws IOException {
 		
 		try {
 			if(file==null) {
 				file = factory.getService().getFile(absolutePath);
 			}
-		} catch(IOException e) {
-			throw new IllegalStateException(e);
 		} catch(AccessDeniedException e) {
 			throw new IllegalStateException(e);
 		}
 	}
+	
 	public Session getSession() {
 		return session;
 	}
@@ -96,7 +95,8 @@ public abstract class AbstractFtpFile implements FtpFile {
 				factory.getService().getFile(absolutePath);
 				return false;
 			} catch(FileNotFoundException e) {
-				factory.getService().createFile(absolutePath, FTP_PROTOCOL);
+				factory.getService().createFolder(absolutePath, FTP_PROTOCOL);
+				return true;
 			}
 		} catch (FileSystemException e) {
 			log.error("Failed to create folder", e);
@@ -111,9 +111,8 @@ public abstract class AbstractFtpFile implements FtpFile {
 	@Override
 	public boolean move(FtpFile ftpFile) {
 
-		AbstractFtpFile toFile = (AbstractFtpFile) ftpFile;
 		try {
-			factory.getService().renameFile(absolutePath, toFile.getAbsolutePath(), FTP_PROTOCOL);
+			factory.getService().renameFile(absolutePath, ftpFile.getAbsolutePath(), FTP_PROTOCOL);
 			return true;
 		} catch (FileSystemException e) {
 			log.error("Failed to move file", e);
@@ -141,26 +140,43 @@ public abstract class AbstractFtpFile implements FtpFile {
 
 	@Override
 	public boolean isDirectory() {
-		checkFile();
-		return file.isFolder() || file.isMount();
+		try {
+			checkFile();
+			return file.isFolder() || file.isMount();
+		} catch (IOException e) {
+			throw new IllegalStateException(e);
+		}
+		
 	}
 
 	@Override
 	public boolean isFile() {
-		checkFile();
-		return file.isFile();
+		try {
+			checkFile();
+			return file.isFile();
+		} catch (IOException e) {
+			throw new IllegalStateException(e);
+		}
 	}
 
 	@Override
 	public boolean isHidden() {
-		checkFile();
-		return file.isHidden();
+		try {
+			checkFile();
+			return file.isHidden();
+		} catch (IOException e) {
+			throw new IllegalStateException(e);
+		}
 	}
 
 	@Override
 	public long getSize() {
-		checkFile();
-		return file.getSize();
+		try {
+			checkFile();
+			return file.getSize();
+		} catch (IOException e) {
+			throw new IllegalStateException(e);
+		}
 	}
 
 	@Override
