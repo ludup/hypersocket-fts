@@ -32,11 +32,11 @@ public class RenameEvent extends FileOperationEvent {
 	}
 
 	public RenameEvent(Object source, Exception e,
-			Session currentSession, String name, String fromChildPath,
-			String toResource, String toChildPath, String protocol) {
-		super(source, "fs.renameFile", e, currentSession, name, fromChildPath, protocol);
-		addAttribute(ATTR_TO_RESOURCE_NAME,
-				toResource);
+			Session currentSession, 
+			String fromChildPath,
+			String toChildPath, 
+			String protocol) {
+		super(source, "fs.renameFile", e, currentSession, fromChildPath, protocol);
 		addAttribute(ATTR_TO_FILE_PATH, toChildPath);
 	}
 

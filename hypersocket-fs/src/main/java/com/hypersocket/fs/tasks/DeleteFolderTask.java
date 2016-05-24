@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
 
 import com.hypersocket.events.SystemEvent;
 import com.hypersocket.fs.FileResource;
-import com.hypersocket.fs.FileResourceService;
 import com.hypersocket.i18n.I18NService;
 import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.properties.ResourceTemplateRepository;
@@ -25,6 +24,7 @@ import com.hypersocket.tasks.TaskProviderService;
 import com.hypersocket.triggers.AbstractTaskResult;
 import com.hypersocket.triggers.TriggerResourceService;
 import com.hypersocket.triggers.ValidationException;
+import com.hypersocket.vfs.VirtualFileService;
 
 @Component
 public class DeleteFolderTask extends AbstractTaskProvider {
@@ -41,7 +41,7 @@ public class DeleteFolderTask extends AbstractTaskProvider {
 	DeleteFolderTaskRepository repository;
 
 	@Autowired
-	FileResourceService fileResourceService;
+	VirtualFileService fileResourceService;
 
 	@Autowired
 	TriggerResourceService triggerService;
@@ -96,8 +96,7 @@ public class DeleteFolderTask extends AbstractTaskProvider {
 			if (!deleteNonEmpty) {
 				fileResourceService.deleteFile(path, PROTOCOL);
 			} else {
-				FileResource resource = fileResourceService.getMountForPath(path);
-				deleteFolder(path, resource);
+				fileResourceService.deleteFile(path, PROTOCOL);
 			}
 
 			return new DeleteFolderTaskResult(this, currentRealm,
@@ -115,11 +114,9 @@ public class DeleteFolderTask extends AbstractTaskProvider {
 		return new String[] { DeleteFolderTaskResult.EVENT_RESOURCE_KEY };
 	}
 
-	public void deleteFolder(String path, FileResource resource) throws IOException {
+	public void deleteFolder(String path, FileResource resource) throws IOException, AccessDeniedException {
 		
-		String childPath = fileResourceService.resolveChildPath(resource, path);
-		FileObject file = fileResourceService.resolveMountFile(resource);
-		file = file.resolveFile(childPath);
+		FileObject file = fileResourceService.getFileObject(path);
 		FileObject[] children=file.getChildren();
 		
 		for(int x=0; x<children.length; x++){

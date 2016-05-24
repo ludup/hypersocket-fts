@@ -25,7 +25,7 @@ public class SessionAwareUploadEventProcessor implements UploadEventProcessor {
 	}
 
 	@Override
-	public void uploadCannotStart(String mountName, String childPath,
+	public void uploadCannotStart(String virtualPath,
 			Throwable t, String protocol) {
 		
 		boolean setupContext = !authenticatedService.hasAuthenticatedContext();
@@ -33,7 +33,7 @@ public class SessionAwareUploadEventProcessor implements UploadEventProcessor {
 			authenticatedService.setCurrentSession(session, locale);
 		}
 		try {
-			processor.uploadCannotStart(mountName, childPath, t, protocol);
+			processor.uploadCannotStart(virtualPath, t, protocol);
 		} finally {
 			if(setupContext) {
 				authenticatedService.clearPrincipalContext();
@@ -42,7 +42,7 @@ public class SessionAwareUploadEventProcessor implements UploadEventProcessor {
 	}
 
 	@Override
-	public UploadStartedEvent uploadStarted(FileResource resource, String childPath,
+	public UploadStartedEvent uploadStarted(FileResource resource, String virtualPath,
 			FileObject file, String protocol) {
 		
 		boolean setupContext = !authenticatedService.hasAuthenticatedContext();
@@ -51,7 +51,7 @@ public class SessionAwareUploadEventProcessor implements UploadEventProcessor {
 		}
 
 		try {
-			return processor.uploadStarted(resource, childPath, file, protocol);
+			return processor.uploadStarted(resource, virtualPath, file, protocol);
 		} finally {
 			if(setupContext) {
 				authenticatedService.clearPrincipalContext();
@@ -60,7 +60,7 @@ public class SessionAwareUploadEventProcessor implements UploadEventProcessor {
 	}
 
 	@Override
-	public void uploadComplete(FileResource resource, String childPath,
+	public void uploadComplete(FileResource resource, String virtualPath,
 			FileObject file, long bytesIn, long timeMillis, String protocol) {
 
 		boolean setupContext = !authenticatedService.hasAuthenticatedContext();
@@ -69,7 +69,7 @@ public class SessionAwareUploadEventProcessor implements UploadEventProcessor {
 		}
 
 		try {
-			processor.uploadComplete(resource, childPath, file, bytesIn,
+			processor.uploadComplete(resource, virtualPath, file, bytesIn,
 					timeMillis, protocol);
 		} finally {
 			if(setupContext) {
@@ -80,7 +80,7 @@ public class SessionAwareUploadEventProcessor implements UploadEventProcessor {
 	}
 
 	@Override
-	public void uploadFailed(FileResource resource, String childPath,
+	public void uploadFailed(FileResource resource, String virtualPath,
 			FileObject file, long bytesIn, Throwable t, String protocol) {
 
 		boolean setupContext = !authenticatedService.hasAuthenticatedContext();
@@ -89,7 +89,7 @@ public class SessionAwareUploadEventProcessor implements UploadEventProcessor {
 		}
 
 		try {
-			processor.uploadFailed(resource, childPath, file, bytesIn, t,
+			processor.uploadFailed(resource, virtualPath, file, bytesIn, t,
 					protocol);
 		} finally {
 			if(setupContext) {

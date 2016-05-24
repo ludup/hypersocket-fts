@@ -56,6 +56,9 @@ public class FileResource extends AssignableResource  {
 	@Column(name = "logo")
 	String logo;
 
+	@Column(name="virtual_path")
+	String virtualPath;
+	
 	public String getScheme() {
 		return scheme;
 	}
@@ -134,6 +137,14 @@ public class FileResource extends AssignableResource  {
 	
 	public void setLogo(String logo) {
 		this.logo = logo;
+	}
+
+	public String getVirtualPath() {
+		return virtualPath;
+	}
+
+	public void setVirtualPath(String virtualPath) {
+		this.virtualPath = virtualPath;
 	}
 
 	@JsonIgnore

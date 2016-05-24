@@ -38,8 +38,8 @@ public class UploadStartedEvent extends FileOperationEvent implements FileInputT
 	}
 
 	public UploadStartedEvent(Object source, Throwable t,
-			Session currentSession, String mountName, String childPath, String protocol) {
-		super(source, "fs.uploadStarted", t, currentSession, mountName, childPath, protocol);
+			Session currentSession, String childPath, String protocol) {
+		super(source, "fs.uploadStarted", t, currentSession, childPath, protocol);
 	}
 
 	public String[] getResourceKeys() {

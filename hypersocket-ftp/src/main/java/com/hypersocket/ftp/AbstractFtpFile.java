@@ -1,22 +1,21 @@
 package com.hypersocket.ftp;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
 import org.apache.ftpserver.ftplet.FtpFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hypersocket.fs.FileResource;
 import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.session.Session;
-import com.hypersocket.utils.FileUtils;
+import com.hypersocket.vfs.VirtualFile;
 
 public abstract class AbstractFtpFile implements FtpFile {
 
@@ -25,21 +24,27 @@ public abstract class AbstractFtpFile implements FtpFile {
 
 	final Session session;
 	final FTPFileSystemFactory factory;
-	final FileResource resource;
-	final FileObject file;
 	final String absolutePath;
-	final String realPath;
-
-	AbstractFtpFile(Session session, FTPFileSystemFactory factory,
-			FileResource resource, FileObject file, String absolutePath, String realPath) {
+	
+	protected VirtualFile file;
+	
+	AbstractFtpFile(Session session, FTPFileSystemFactory factory, String absolutePath) {
 		this.session = session;
 		this.factory = factory;
-		this.resource = resource;
-		this.file = file;
-		this.absolutePath = absolutePath.equals("/") ? absolutePath : FileUtils.checkEndsWithNoSlash(absolutePath);
-		this.realPath = realPath;
+		this.absolutePath = absolutePath;
 	}
 
+	protected void checkFile() throws IOException {
+		
+		try {
+			if(file==null) {
+				file = factory.getService().getFile(absolutePath);
+			}
+		} catch(AccessDeniedException e) {
+			throw new IllegalStateException(e);
+		}
+	}
+	
 	public Session getSession() {
 		return session;
 	}
@@ -65,16 +70,19 @@ public abstract class AbstractFtpFile implements FtpFile {
 		List<FtpFile> ret = new ArrayList<FtpFile>();
 
 		try {
-			for (FileObject f : file.getChildren()) {
-				ret.add(new SessionContextFtpFileAdapter(new FileObjectFile(session, factory, resource, f,
-						FileUtils.checkEndsWithSlash(absolutePath)
-								+ f.getName().getBaseName(),
-						FileUtils.checkEndsWithSlash(realPath)
-								+ f.getName().getBaseName()), factory));
+			for(VirtualFile f : factory.getService().getChildren(absolutePath)) {
+				ret.add(new SessionContextFtpFileAdapter(
+						new FileObjectFile(session, 
+						factory, 
+						f.getVirtualPath()),
+						factory));
 			}
-		} catch (FileSystemException e) {
+
+		} catch (AccessDeniedException e) {
 			log.error("Failed to list files", e);
-		}
+		} catch (FileNotFoundException e) {
+			log.error("Failed to list files", e);
+		} 
 
 		return ret;
 	}
@@ -83,14 +91,13 @@ public abstract class AbstractFtpFile implements FtpFile {
 	public boolean mkdir() {
 
 		try {
-			if (file.exists()) {
+			try {
+				factory.getService().getFile(absolutePath);
 				return false;
+			} catch(FileNotFoundException e) {
+				factory.getService().createFolder(absolutePath, FTP_PROTOCOL);
+				return true;
 			}
-			factory.getFileResourceService().createFolder(FileUtils.getParentPath(realPath), 
-					FileUtils.lastPathElement(realPath), FTP_PROTOCOL);
-			
-			file.createFolder();
-			return true;
 		} catch (FileSystemException e) {
 			log.error("Failed to create folder", e);
 		} catch (IOException e) {
@@ -103,33 +110,29 @@ public abstract class AbstractFtpFile implements FtpFile {
 
 	@Override
 	public boolean move(FtpFile ftpFile) {
-		if (ftpFile instanceof RootFile) {
-			if (log.isDebugEnabled()) {
-				log.debug("Invalid attempt to move a file into the root virtual file");
-			}
-			return false;
-		} else if (ftpFile instanceof AbstractFtpFile) {
-			AbstractFtpFile toFile = (AbstractFtpFile) ftpFile;
-			try {
-				file.moveTo(toFile.getFileObject());
-				return true;
-			} catch (FileSystemException e) {
-				log.error("Failed to move file", e);
-			}
-		}
-		return false;
-	}
 
-	public FileObject getFileObject() {
-		return file;
+		try {
+			factory.getService().renameFile(absolutePath, ftpFile.getAbsolutePath(), FTP_PROTOCOL);
+			return true;
+		} catch (FileSystemException e) {
+			log.error("Failed to move file", e);
+		} catch (IOException e) {
+			log.error("Failed to move file", e);
+		} catch (AccessDeniedException e) {
+			log.error("Failed to move file", e);
+		}
+		
+		return false;
 	}
 
 	@Override
 	public boolean setLastModified(long lastModified) {
 		try {
-			file.getContent().setLastModifiedTime(lastModified);
+			factory.getService().setLastModified(absolutePath, lastModified, FTP_PROTOCOL);
 			return true;
-		} catch (FileSystemException e) {
+		} catch (IOException e) {
+			log.error("Failed to set last modified time", e);
+		} catch(AccessDeniedException e) {
 			log.error("Failed to set last modified time", e);
 		}
 		return false;
@@ -138,39 +141,42 @@ public abstract class AbstractFtpFile implements FtpFile {
 	@Override
 	public boolean isDirectory() {
 		try {
-			return file.getType() == FileType.FOLDER
-					|| file.getType() == FileType.FILE_OR_FOLDER;
-		} catch (FileSystemException e) {
-			log.error("Failed to determine file type", e);
-			return false;
+			checkFile();
+			return file.isFolder() || file.isMount();
+		} catch (IOException e) {
+			throw new IllegalStateException(e);
 		}
+		
 	}
 
 	@Override
 	public boolean isFile() {
 		try {
-			return file.getType() == FileType.FILE
-					|| file.getType() == FileType.IMAGINARY;
-		} catch (FileSystemException e) {
-			log.error("Failed to determine file type", e);
-			return false;
+			checkFile();
+			return file.isFile();
+		} catch (IOException e) {
+			throw new IllegalStateException(e);
 		}
 	}
 
 	@Override
 	public boolean isHidden() {
-		return false;
+		try {
+			checkFile();
+			return file.isHidden();
+		} catch (IOException e) {
+			throw new IllegalStateException(e);
+		}
 	}
 
 	@Override
 	public long getSize() {
 		try {
-			return file.getContent().getSize();
-		} catch (FileSystemException e) {
-			log.error("Failed to determin file size", e);
-			return 0;
+			checkFile();
+			return file.getSize();
+		} catch (IOException e) {
+			throw new IllegalStateException(e);
 		}
-
 	}
 
 	@Override

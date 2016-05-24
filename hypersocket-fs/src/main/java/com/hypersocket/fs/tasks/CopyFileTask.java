@@ -20,6 +20,7 @@ import com.hypersocket.tasks.TaskProviderService;
 import com.hypersocket.triggers.AbstractTaskResult;
 import com.hypersocket.triggers.TriggerResourceService;
 import com.hypersocket.triggers.ValidationException;
+import com.hypersocket.vfs.VirtualFileService;
 
 @Component
 public class CopyFileTask extends AbstractTaskProvider {
@@ -38,7 +39,7 @@ public class CopyFileTask extends AbstractTaskProvider {
 	CopyFileTaskRepository repository;
 
 	@Autowired
-	FileResourceService fileResourceService;
+	VirtualFileService fileResourceService;
 
 	@Autowired
 	TriggerResourceService triggerService;

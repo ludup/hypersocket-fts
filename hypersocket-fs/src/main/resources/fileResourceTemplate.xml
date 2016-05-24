@@ -1,3 +1,12 @@
 <?xml version="1.0" ?>
 <propertyTemplates context="fileResource">
+	<propertyCategory resourceKey="fs.reconcile"
+		resourceBundle="FileResourceService" weight="9999" store="db">
+		<property resourceKey="fs.reconcileSuccessInterval" inputType="integer"
+		    minValue="10" maxValue="1440" invalidResourceKey="error.between5and1440"
+			defaultValue="60" weight="0" />
+		<property resourceKey="fs.reconcileFailedInterval" inputType="integer"
+		    minValue="2" maxValue="1440" invalidResourceKey="error.between5and1440"
+			defaultValue="60" weight="0" />
+	</propertyCategory>
 </propertyTemplates>

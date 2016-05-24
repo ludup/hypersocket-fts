@@ -17,9 +17,9 @@ public class DeleteFileEvent extends FileOperationEvent {
 	}
 
 	public DeleteFileEvent(Object source,
-			Throwable ex, Session currentSession, String name,
+			Throwable ex, Session currentSession,
 			String childPath, String protocol) {
-		super(source, "fs.deleteFile", ex, currentSession, name, childPath, protocol);
+		super(source, "fs.deleteFile", ex, currentSession, childPath, protocol);
 	}
 
 	public String[] getResourceKeys() {
