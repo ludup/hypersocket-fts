@@ -6,6 +6,7 @@
 		<div id="navigation">
 			<ol id="breadcrumbs" class="breadcrumb"></ol>
 		</div>
+		<div id="dragAndDrop"></div>
 		<div id="viewfsContent">
 			<div id="tableWrapper">
 			<table id="table">
@@ -129,7 +130,6 @@
 	
 	function dateFormatter(value, row, index) {
 		
-		debugger;
 		var today = new Date();
 		var yesterday = (function(d){ d.setDate(d.getDate()-1); return d})(new Date);
 		var fileDate = new Date(row.lastModified);
@@ -251,6 +251,7 @@
 		$('.open').off('click');
 		$('.open').on('click', function() {
 			mountPath = $(this).data('path');
+			$('#dragAndDrop').widget().setOptions({url: basePath + '/api/fs/upload' + mountPath})
 			$('#table').bootstrapTable('refresh', {url: basePath + '/api/fs/search' + mountPath});
 		});
 		
@@ -299,7 +300,18 @@
 						
 							 
 							 loadResources(function() {
-
+								$('#dragAndDrop').html5Upload({
+									disabled : false, 
+									showFileInputLink: true,
+									showDownload: false,
+									showRemove: false,
+									showCancel: true,
+									showPercent: true,
+									url: basePath + '/api/fs/upload' + mountPath,
+									uploadCallback: function(){
+										$('#table').bootstrapTable('refresh', {url: basePath + '/api/fs/search' + mountPath});
+									}
+								});
 								 getJSON('menus/tableActions/fileActions', null, function(data) {
 										
 										var actions = new Array();
@@ -366,7 +378,6 @@
 														$(this).trigger('notify-hide');
 													});
 
-									
 									$('#table').bootstrapTable({
 										url : basePath + '/api/fs/search' + mountPath,
 										queryParams: function(params) {
