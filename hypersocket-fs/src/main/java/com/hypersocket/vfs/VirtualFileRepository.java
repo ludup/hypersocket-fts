@@ -58,4 +58,6 @@ public interface VirtualFileRepository extends AbstractRepository<Long> {
 
 	void saveFile(VirtualFile file);
 
+	void removeFileResource(FileResource resource);
+
 }

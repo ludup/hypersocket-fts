@@ -309,6 +309,16 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 		flush();
 		return filesToDelete;
 	}
+	
+	@Override
+	@Transactional
+	public void removeFileResource(FileResource resource) {
+
+		Query update = createQuery("delete from VirtualFile where mount = :mount", true);
+		update.setEntity("mount", resource);
+		update.executeUpdate();
+		flush();
+	}
 
 	@Override
 	@Transactional(readOnly=true)

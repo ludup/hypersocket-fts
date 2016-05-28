@@ -16,6 +16,7 @@ import org.apache.commons.vfs2.FileSelectInfo;
 import org.apache.commons.vfs2.FileSelector;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemOptions;
+import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.VFS;
 import org.apache.derby.impl.io.vfmem.PathUtil;
 import org.slf4j.Logger;
@@ -351,8 +352,17 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	@Override
 	public void downloadFile(VirtualFile file, final HttpDownloadProcessor processor, final String proto) throws AccessDeniedException, IOException {
 		
+		if(file.getMount()==null) {
+			throw new IOException("Download must be a file and have a valid mount point!");
+		}
 		FileResolver<Object> resolver = new FileResolver<Object>(true, false) {
 
+			void checkFile(FileObject file) throws IOException {
+				if(file.getType()!=FileType.FILE) {
+					throw new IOException("Download must be a file!");
+				}
+			}
+			
 			@Override
 			Object onFileResolved(FileResource resource, String childPath, FileObject file, String virtualPath)
 					throws IOException {
@@ -492,8 +502,10 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		}
 
 		T processRequest(VirtualFile file) throws IOException, AccessDeniedException {
+			
 			String childPath = FileUtils.stripParentPath(file.getMount().getVirtualPath(), file.getVirtualPath());
 			return processRequest(file.getMount(), childPath, file.getVirtualPath());
+			
 		}
 		
 		T processRequest(FileResource resource, String childPath, String path) throws IOException, AccessDeniedException {
@@ -502,12 +514,18 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 				file = resolveVFSFile(resource);
 				file = file.resolveFile(childPath);
 
+				checkFile(file);
+				
 				return onFileResolved(resource, childPath, file, path);
 
 			} catch (IOException ex) {
 				onFileUnresolved(path, ex);
 				throw ex;
 			}
+		}
+		
+		void checkFile(FileObject file) throws IOException {
+			
 		}
 
 		FileObject getFile() {

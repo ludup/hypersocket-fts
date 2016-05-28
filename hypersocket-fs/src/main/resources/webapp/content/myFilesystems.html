@@ -110,11 +110,12 @@
 				});
 			});
 		}
-		
-		actionHtml += '<a class="delete tableAction btn btn-danger btn-action"><i class="fa fa-trash fa-fw"></i></a>';
-		actionHtml += '<a class="edit tableAction btn btn-primary btn-action"><i class="fa fa-edit fa-fw"></i></a>';
-
-		if (row.type != "Folder") {
+		debugger;
+		if(row.mount && row.writable) {
+			actionHtml += '<a class="delete tableAction btn btn-danger btn-action"><i class="fa fa-trash fa-fw"></i></a>';
+			actionHtml += '<a class="edit tableAction btn btn-primary btn-action"><i class="fa fa-edit fa-fw"></i></a>';
+		}
+		if (row.type != "FOLDER") {
 			actionHtml += '<a class="download tableAction btn btn-success btn-action"><i class="fa fa-download fa-fw"></i></a>';
 		} else {
 			actionHtml += '<a href="#"><i class="fa fa-fw" style="width: 15px;"></i></a>';

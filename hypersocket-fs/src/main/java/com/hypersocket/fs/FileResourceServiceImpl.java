@@ -57,6 +57,8 @@ import com.hypersocket.server.HypersocketServer;
 import com.hypersocket.ui.IndexPageFilter;
 import com.hypersocket.ui.UserInterfaceContentHandler;
 import com.hypersocket.upload.FileUploadService;
+import com.hypersocket.vfs.VirtualFileService;
+import com.hypersocket.vfs.VirtualFileSynchronizationService;
 
 @Service
 public class FileResourceServiceImpl extends AbstractAssignableResourceServiceImpl<FileResource>
@@ -107,6 +109,10 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 	
 	@Autowired
 	BrowserLaunchableService browserLaunchableService;
+	
+	@Autowired
+	VirtualFileSynchronizationService syncService; 
+	
 
 	Map<String, FileResourceScheme> schemes = new HashMap<String, FileResourceScheme>();
 
@@ -395,6 +401,20 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 				}
 				
 			}
+		});
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public void deleteResource(FileResource resource) throws ResourceChangeException, AccessDeniedException {
+		
+		super.deleteResource(resource, new TransactionAdapter<FileResource>() {
+
+			@Override
+			public void beforeOperation(FileResource resource, Map<String, String> properties) {
+				syncService.removeFileResource(resource);
+			}
+			
 		});
 	}
 

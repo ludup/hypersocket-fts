@@ -127,18 +127,18 @@
 							</div>
 						</div>
 					</div>
-					<div id="tabLogo" class="dialogTab">
-						<div class="propertyItem">
-							<label for="logo" class="col-md-3 control-label" 
-								localize="mount.logo.label"></label> 
-							<div class="propertyValue col-md-9">
-								<div id="logo"></div>
-								<div>
-									<span class="help-block" localize="mount.logo.info"></span>
-								</div>
-							</div>
-						</div>
-					</div>
+<!-- 					<div id="tabLogo" class="dialogTab"> -->
+<!-- 						<div class="propertyItem"> -->
+<!-- 							<label for="logo" class="col-md-3 control-label"  -->
+<!-- 								localize="mount.logo.label"></label>  -->
+<!-- 							<div class="propertyValue col-md-9"> -->
+<!-- 								<div id="logo"></div> -->
+<!-- 								<div> -->
+<!-- 									<span class="help-block" localize="mount.logo.info"></span> -->
+<!-- 								</div> -->
+<!-- 							</div> -->
+<!-- 						</div> -->
+<!-- 					</div> -->
 					<div id="tabRoles" class="dialogTab">
 					<input type="hidden" id="resourceId" name="resourceId" value="" />
 				</div>
@@ -229,7 +229,8 @@
 			$('#serverName').val('');
 			$('#port').val('');
 		}
-		if(scheme.supportsCredentials) {								
+		if(scheme.supportsCredentials) {	
+			
 			if(getResourceNoDefault(scheme.scheme + '.username.label')!=null) {
 				$("label[for='username']").text(getResource(scheme.scheme + '.username.label'));
 			} else {
@@ -252,10 +253,12 @@
 			}
 			$('.credsDiv').show();
 		} else {
+			
 			$('.credsDiv').hide();
 			$('#username').val('');
 			$('#password').val('');
 		}
+		
 		$('#mountProperties').propertyPage({
 			url : 'mounts/' + url,
 			showButtons : false,
@@ -267,7 +270,10 @@
 			},
 			{
 				id : "tabAuth",
-				name : getResource("mount.auth.label")
+				name : getResource("mount.auth.label"),
+				checkDisplay: function() {
+					return scheme.supportsCredentials;
+				}
 			},
 			{
 				id : "tabOptions",
@@ -276,13 +282,16 @@
 			{
 				id : "tabRoles",
 				name : getResource("label.roles")
-			},
-			{
-				id : "tabLogo",
-				name : getResource("mount.logo.label")
-			},]
+			}
+// 			,
+// 			{
+// 				id : "tabLogo",
+// 				name : getResource("mount.logo.label")
+// 			}
+			]
 		});
 	}
+	
 	$(document).ready(function() {
 	
 		$('#treeview').on('rename_node.jstree', function(node, data){
@@ -375,8 +384,12 @@
 							  label: getResource("createFolder.text"),
 							  action: function() {
 								  getJSON('fs/createVirtualFolder' + node.original.virtualPath + 'untitled folder', null, function(data) {
-									  var ref = $('#treeview').jstree(true);
-									  ref.refresh();
+									  if(data.success) {
+										  var ref = $('#treeview').jstree(true);
+										  ref.refresh();
+									  } else {
+										  showError(data.message);
+									  }
 								  });
 							  }
 						  }]);
@@ -395,8 +408,12 @@
 							  label: getResource("createFolder.text"),
 							  action: function() {
 								  getJSON('fs/createVirtualFolder' + node.original.virtualPath + 'untitled folder', null, function(data) {
-									  var ref = $('#treeview').jstree(true);
-									  ref.refresh();
+									  if(data.success) {
+										  var ref = $('#treeview').jstree(true);
+										  ref.refresh();
+									  } else {
+										  showError(data.message);
+									  }
 								  });
 							  }
 						  },{
@@ -540,6 +557,7 @@
 			},
 			changed: function(widget) {
 				var scheme = widget.getSelectedObject();
+				debugger;
 				displayScheme(scheme,'template/' + (scheme && scheme.scheme ? scheme.scheme : 'file'));
 			}
 		});

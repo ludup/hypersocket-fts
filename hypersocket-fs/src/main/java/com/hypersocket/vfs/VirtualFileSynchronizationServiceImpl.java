@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.hypersocket.fs.FileResource;
 import com.hypersocket.utils.FileUtils;
@@ -207,6 +206,10 @@ public class VirtualFileSynchronizationServiceImpl implements VirtualFileSynchro
 			stats.filesUpdated++;
 		}
 		checkFlush(stats);
+	}
+	
+	public void removeFileResource(FileResource resource) {
+		repository.removeFileResource(resource);
 	}
 
 	private boolean hasChanged(String displayName, FileObject obj, FileResource resource, VirtualFile virtual)

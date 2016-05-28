@@ -32,4 +32,6 @@ public interface FileResourceService extends
 
 	Collection<FileResource> getNonRootResources() throws AccessDeniedException;
 
+	void deleteResource(FileResource resource) throws ResourceChangeException, AccessDeniedException;
+
 }
