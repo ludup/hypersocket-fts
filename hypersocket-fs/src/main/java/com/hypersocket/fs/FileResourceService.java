@@ -34,4 +34,6 @@ public interface FileResourceService extends
 
 	void deleteResource(FileResource resource) throws ResourceChangeException, AccessDeniedException;
 
+	void resetRebuildReconcileStatus(FileResource resource);
+
 }

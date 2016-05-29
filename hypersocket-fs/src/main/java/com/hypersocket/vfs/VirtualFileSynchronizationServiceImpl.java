@@ -128,22 +128,19 @@ public class VirtualFileSynchronizationServiceImpl implements VirtualFileSynchro
 						continue;
 					}
 					if (toDelete.isFolder()) {
-						stats.filesDeleted += repository.removeReconciledFolder(toDelete);
+						stats.filesDeleted += repository.removeReconciledFolder(toDelete, true);
 						stats.foldersDeleted++;
 					} else {
 						repository.removeReconciledFile(toDelete);
 						stats.filesDeleted++;
 					}
-					checkFlush(stats);
 				}
 			}
 
 		} catch (FileSystemException e) {
 			log.error("Failed to reconcile folder", e);
 			stats.errors++;
-		} finally {
-			checkFlush(stats);
-		}
+		} 
 	}
 
 	private boolean isReconciledFile(FileResource resource, FileObject obj) {
@@ -205,7 +202,6 @@ public class VirtualFileSynchronizationServiceImpl implements VirtualFileSynchro
 			repository.reconcileFile(displayName, obj, resource, virtual, parent);
 			stats.filesUpdated++;
 		}
-		checkFlush(stats);
 	}
 	
 	public void removeFileResource(FileResource resource) {
@@ -219,11 +215,5 @@ public class VirtualFileSynchronizationServiceImpl implements VirtualFileSynchro
 				virtual.getType() == VirtualFileType.FILE ? obj.getContent().getSize() : 0L, !resource.isReadOnly(),
 				!displayName.equals(obj.getName().getBaseName()));
 	}
-	
-	private void checkFlush(ReconcileStatistics stats) {
-		stats.numOperations++;
-		if (stats.numOperations % 25 == 0) {
-			repository.flush();
-		}
-	}
+
 }

@@ -14,8 +14,6 @@ import com.hypersocket.tables.ColumnSort;
 public interface VirtualFileRepository extends AbstractRepository<Long> {
 
 	Map<String, VirtualFile> reconcileParents(FileResource resource);
-
-	VirtualFile getMountFile(FileResource resource);
 	
 	VirtualFile reconcileParent(FileResource resource);
 
@@ -42,8 +40,6 @@ public interface VirtualFileRepository extends AbstractRepository<Long> {
 			VirtualFile parent,
 			FileResource... resources);
 
-	int removeReconciledFolder(VirtualFile toDelete);
-
 	Collection<VirtualFile> getVirtualFolders();
 
 	VirtualFile getRootFolder(Realm realm);
@@ -59,5 +55,9 @@ public interface VirtualFileRepository extends AbstractRepository<Long> {
 	void saveFile(VirtualFile file);
 
 	void removeFileResource(FileResource resource);
+
+	int removeReconciledFolder(VirtualFile toDelete, boolean topLevel);
+
+	int removeReconciledFiles(VirtualFile folder);
 
 }

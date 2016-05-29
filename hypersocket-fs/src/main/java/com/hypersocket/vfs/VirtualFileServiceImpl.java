@@ -157,11 +157,16 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		
 		virtualPath = normalise(virtualPath);
 		VirtualFile file = getFile(virtualPath);
+		
 		return deleteFile(file, proto);
 	}
 	
 	@Override
 	public Boolean deleteFile(VirtualFile file, String proto) throws IOException, AccessDeniedException {
+		
+		if(!file.isMounted()) {
+			throw new AccessDeniedException();
+		}
 		
 		boolean success = new DeleteFileResolver(proto).processRequest(file);
 		if(success) {
@@ -280,6 +285,9 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		} catch(FileNotFoundException ex) {
 			
 			if(!fromFile.isMounted()) {
+				if(!getChildren(fromFile).isEmpty()) {
+					throw new AccessDeniedException();
+				}
 				/**
 				 * Rename a virtual folder
 				 */

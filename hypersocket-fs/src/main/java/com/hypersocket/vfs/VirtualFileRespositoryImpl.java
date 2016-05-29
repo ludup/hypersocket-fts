@@ -30,12 +30,6 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 	public Collection<VirtualFile> getVirtualFiles(VirtualFile parent, FileResource... resources) {
 		return list("parent", parent, VirtualFile.class, new FileResourceCriteria(resources), new ConflictCriteria());
 	}
-
-	@Override
-	@Transactional(readOnly=true)
-	public VirtualFile getMountFile(FileResource resource) {
-		return get("mount", resource, VirtualFile.class, new VirtualFileTypeCriteria(VirtualFileType.MOUNTED_FOLDER, VirtualFileType.MOUNTED_FILE));
-	}
 	
 	@Override
 	@Transactional(readOnly=true)
@@ -290,31 +284,46 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 
 	@Override
 	@Transactional
-	public int removeReconciledFolder(VirtualFile toDelete) {
+	public int removeReconciledFolder(VirtualFile toDelete, boolean topLevel) {
 		
 		int filesToDelete = 0;
 		for(VirtualFile child : getVirtualFiles(toDelete, toDelete.getMount())) {
 			if(child.isFolder()) {
-				filesToDelete += removeReconciledFolder(child);
+				filesToDelete += removeReconciledFolder(child, false);
 				continue;
 			}
-			filesToDelete++;
 		}
-		Query update = createQuery("delete from VirtualFile where parent = :parent and mount = :mount", true);
-		update.setEntity("parent", toDelete);
-		update.setEntity("mount", toDelete.getMount());
-		update.executeUpdate();
 		
-		delete(toDelete);
+		filesToDelete += removeReconciledFiles(toDelete);
+		
+		if(topLevel) {
+			delete(toDelete);	
+		}
+		
 		flush();
 		return filesToDelete;
 	}
 	
 	@Override
 	@Transactional
+	public int removeReconciledFiles(VirtualFile folder) {
+		Query update = createQuery("delete from VirtualFile where parent = :parent and mount = :mount", true);
+		update.setEntity("parent", folder);
+		update.setEntity("mount", folder.getMount());
+		return update.executeUpdate();
+	}
+	
+	@Override
+	@Transactional
 	public void removeFileResource(FileResource resource) {
 
-		Query update = createQuery("delete from VirtualFile where mount = :mount", true);
+		Query update = createQuery("update VirtualFile set parent = :parent where mount = :mount", true);
+		update.setParameter("parent", null);
+		update.setEntity("mount", resource);
+		update.executeUpdate();
+		flush();
+		
+		update = createQuery("delete from VirtualFile where mount = :mount", true);
 		update.setEntity("mount", resource);
 		update.executeUpdate();
 		flush();
@@ -340,7 +349,7 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 	@Override
 	@Transactional
 	public VirtualFile renameVirtualFolder(VirtualFile fromFolder, String toFolder) {
-		 
+		
 		String newName = FileUtils.lastPathElement(toFolder);
 		return buildFile(fromFolder,
 					newName,

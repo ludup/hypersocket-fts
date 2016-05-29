@@ -4,9 +4,11 @@
 		resourceBundle="FileResourceService" weight="9999" store="db">
 		<property resourceKey="fs.reconcileSuccessInterval" inputType="integer"
 		    minValue="10" maxValue="1440" invalidResourceKey="error.between5and1440"
-			defaultValue="60" weight="0" />
+			defaultValue="60" weight="100" />
 		<property resourceKey="fs.reconcileFailedInterval" inputType="integer"
 		    minValue="2" maxValue="1440" invalidResourceKey="error.between5and1440"
-			defaultValue="60" weight="0" />
+			defaultValue="60" weight="2000" />
+		<property resourceKey="fs.rebuildOnNextReconcile" inputType="switch"
+		    defaultValue="false" weight="300" />
 	</propertyCategory>
 </propertyTemplates>

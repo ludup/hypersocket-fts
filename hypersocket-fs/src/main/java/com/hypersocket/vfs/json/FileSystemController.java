@@ -409,6 +409,8 @@ public class FileSystemController extends ResourceController {
 					FileUtils.checkEndsWithNoSlash(virtualPath), file.getInputStream(), null, HTTP_PROTOCOL));
 			
 			
+		} catch(Exception e) { 
+			return new ResourceStatus<FileUpload>(false, e.getMessage());
 		} finally {
 			clearAuthenticatedContext();
 		}
