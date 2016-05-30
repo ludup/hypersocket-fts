@@ -10,6 +10,7 @@ public class CopyFileEvent extends FileOperationEvent {
 
 	private static final long serialVersionUID = 4385306086965414518L;
 
+	public static final String ATTR_TO_RESOURCE_NAME = "attr.toResourceName";
 	public static final String ATTR_TO_FILE_URL = "attr.toFileUrl";
 	public static final String ATTR_TO_VIRTUAL_PATH = "attr.toVirtualPath";
 	public static final String ATTR_TO_FILENAME = "attr.toFileName";
@@ -20,9 +21,12 @@ public class CopyFileEvent extends FileOperationEvent {
 			Session currentSession, FileResource fromResource,
 			String fromChildPath, FileResource toResource, String toChildPath, String protocol) {
 		super(source, "fs.copyFile", true, currentSession, fromResource, fromChildPath, protocol);
-		addAttribute(ATTR_TO_VIRTUAL_PATH, toResource.getVirtualPath() + toChildPath);
-		addAttribute(ATTR_TO_FILE_URL, toResource.getUrl() + toChildPath);
+		addAttribute(ATTR_TO_VIRTUAL_PATH, FileUtils.checkEndsWithSlash(toResource.getVirtualPath())
+				+ FileUtils.checkStartsWithNoSlash(toChildPath));
+		addAttribute(ATTR_TO_FILE_URL, FileUtils.checkEndsWithSlash(toResource.getUrl())
+				+ FileUtils.checkStartsWithNoSlash(toChildPath));
 		addAttribute(ATTR_TO_FILENAME, FileUtils.lastPathElement(toChildPath));
+		addAttribute(ATTR_TO_RESOURCE_NAME, toResource.getName());
 	}
 	
 	public CopyFileEvent(Object source, Exception e,

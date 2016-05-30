@@ -397,6 +397,12 @@
 										uniqueId: 'id',
 										sidePagination : 'server',
 										onLoadSuccess : function(data) {
+											
+											if(data.resource.writable) {
+												$('#dragAndDrop').widget().enable();
+											} else {
+												$('#dragAndDrop').widget().disable();
+											}
 											rebindEditable();
 											loadComplete();
 										},
@@ -434,11 +440,11 @@
 												
 												getJSON('fs/createFolder'
 														+ mountPath, null, function(data) {
-													$('#table').bootstrapTable(
-															'append', data.resource);
-													rebindEditable();
-													$('.fileLabel').last().editable(
-															'toggle');
+													if(data.success) {
+														$('#table').bootstrapTable('append', data.resource);
+														rebindEditable();
+														$('.fileLabel').last().editable('toggle');
+													}
 												});
 									});
 								});

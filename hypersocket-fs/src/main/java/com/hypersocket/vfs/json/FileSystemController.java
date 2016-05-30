@@ -1,5 +1,6 @@
 package com.hypersocket.vfs.json;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
@@ -42,10 +43,10 @@ import com.hypersocket.resource.ResourceException;
 import com.hypersocket.server.HypersocketServer;
 import com.hypersocket.session.json.SessionTimeoutException;
 import com.hypersocket.session.json.SessionUtils;
+import com.hypersocket.tables.BootstrapTableResourceProcessor;
 import com.hypersocket.tables.BootstrapTableResult;
 import com.hypersocket.tables.Column;
 import com.hypersocket.tables.ColumnSort;
-import com.hypersocket.tables.json.BootstrapTablePageProcessor;
 import com.hypersocket.upload.FileUpload;
 import com.hypersocket.upload.FileUploadService;
 import com.hypersocket.utils.FileUtils;
@@ -477,7 +478,7 @@ public class FileSystemController extends ResourceController {
 					FileUtils.stripParentPath(server.getApiPath() + "/fs/search", 
 							URLDecoder.decode(request.getRequestURI(), "UTF-8")));
 			
-			return processDataTablesRequest(request, new BootstrapTablePageProcessor() {
+			return processDataTablesRequest(request, new BootstrapTableResourceProcessor<VirtualFile>() {
 				
 				@Override
 				public Long getTotalCount(String searchColumn, String searchPattern)
@@ -494,6 +495,11 @@ public class FileSystemController extends ResourceController {
 				@Override
 				public Column getColumn(String column) {
 					return FileSystemColumn.valueOf(column.toUpperCase());
+				}
+
+				@Override
+				public VirtualFile getResource() throws FileNotFoundException, AccessDeniedException {
+					return fileService.getFile(virtualPath);
 				}
 			});
 

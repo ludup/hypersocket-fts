@@ -398,7 +398,7 @@
 						  },{
 							  label: getResource("createFolder.text"),
 							  action: function() {
-								  getJSON('fs/createVirtualFolder' + node.original.virtualPath + 'untitled folder', null, function(data) {
+								  getJSON('fs/createVirtualFolder' + node.original.virtualPath, null, function(data) {
 									  if(data.success) {
 										  var ref = $('#treeview').jstree(true);
 										  ref.refresh();
@@ -422,7 +422,7 @@
 						  },{
 							  label: getResource("createFolder.text"),
 							  action: function() {
-								  getJSON('fs/createVirtualFolder' + node.original.virtualPath + 'untitled folder', null, function(data) {
+								  getJSON('fs/createVirtualFolder' + node.original.virtualPath, null, function(data) {
 									  if(data.success) {
 										  var ref = $('#treeview').jstree(true);
 										  ref.refresh();
@@ -430,11 +430,6 @@
 										  showError(data.message);
 									  }
 								  });
-							  }
-						  },{
-							  label: "Delete",
-							  action: function() {
-								
 							  }
 						  }];
 						  if(node.children.length == 0) {
@@ -448,6 +443,19 @@
 									ref.edit(sel);
 								  }
 							  });
+							  items.push({
+							  label: "Delete",
+							  action: function() {
+								  getJSON('fs/delete' + node.original.virtualPath, null, function(data) {
+									  if(data.success) {
+										  var ref = $('#treeview').jstree(true);
+										  ref.refresh();
+									  } else {
+										  showError(data.message);
+									  }
+								  });
+							  }
+						  	});	
 						  }
 						  
 						  callback(items);

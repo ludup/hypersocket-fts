@@ -60,4 +60,6 @@ public interface VirtualFileRepository extends AbstractRepository<Long> {
 
 	int removeReconciledFiles(VirtualFile folder);
 
+	Collection<VirtualFile> getVirtualFiles(VirtualFile parent);
+
 }

@@ -33,6 +33,12 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 	
 	@Override
 	@Transactional(readOnly=true)
+	public Collection<VirtualFile> getVirtualFiles(VirtualFile parent) {
+		return list("parent", parent, VirtualFile.class, new ConflictCriteria());
+	}
+	
+	@Override
+	@Transactional(readOnly=true)
 	public VirtualFile getVirtualFileByResource(String virtualPath, FileResource... resources) {
 		return get(VirtualFile.class, new VirtualPathCriteria(virtualPath), new FileResourceCriteria(resources), new ConflictCriteria());
 	}
@@ -287,14 +293,18 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 	public int removeReconciledFolder(VirtualFile toDelete, boolean topLevel) {
 		
 		int filesToDelete = 0;
+		boolean hasFiles =  false;
 		for(VirtualFile child : getVirtualFiles(toDelete, toDelete.getMount())) {
 			if(child.isFolder()) {
 				filesToDelete += removeReconciledFolder(child, false);
 				continue;
 			}
+			hasFiles = true;
 		}
 		
-		filesToDelete += removeReconciledFiles(toDelete);
+		if(hasFiles) {
+			filesToDelete += removeReconciledFiles(toDelete);
+		}
 		
 		if(topLevel) {
 			delete(toDelete);	
@@ -307,6 +317,7 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 	@Override
 	@Transactional
 	public int removeReconciledFiles(VirtualFile folder) {
+		
 		Query update = createQuery("delete from VirtualFile where parent = :parent and mount = :mount", true);
 		update.setEntity("parent", folder);
 		update.setEntity("mount", folder.getMount());
@@ -317,7 +328,12 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 	@Transactional
 	public void removeFileResource(FileResource resource) {
 
-		Query update = createQuery("update VirtualFile set parent = :parent where mount = :mount", true);
+		Query update = createQuery("update VirtualFile set defaultMount = null where defaultMount = :mount", true);
+		update.setEntity("mount", resource);
+		update.executeUpdate();
+		flush();
+		
+		update = createQuery("update VirtualFile set parent = :parent where mount = :mount", true);
 		update.setParameter("parent", null);
 		update.setEntity("mount", resource);
 		update.executeUpdate();
