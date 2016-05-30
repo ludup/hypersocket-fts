@@ -762,7 +762,8 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 					log.error("Failed to move resource", e);
 				}
 				eventService.publishEvent(new CopyFileEvent(this, e, getCurrentSession(),
-						fromChildPath, toChildPath, protocol));
+						fromResource.getVirtualPath() + fromChildPath, 
+						toResource.getVirtualPath() + toChildPath, protocol));
 
 				return false;
 			}
@@ -993,7 +994,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	@Override
 	public void downloadFailed(FileResource resource, String childPath, FileObject file, Throwable t, String protocol,
 			Session session) {
-		eventService.publishEvent(new DownloadCompleteEvent(this, t, session, resource.getName(), childPath, protocol));
+		eventService.publishEvent(new DownloadCompleteEvent(this, t, session, resource, childPath, protocol));
 	}
 	
 
@@ -1022,7 +1023,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	public void uploadFailed(FileResource resource, String childPath, FileObject file, long bytesIn, Throwable t,
 			String protocol) {
 		eventService.publishEvent(
-				new UploadCompleteEvent(this, getCurrentSession(), t, resource.getName(), childPath, protocol));
+				new UploadCompleteEvent(this, getCurrentSession(), t, resource, childPath, protocol));
 	}
 		
 	
@@ -1059,7 +1060,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			} catch (Exception e) {
 
 				eventService.publishEvent(
-						new UploadCompleteEvent(this, getCurrentSession(), e, resource.getName(), childPath, protocol));
+						new UploadCompleteEvent(this, getCurrentSession(), e, resource, childPath, protocol));
 			} finally {
 				FileUtils.closeQuietly(in);
 				FileUtils.closeQuietly(out);
