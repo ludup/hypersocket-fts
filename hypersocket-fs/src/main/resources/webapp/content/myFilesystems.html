@@ -111,7 +111,6 @@
 				});
 			});
 		}
-		debugger;
 		if(row.mount && row.writable) {
 			actionHtml += '<a class="delete tableAction btn btn-danger btn-action"><i class="fa fa-trash fa-fw"></i></a>';
 			actionHtml += '<a class="edit tableAction btn btn-primary btn-action"><i class="fa fa-edit fa-fw"></i></a>';
@@ -271,7 +270,6 @@
 						return $(this).closest('td').find('.fileLabel').data('original');
 					},
 					url : function(params) {
-						debugger;
 						var row = $('#table').bootstrapTable('getRowByUniqueId', $(this).data('unique'));
 						var d = new $.Deferred;
 						var original = $(this).data('original');
@@ -306,8 +304,9 @@
 									showFileInputLink: true,
 									showDownload: false,
 									showRemove: false,
-									showCancel: true,
+									showCancel: false,
 									showPercent: true,
+									onProgressHide: true,
 									url: basePath + '/api/fs/upload' + mountPath,
 									uploadCallback: function(){
 										$('#table').bootstrapTable('refresh', {url: basePath + '/api/fs/search' + mountPath});
