@@ -400,8 +400,10 @@
 											
 											if(data.resource.writable) {
 												$('#dragAndDrop').widget().enable();
+												$('#newFolderButton').prop('disabled', false);
 											} else {
 												$('#dragAndDrop').widget().disable();
+												$('#newFolderButton').prop('disabled', true);
 											}
 											rebindEditable();
 											loadComplete();
