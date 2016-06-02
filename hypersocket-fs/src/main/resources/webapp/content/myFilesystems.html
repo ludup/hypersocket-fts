@@ -201,10 +201,16 @@
 		},
 		'click .delete' : function(e, value, row, index) {
 
-			$('.notifyjs-confirm-base .no').trigger('click');
+			var erow = $(document).data('deleteRow');
+			
+			if(erow && erow.length == 1 && erow[0].id == row.id) {
+				return;
+			}
 			var arr = new Array();
 			arr.push(row);
 			$(document).data('deleteRow', arr);
+			$('.notifyjs-confirm-base .no').trigger('click');
+			
 			$(e.target).closest('a').notify({
 				title : getResource("text.confirmDelete").format(row.displayName),
 				button : getResource("text.delete")
@@ -360,11 +366,12 @@
 													function() {
 														
 														var row = $(document).data('deleteRow');
-														
+													
 														$.each(row, function(idx, row) {
 															getJSON(createApiUrl('delete', row),
 																	null,
 																	function(data) {
+																		$(document).data('deleteRow', null);
 																		if (data.success) {
 																			showInformation(getResource('text.deleted').format(row.displayName));
 																			$('#table').bootstrapTable('refresh');
