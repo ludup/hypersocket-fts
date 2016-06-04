@@ -1,5 +1,6 @@
 package com.hypersocket.vfs.json;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
@@ -11,6 +12,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.FileExistsException;
 import org.apache.commons.vfs2.FileSystemException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,10 +43,10 @@ import com.hypersocket.resource.ResourceException;
 import com.hypersocket.server.HypersocketServer;
 import com.hypersocket.session.json.SessionTimeoutException;
 import com.hypersocket.session.json.SessionUtils;
+import com.hypersocket.tables.BootstrapTableResourceProcessor;
 import com.hypersocket.tables.BootstrapTableResult;
 import com.hypersocket.tables.Column;
 import com.hypersocket.tables.ColumnSort;
-import com.hypersocket.tables.json.BootstrapTablePageProcessor;
 import com.hypersocket.upload.FileUpload;
 import com.hypersocket.upload.FileUploadService;
 import com.hypersocket.utils.FileUtils;
@@ -284,12 +286,15 @@ public class FileSystemController extends ResourceController {
 
 		setupAuthenticatedContext(sessionUtils.getSession(request),
 				sessionUtils.getLocale(request));
+		
+		String virtualPath = FileUtils.checkStartsWithSlash(
+				FileUtils.stripParentPath(server.getApiPath() + "/fs/createVirtualFolder", 
+						URLDecoder.decode(request.getRequestURI(), "UTF-8")));
 		try {
-
-			String virtualPath = FileUtils.checkStartsWithSlash(
-					FileUtils.stripParentPath(server.getApiPath() + "/fs/createVirtualFolder", 
-							URLDecoder.decode(request.getRequestURI(), "UTF-8")));
 			return new ResourceStatus<VirtualFile>(fileService.createVirtualFolder(virtualPath));
+		} catch(FileExistsException e) { 
+			return new ResourceStatus<VirtualFile>(false, I18N.getResource(sessionUtils.getLocale(request),
+					FileResourceServiceImpl.RESOURCE_BUNDLE, "error.pathExists", virtualPath));
 		} finally {
 			clearAuthenticatedContext();
 		}
@@ -405,6 +410,8 @@ public class FileSystemController extends ResourceController {
 					FileUtils.checkEndsWithNoSlash(virtualPath), file.getInputStream(), null, HTTP_PROTOCOL));
 			
 			
+		} catch(Exception e) { 
+			return new ResourceStatus<FileUpload>(false, e.getMessage());
 		} finally {
 			clearAuthenticatedContext();
 		}
@@ -471,7 +478,7 @@ public class FileSystemController extends ResourceController {
 					FileUtils.stripParentPath(server.getApiPath() + "/fs/search", 
 							URLDecoder.decode(request.getRequestURI(), "UTF-8")));
 			
-			return processDataTablesRequest(request, new BootstrapTablePageProcessor() {
+			return processDataTablesRequest(request, new BootstrapTableResourceProcessor<VirtualFile>() {
 				
 				@Override
 				public Long getTotalCount(String searchColumn, String searchPattern)
@@ -488,6 +495,11 @@ public class FileSystemController extends ResourceController {
 				@Override
 				public Column getColumn(String column) {
 					return FileSystemColumn.valueOf(column.toUpperCase());
+				}
+
+				@Override
+				public VirtualFile getResource() throws FileNotFoundException, AccessDeniedException {
+					return fileService.getFile(virtualPath);
 				}
 			});
 

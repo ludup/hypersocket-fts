@@ -10,6 +10,10 @@ public class FileResourceScheme {
 	boolean isRemote;
 	boolean supportsCredentials;
 	boolean showPort;
+	boolean showPath;
+	boolean readOnly;
+	boolean showHidden;
+	boolean showFolders;
 	FileService fileService;
 	Class<? extends FileProvider> provider;
 	
@@ -19,27 +23,43 @@ public class FileResourceScheme {
 	public FileResourceScheme(String scheme, 
 			boolean isRemote, 
 			boolean supportsCredentials, 
-			boolean showPort) {
-		this(scheme, isRemote, supportsCredentials, showPort, null, null);
+			boolean showPort,
+			boolean showPath,
+			boolean readOnly,
+			boolean showHidden,
+			boolean showFolders) {
+		this(scheme, isRemote, supportsCredentials, showPort, showPath, readOnly, showHidden, showFolders, null, null);
 	}
 	
 	public FileResourceScheme(String scheme, 
 			boolean isRemote, 
 			boolean supportsCredentials, 
 			boolean showPort, 
+			boolean showPath,
+			boolean readOnly,
+			boolean showHidden,
+			boolean showFolders,
 			Class<? extends FileProvider> provider) {
-		this(scheme, isRemote, supportsCredentials, showPort, provider, null);
+		this(scheme, isRemote, supportsCredentials, showPort, showPath, readOnly, showHidden, showFolders, provider, null);
 	}
 	
 	public FileResourceScheme(String scheme, 
 			boolean isRemote, 
 			boolean supportsCredentials, 
 			boolean showPort, 
+			boolean showPath,
+			boolean readOnly,
+			boolean showHidden,
+			boolean showFolders,
 			Class<? extends FileProvider> provider,
 			FileService fileService) {
 		this.scheme = scheme;
 		this.isRemote = isRemote;
 		this.showPort = showPort;
+		this.showPath = showPath;
+		this.readOnly = readOnly;
+		this.showHidden = showHidden;
+		this.showFolders = showFolders;
 		this.supportsCredentials = supportsCredentials;
 		this.provider = provider;
 		this.fileService = fileService;
@@ -86,7 +106,38 @@ public class FileResourceScheme {
 	public void setSupportsCredentials(boolean supportsCredentials) {
 		this.supportsCredentials = supportsCredentials;
 	}
-	
-	
 
+	public boolean isReadOnly() {
+		return readOnly;
+	}
+
+	public void setReadOnly(boolean readOnly) {
+		this.readOnly = readOnly;
+	}
+
+	public boolean isShowHidden() {
+		return showHidden;
+	}
+
+	public void setShowHidden(boolean showHidden) {
+		this.showHidden = showHidden;
+	}
+
+	public boolean isShowFolders() {
+		return showFolders;
+	}
+
+	public void setShowFolders(boolean showFolders) {
+		this.showFolders = showFolders;
+	}
+
+	public boolean isShowPath() {
+		return showPath;
+	}
+
+	public void setShowPath(boolean showPath) {
+		this.showPath = showPath;
+	}
+
+	
 }

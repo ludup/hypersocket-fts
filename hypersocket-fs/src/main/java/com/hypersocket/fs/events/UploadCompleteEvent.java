@@ -24,8 +24,8 @@ public class UploadCompleteEvent extends FileOperationEvent {
 	}
 
 	public UploadCompleteEvent(Object source,
-			Session currentSession, Throwable e, String name, String childPath, String protocol) {
-		super(source, "fs.uploadComplete", e, currentSession, name, childPath, protocol);
+			Session currentSession, Throwable e, FileResource resource, String childPath, String protocol) {
+		super(source, "fs.uploadComplete", e, currentSession, resource, childPath, protocol);
 	}
 
 	public String[] getResourceKeys() {
