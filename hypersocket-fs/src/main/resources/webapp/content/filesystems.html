@@ -298,11 +298,6 @@
 				id : "tabRoles",
 				name : getResource("label.roles")
 			}
-// 			,
-// 			{
-// 				id : "tabLogo",
-// 				name : getResource("mount.logo.label")
-// 			}
 			]
 		});
 	}
@@ -390,10 +385,7 @@
 							  label: getResource("mountFiles.text"),
 							  action: function() {
 								  $(document).data('virtualPath', '/');
-								  resourcePage.showCreate(new function() {
-									  var ref = $('#treeview').jstree(true);
-									  ref.refresh();
-								  });
+								  resourcePage.showCreate();
 							  }
 						  },{
 							  label: getResource("createFolder.text"),
@@ -414,10 +406,7 @@
 							  label: getResource("mountFiles.text"),
 							  action: function() {
 								  $(document).data('virtualPath', node.original.virtualPath);
-								  resourcePage.showCreate(new function() {
-									  var ref = $('#treeview').jstree(true);
-									  ref.refresh();
-								  });
+								  resourcePage.showCreate();
 							  }
 						  },{
 							  label: getResource("createFolder.text"),
@@ -756,7 +745,7 @@
 					},
 					resourceUpdated: refreshFunc,
 					resourceCreated: refreshFunc,
-					resourceDeleted:refreshFunc,
+					resourceDeleted: refreshFunc,
 					additionalViews: [ { name: "VirtualFileSystem",
 						id: 'folder',
 						div: '#virtualFileSystemView',
