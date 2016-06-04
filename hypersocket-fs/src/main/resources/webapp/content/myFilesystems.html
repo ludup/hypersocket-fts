@@ -75,11 +75,12 @@
 							$(document).on(
 								'click',
 								'#dropdown_' + index + ' .row-' + act.resourceKey,
-								function() {
+								function(e) {
+									debugger;
 									path = row.virtualPath;
 									act.action(path, row, function(resource) {
 										
-									});
+									}, e);
 								});
 						}
 			});
@@ -329,9 +330,9 @@
 												actions.push({
 													resourceKey : action.resourceKey,
 													iconClass : action.iconClass,
-													action : function(resource, row, callback) {
+													action : function(resource, row, callback, e) {
 														if($('#' + action.resourceKey).data('action')) {
-															$('#' + action.resourceKey).data('action')(resource, row, callback);
+															$('#' + action.resourceKey).data('action')(resource, row, callback, e);
 														}
 													},
 													enabled : true,
