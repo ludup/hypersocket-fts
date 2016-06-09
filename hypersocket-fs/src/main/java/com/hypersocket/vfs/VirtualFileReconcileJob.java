@@ -70,6 +70,13 @@ public class VirtualFileReconcileJob extends AbstractReconcileJob<FileResource> 
 
 		stats = new ReconcileStatistics();
 		
+		boolean rebuild = fileService.getResourceBooleanProperty(resource, "fs.rebuildOnNextReconcile");
+		
+		if(rebuild) {
+			repository.removeFileResource(resource);
+			fileService.resetRebuildReconcileStatus(resource);
+		}
+
 		FileObject fileObject = resourceService.getFileObject(resource);
 		VirtualFile parentFile = repository.getVirtualFile(resource.getVirtualPath());
 

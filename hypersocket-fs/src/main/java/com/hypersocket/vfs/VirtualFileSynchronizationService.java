@@ -13,4 +13,6 @@ public interface VirtualFileSynchronizationService {
 	void reconcileFolder(ReconcileStatistics stats, FileObject fileObject, FileResource resource, VirtualFile folder,
 			boolean conflicted) throws FileSystemException;
 
+	void removeFileResource(FileResource resource);
+
 }

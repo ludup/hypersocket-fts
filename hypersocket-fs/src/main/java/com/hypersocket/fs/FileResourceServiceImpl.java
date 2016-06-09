@@ -52,11 +52,14 @@ import com.hypersocket.resource.AbstractAssignableResourceRepository;
 import com.hypersocket.resource.AbstractAssignableResourceServiceImpl;
 import com.hypersocket.resource.ResourceChangeException;
 import com.hypersocket.resource.ResourceCreationException;
+import com.hypersocket.resource.ResourceNotFoundException;
 import com.hypersocket.resource.TransactionAdapter;
 import com.hypersocket.server.HypersocketServer;
 import com.hypersocket.ui.IndexPageFilter;
 import com.hypersocket.ui.UserInterfaceContentHandler;
 import com.hypersocket.upload.FileUploadService;
+import com.hypersocket.vfs.VirtualFileService;
+import com.hypersocket.vfs.VirtualFileSynchronizationService;
 
 @Service
 public class FileResourceServiceImpl extends AbstractAssignableResourceServiceImpl<FileResource>
@@ -107,6 +110,10 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 	
 	@Autowired
 	BrowserLaunchableService browserLaunchableService;
+	
+	@Autowired
+	VirtualFileSynchronizationService syncService; 
+	
 
 	Map<String, FileResourceScheme> schemes = new HashMap<String, FileResourceScheme>();
 
@@ -182,13 +189,13 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 		eventService.registerEvent(CreateFileTaskResult.class, CreateFileTask.RESOURCE_BUNDLE);
 		eventService.registerEvent(DeleteFolderTaskResult.class, CreateFileTask.RESOURCE_BUNDLE);
 
-		registerScheme(new FileResourceScheme("file", false, false, false));
-		registerScheme(new FileResourceScheme("ftp", true, true, true));
-		registerScheme(new FileResourceScheme("ftps", true, true, true));
-		registerScheme(new FileResourceScheme("http", true, true, true));
-		registerScheme(new FileResourceScheme("https", true, true, true));
-		registerScheme(new FileResourceScheme("tmp", false, false, false));
-		registerScheme(new FileResourceScheme("smb", true, true, false));
+		registerScheme(new FileResourceScheme("file", false, false, false, true, false, true, true ));
+		registerScheme(new FileResourceScheme("ftp", true, true, true, true, false, true, true));
+		registerScheme(new FileResourceScheme("ftps", true, true, true, true, false, true, true));
+		registerScheme(new FileResourceScheme("http", true, true, true, true, true, false, false));
+		registerScheme(new FileResourceScheme("https", true, true, true, true, true, false, false));
+		registerScheme(new FileResourceScheme("tmp", false, false, false, false, false, true, false));
+		registerScheme(new FileResourceScheme("smb", true, true, false, true, false, true, true));
 
 		jQueryUIContentHandler.addAlias("^/viewfs/.*$", "content/fileview.html");
 		indexPage.addScript("${uiPath}/js/jstree.js");
@@ -384,6 +391,16 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 
 	@Override
 	public void updateFileResource(FileResource resource, Map<String, String> properties) throws ResourceChangeException, AccessDeniedException {
+		
+		try {
+			FileResource original = getResourceById(resource.getId());
+			if(!original.getPath().equals(resource.getPath())) {
+				properties.put("fs.rebuildOnNextReconcile", "true");
+			}
+		} catch (ResourceNotFoundException e) {
+			throw new ResourceChangeException(e);
+		}
+		
 		updateResource(resource, properties, new TransactionAdapter<FileResource>() {
 
 			@Override
@@ -395,6 +412,25 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 				}
 				
 			}
+		});
+	}
+	
+	@Override
+	public void resetRebuildReconcileStatus(FileResource resource) {
+		getRepository().setValue(resource, "fs.rebuildOnNextReconcile", "false");
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public void deleteResource(FileResource resource) throws ResourceChangeException, AccessDeniedException {
+		
+		super.deleteResource(resource, new TransactionAdapter<FileResource>() {
+
+			@Override
+			public void beforeOperation(FileResource resource, Map<String, String> properties) {
+				syncService.removeFileResource(resource);
+			}
+			
 		});
 	}
 

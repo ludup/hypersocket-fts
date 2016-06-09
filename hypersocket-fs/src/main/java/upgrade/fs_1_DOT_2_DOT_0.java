@@ -12,6 +12,7 @@ import com.hypersocket.fs.FileResourceRepository;
 import com.hypersocket.realm.Realm;
 import com.hypersocket.realm.RealmRepository;
 import com.hypersocket.resource.ResourceChangeException;
+import com.hypersocket.vfs.VirtualFile;
 import com.hypersocket.vfs.VirtualFileRepository;
 
 public class fs_1_DOT_2_DOT_0 implements Runnable {
@@ -43,11 +44,13 @@ public class fs_1_DOT_2_DOT_0 implements Runnable {
 		for(FileResource resource : repository.allResources()) {
 			
 			if(StringUtils.isBlank(resource.getVirtualPath())) {
-				virtualRepository.createVirtualFolder(resource.getName(), 
+				VirtualFile vFolder = virtualRepository.createVirtualFolder(resource.getName(), 
 						virtualRepository.getRootFolder(resource.getRealm()));
 				resource.setVirtualPath("/" + resource.getName());
 				try {
 					repository.saveResource(resource, new HashMap<String,String>());
+					vFolder.setDefaultMount(resource);
+					virtualRepository.saveFile(vFolder);
 				} catch (ResourceChangeException e) {
 					log.error(String.format("Could not upgrade file resource %s. Resource requires virtual path value", resource.getName()), e);
 				}

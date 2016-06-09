@@ -24,6 +24,7 @@ public class FileResourceEvent extends AssignableResourceEvent {
 	public static final String ATTR_LOGO = "attr.logo";
 	public static final String ATTR_SHOW_FOLDERS = "attr.showFolders";
 	public static final String ATTR_SHOW_HIDDEN = "attr.showHidden";
+	public static final String ATTR_VIRTUAL_PATH = "attr.virtualPath";
 	
 	public FileResourceEvent(Object source, String resourceKey, boolean success,
 			Session session, FileResource resource) {
@@ -51,7 +52,7 @@ public class FileResourceEvent extends AssignableResourceEvent {
 		addAttribute(ATTR_READONLY, resource.isReadOnly());
 		addAttribute(ATTR_SHOW_FOLDERS, resource.isShowFolders());
 		addAttribute(ATTR_SHOW_HIDDEN, resource.isShowHidden());
-		addAttribute(ATTR_LOGO, resource.getLogo());
+		addAttribute(ATTR_VIRTUAL_PATH, resource.getVirtualPath());
 	}
 	
 	public String getResourceBundle() {

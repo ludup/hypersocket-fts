@@ -24,8 +24,8 @@ public class DownloadCompleteEvent extends FileOperationEvent {
 	}
 
 	public DownloadCompleteEvent(Object source, Throwable t,
-			Session currentSession, String name, String childPath, String protocol) {
-		super(source, "fs.downloadComplete", t, currentSession, name, childPath, protocol);
+			Session currentSession, FileResource resource, String childPath, String protocol) {
+		super(source, "fs.downloadComplete", t, currentSession, resource, childPath, protocol);
 	}
 
 	public String[] getResourceKeys() {

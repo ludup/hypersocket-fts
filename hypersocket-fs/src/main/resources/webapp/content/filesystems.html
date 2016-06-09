@@ -61,7 +61,7 @@
 								</div>
 							</div>
 						</div>
-						<div class="propertyItem form-group">
+						<div class="propertyItem form-group pathDiv">
 							<label class="col-md-3 control-label" localize="mount.path.label"></label>
 							<div class="propertyValue col-md-9">
 								<div id="pathField"></div>
@@ -127,18 +127,18 @@
 							</div>
 						</div>
 					</div>
-					<div id="tabLogo" class="dialogTab">
-						<div class="propertyItem">
-							<label for="logo" class="col-md-3 control-label" 
-								localize="mount.logo.label"></label> 
-							<div class="propertyValue col-md-9">
-								<div id="logo"></div>
-								<div>
-									<span class="help-block" localize="mount.logo.info"></span>
-								</div>
-							</div>
-						</div>
-					</div>
+<!-- 					<div id="tabLogo" class="dialogTab"> -->
+<!-- 						<div class="propertyItem"> -->
+<!-- 							<label for="logo" class="col-md-3 control-label"  -->
+<!-- 								localize="mount.logo.label"></label>  -->
+<!-- 							<div class="propertyValue col-md-9"> -->
+<!-- 								<div id="logo"></div> -->
+<!-- 								<div> -->
+<!-- 									<span class="help-block" localize="mount.logo.info"></span> -->
+<!-- 								</div> -->
+<!-- 							</div> -->
+<!-- 						</div> -->
+<!-- 					</div> -->
 					<div id="tabRoles" class="dialogTab">
 					<input type="hidden" id="resourceId" name="resourceId" value="" />
 				</div>
@@ -229,7 +229,8 @@
 			$('#serverName').val('');
 			$('#port').val('');
 		}
-		if(scheme.supportsCredentials) {								
+		if(scheme.supportsCredentials) {	
+			
 			if(getResourceNoDefault(scheme.scheme + '.username.label')!=null) {
 				$("label[for='username']").text(getResource(scheme.scheme + '.username.label'));
 			} else {
@@ -252,10 +253,27 @@
 			}
 			$('.credsDiv').show();
 		} else {
+			
 			$('.credsDiv').hide();
 			$('#username').val('');
 			$('#password').val('');
 		}
+		
+		if(scheme.showPath) {
+			$('.pathDiv').show();
+		} else {
+			$('.pathDiv').hide();
+		}
+		
+		$('#readOnly').prop('checked', scheme.readOnly);
+		$('#readOnly').prop('disabled', scheme.readOnly);
+		
+		$('#showHidden').prop('checked', false);
+		$('#showHidden').prop('disabled', !scheme.showHidden);
+		
+		$('#showFolders').prop('checked', scheme.showFolders);
+		$('#showFolders').prop('disabled', !scheme.showFolders);
+		
 		$('#mountProperties').propertyPage({
 			url : 'mounts/' + url,
 			showButtons : false,
@@ -267,7 +285,10 @@
 			},
 			{
 				id : "tabAuth",
-				name : getResource("mount.auth.label")
+				name : getResource("mount.auth.label"),
+				checkDisplay: function() {
+					return scheme.supportsCredentials;
+				}
 			},
 			{
 				id : "tabOptions",
@@ -276,13 +297,11 @@
 			{
 				id : "tabRoles",
 				name : getResource("label.roles")
-			},
-			{
-				id : "tabLogo",
-				name : getResource("mount.logo.label")
-			},]
+			}
+			]
 		});
 	}
+	
 	$(document).ready(function() {
 	
 		$('#treeview').on('rename_node.jstree', function(node, data){
@@ -366,17 +385,18 @@
 							  label: getResource("mountFiles.text"),
 							  action: function() {
 								  $(document).data('virtualPath', '/');
-								  resourcePage.showCreate(new function() {
-									  var ref = $('#treeview').jstree(true);
-									  ref.refresh();
-								  });
+								  resourcePage.showCreate();
 							  }
 						  },{
 							  label: getResource("createFolder.text"),
 							  action: function() {
-								  getJSON('fs/createVirtualFolder' + node.original.virtualPath + 'untitled folder', null, function(data) {
-									  var ref = $('#treeview').jstree(true);
-									  ref.refresh();
+								  getJSON('fs/createVirtualFolder' + node.original.virtualPath, null, function(data) {
+									  if(data.success) {
+										  var ref = $('#treeview').jstree(true);
+										  ref.refresh();
+									  } else {
+										  showError(data.message);
+									  }
 								  });
 							  }
 						  }]);
@@ -386,23 +406,19 @@
 							  label: getResource("mountFiles.text"),
 							  action: function() {
 								  $(document).data('virtualPath', node.original.virtualPath);
-								  resourcePage.showCreate(new function() {
-									  var ref = $('#treeview').jstree(true);
-									  ref.refresh();
-								  });
+								  resourcePage.showCreate();
 							  }
 						  },{
 							  label: getResource("createFolder.text"),
 							  action: function() {
-								  getJSON('fs/createVirtualFolder' + node.original.virtualPath + 'untitled folder', null, function(data) {
-									  var ref = $('#treeview').jstree(true);
-									  ref.refresh();
+								  getJSON('fs/createVirtualFolder' + node.original.virtualPath, null, function(data) {
+									  if(data.success) {
+										  var ref = $('#treeview').jstree(true);
+										  ref.refresh();
+									  } else {
+										  showError(data.message);
+									  }
 								  });
-							  }
-						  },{
-							  label: "Delete",
-							  action: function() {
-								
 							  }
 						  }];
 						  if(node.children.length == 0) {
@@ -416,6 +432,19 @@
 									ref.edit(sel);
 								  }
 							  });
+							  items.push({
+							  label: "Delete",
+							  action: function() {
+								  getJSON('fs/delete' + node.original.virtualPath, null, function(data) {
+									  if(data.success) {
+										  var ref = $('#treeview').jstree(true);
+										  ref.refresh();
+									  } else {
+										  showError(data.message);
+									  }
+								  });
+							  }
+						  	});	
 						  }
 						  
 						  callback(items);
@@ -540,6 +569,7 @@
 			},
 			changed: function(widget) {
 				var scheme = widget.getSelectedObject();
+				
 				displayScheme(scheme,'template/' + (scheme && scheme.scheme ? scheme.scheme : 'file'));
 			}
 		});
@@ -715,7 +745,7 @@
 					},
 					resourceUpdated: refreshFunc,
 					resourceCreated: refreshFunc,
-					resourceDeleted:refreshFunc,
+					resourceDeleted: refreshFunc,
 					additionalViews: [ { name: "VirtualFileSystem",
 						id: 'folder',
 						div: '#virtualFileSystemView',

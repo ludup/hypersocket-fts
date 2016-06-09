@@ -2,12 +2,14 @@ package com.hypersocket.vfs.json;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.zip.ZipInputStream;
 
 import javax.activation.MimetypesFileTypeMap;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,11 +61,11 @@ public class HttpDownloadProcessor implements DownloadProcessor {
 				response.setHeader("Content-disposition",
 						"attachment; filename=\"" + evt.getTransformationFilename() + "\"");
 			}
-
-			request.setAttribute(CONTENT_INPUTSTREAM,
-						new ContentInputStream(resource, childPath, file, evt.getInputStream(),
-								start, length, downloadEventProcessor, evt.getTimestamp(), protocol, session));
 			
+			request.setAttribute(CONTENT_INPUTSTREAM,
+					new ContentInputStream(resource, childPath, file, evt.getInputStream(),
+							start, length, downloadEventProcessor, evt.getTimestamp(), protocol, session));
+				
 		} catch (IOException e) {
 			downloadEventProcessor.downloadFailed(resource, childPath, file, e, protocol, session);
 		}
