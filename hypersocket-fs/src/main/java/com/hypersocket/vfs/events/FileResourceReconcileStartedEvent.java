@@ -12,8 +12,8 @@ public class FileResourceReconcileStartedEvent extends ReconcileStartedEvent<Fil
 		super(source, success, realm, resource);
 	}
 
-	public FileResourceReconcileStartedEvent(Object source, Throwable t, Realm realm) {
-		super(source, t, realm);
+	public FileResourceReconcileStartedEvent(Object source, Throwable t, FileResource resource, Realm realm) {
+		super(source, t, resource, realm);
 	}
 
 }

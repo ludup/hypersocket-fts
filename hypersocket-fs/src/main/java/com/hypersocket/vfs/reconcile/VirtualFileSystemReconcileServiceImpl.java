@@ -18,6 +18,7 @@ import com.hypersocket.realm.events.ResourceEvent;
 import com.hypersocket.reconcile.AbstractReconcileServiceImpl;
 import com.hypersocket.server.events.ServerStartedEvent;
 import com.hypersocket.vfs.VirtualFileReconcileJob;
+import com.hypersocket.vfs.VirtualFileSynchronizationService;
 import com.hypersocket.vfs.events.FileResourceReconcileCompletedEvent;
 import com.hypersocket.vfs.events.FileResourceReconcileStartedEvent;
 
@@ -27,6 +28,9 @@ public class VirtualFileSystemReconcileServiceImpl extends AbstractReconcileServ
 
 	@Autowired
 	FileResourceRepository repository;
+	
+	@Autowired
+	VirtualFileSynchronizationService syncService;
 	
 	@Override
 	protected boolean isTriggerEvent(SystemEvent event) {
@@ -88,7 +92,7 @@ public class VirtualFileSystemReconcileServiceImpl extends AbstractReconcileServ
 
 	@Override
 	protected boolean isReconciledResource(FileResource resource) {
-		return true;
+		return syncService.canSynchronize(resource);
 	}
 
 }

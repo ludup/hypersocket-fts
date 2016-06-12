@@ -19,6 +19,7 @@ import com.hypersocket.fs.FileResource;
 import com.hypersocket.fs.FileResourceService;
 import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.reconcile.AbstractReconcileJob;
+import com.hypersocket.reconcile.AbstractReconcileNonTransactionalJob;
 import com.hypersocket.reconcile.AbstractReconcileService;
 import com.hypersocket.resource.ResourceNotFoundException;
 import com.hypersocket.utils.FileUtils;
@@ -26,7 +27,7 @@ import com.hypersocket.vfs.events.FileResourceReconcileCompletedEvent;
 import com.hypersocket.vfs.events.FileResourceReconcileStartedEvent;
 import com.hypersocket.vfs.reconcile.VirtualFileSystemReconcileService;
 
-public class VirtualFileReconcileJob extends AbstractReconcileJob<FileResource> {
+public class VirtualFileReconcileJob extends AbstractReconcileNonTransactionalJob<FileResource> {
 
 	static Logger log = LoggerFactory.getLogger(VirtualFileReconcileJob.class);
 
@@ -62,36 +63,42 @@ public class VirtualFileReconcileJob extends AbstractReconcileJob<FileResource> 
 	}
 
 	@Override
-	protected void doReconcile(FileResource resource) throws Exception {
+	protected void doReconcile(FileResource resource, boolean initial) throws Exception {
 
 		if (StringUtils.isBlank(resource.getVirtualPath())) {
 			throw new IOException("Reconcile cannot be performed without a virtual path value.");
 		}
 
 		stats = new ReconcileStatistics();
+		if(initial) {
+			stats.generateChangeEvents = fileService.getResourceBooleanProperty(resource, "fs.generateChangeEventsOnRebuild");
+		} else {
+			stats.generateChangeEvents = fileService.getResourceBooleanProperty(resource, "fs.generateChangeEvents");
+		}
 		
-		boolean rebuild = fileService.getResourceBooleanProperty(resource, "fs.rebuildOnNextReconcile");
+		stats.rebuild = fileService.getResourceBooleanProperty(resource, "fs.rebuildOnNextReconcile");
 		
-		if(rebuild) {
+		if(stats.rebuild) {
+			stats.generateChangeEvents = fileService.getResourceBooleanProperty(resource, "fs.generateChangeEventsOnRebuild");
 			repository.removeFileResource(resource);
 			fileService.resetRebuildReconcileStatus(resource);
 		}
 
 		FileObject fileObject = resourceService.getFileObject(resource);
-		VirtualFile parentFile = repository.getVirtualFile(resource.getVirtualPath());
+		VirtualFile parentFile = repository.getVirtualFile(resource.getVirtualPath(), null);
 
 		if (fileObject.exists() && fileObject.getType() == FileType.FILE) {
 			
 			VirtualFile virtualFile = repository.getVirtualFile(
 					FileUtils.checkEndsWithSlash((resource.getVirtualPath())
-					+ FileUtils.lastPathElement(resource.getPath())));
+					+ FileUtils.lastPathElement(resource.getPath())), null);
 			syncService.reconcileFile(stats, fileObject, resource, virtualFile, parentFile, 
-					virtualFile!=null && !virtualFile.getMount().equals(resource));
+					virtualFile!=null && !virtualFile.getMount().equals(resource), null);
 		} else {
 			if (!fileObject.exists()) {
 				fileObject.createFolder();
 			}
-			syncService.reconcileFolder(stats, fileObject, resource, parentFile, false);
+			syncService.reconcileFolder(stats, fileObject, resource, parentFile, false, Integer.MAX_VALUE, null);
 		}
 
 		repository.flush();
@@ -121,9 +128,9 @@ public class VirtualFileReconcileJob extends AbstractReconcileJob<FileResource> 
 	protected void fireReconcileFailedEvent(FileResource resource, Throwable t) {
 
 		if (started == null) {
-			eventService.publishEvent(new FileResourceReconcileStartedEvent(this, t, resource.getRealm()));
+			eventService.publishEvent(new FileResourceReconcileStartedEvent(this, t, resource, resource.getRealm()));
 		} else {
-			eventService.publishEvent(new FileResourceReconcileCompletedEvent(this, t, resource.getRealm()));
+			eventService.publishEvent(new FileResourceReconcileCompletedEvent(this, t, resource, resource.getRealm()));
 
 		}
 	}

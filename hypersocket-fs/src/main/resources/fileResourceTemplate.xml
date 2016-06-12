@@ -1,7 +1,19 @@
 <?xml version="1.0" ?>
 <propertyTemplates context="fileResource">
+	<propertyCategory resourceKey="fs.events"
+		resourceBundle="FileResourceService" weight="9998" store="db">
+		<property resourceKey="fs.generateChangeEvents" inputType="switch"
+		    defaultValue="false" weight="100" />
+		<property resourceKey="fs.generateChangeEventsOnRebuild" inputType="switch"
+		    defaultValue="false" weight="200" />
+	</propertyCategory>
 	<propertyCategory resourceKey="fs.reconcile"
 		resourceBundle="FileResourceService" weight="9999" store="db">
+		<property resourceKey="fs.reconcileEnabled" inputType="switch"
+		    defaultValue="true" weight="-100" />
+		<property resourceKey="fs.initialReconcileDepth" inputType="integer"
+		    minValue="0" maxValue="100" invalidResourceKey="error.between0and100"
+			defaultValue="1" weight="0" />
 		<property resourceKey="fs.reconcileSuccessInterval" inputType="integer"
 		    minValue="10" maxValue="1440" invalidResourceKey="error.between5and1440"
 			defaultValue="60" weight="100" />

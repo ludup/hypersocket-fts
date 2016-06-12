@@ -1,10 +1,15 @@
 package com.hypersocket.vfs;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.PostConstruct;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
@@ -13,24 +18,70 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.hypersocket.auth.AbstractAuthenticatedServiceImpl;
+import com.hypersocket.auth.InvalidAuthenticationContext;
+import com.hypersocket.events.EventService;
 import com.hypersocket.fs.FileResource;
+import com.hypersocket.fs.FileResourceService;
+import com.hypersocket.fs.FileResourceServiceImpl;
+import com.hypersocket.fs.events.FileCreatedEvent;
+import com.hypersocket.fs.events.FileDeletedEvent;
+import com.hypersocket.fs.events.FileUpdatedEvent;
+import com.hypersocket.fs.events.FolderCreatedEvent;
+import com.hypersocket.fs.events.FolderDeletedEvent;
+import com.hypersocket.fs.events.FolderUpdatedEvent;
+import com.hypersocket.properties.ResourceUtils;
+import com.hypersocket.realm.Principal;
 import com.hypersocket.utils.FileUtils;
+import com.hypersocket.vfs.events.FileResourceReconcileCompletedEvent;
+import com.hypersocket.vfs.events.FileResourceReconcileStartedEvent;
 
 @Service
-public class VirtualFileSynchronizationServiceImpl implements VirtualFileSynchronizationService {
+public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticatedServiceImpl implements VirtualFileSynchronizationService {
 
 	static Logger log = LoggerFactory.getLogger(VirtualFileSynchronizationServiceImpl.class);
 	
 	@Autowired
 	VirtualFileRepository repository;
 	
+	@Autowired
+	VirtualFileService resourceService; 
+	
+	@Autowired
+	EventService eventService; 
+	
+	@Autowired
+	FileResourceService fileService; 
+	
+	@PostConstruct
+	private void postConstruct() {
+		
+		
+		eventService.registerEvent(FileCreatedEvent.class, FileResourceServiceImpl.RESOURCE_BUNDLE);
+		eventService.registerEvent(FileUpdatedEvent.class, FileResourceServiceImpl.RESOURCE_BUNDLE);
+		eventService.registerEvent(FileDeletedEvent.class, FileResourceServiceImpl.RESOURCE_BUNDLE);
+		
+		eventService.registerEvent(FolderCreatedEvent.class, FileResourceServiceImpl.RESOURCE_BUNDLE);
+		eventService.registerEvent(FolderUpdatedEvent.class, FileResourceServiceImpl.RESOURCE_BUNDLE);
+		eventService.registerEvent(FolderDeletedEvent.class, FileResourceServiceImpl.RESOURCE_BUNDLE);		
+		
+	}
 	@Override
 	public void reconcileFolder(ReconcileStatistics stats,
 			FileObject fileObject, 
 			FileResource resource, 
 			VirtualFile folder,
-			boolean conflicted) throws FileSystemException {
-
+			boolean conflicted,
+			int depth,
+			Principal principal) throws IOException {
+		
+		/**
+		 * Return if we have reached the maximum depth (reverse logic 0 is max, 999 is low
+		 */
+		if(depth==0) {
+			return;
+		}
+		
 		if (log.isDebugEnabled()) {
 			log.debug("Reconciling folder " + folder.getVirtualPath());
 		}
@@ -39,15 +90,21 @@ public class VirtualFileSynchronizationServiceImpl implements VirtualFileSynchro
 				String.format("%s (%s)", fileObject.getName().getBaseName(), resource.getName())
 				: fileObject.getName().getBaseName();
 
-		if (!FileUtils.checkStartsWithNoSlash(resource.getVirtualPath())
-				.equals(FileUtils.checkStartsWithNoSlash(folder.getVirtualPath()))) {
+		if (!FileUtils.checkEndsWithNoSlash(resource.getVirtualPath())
+				.equals(FileUtils.checkEndsWithNoSlash(folder.getVirtualPath()))) {
 			if (isReconciledFolder(resource, fileObject)) {
-				repository.reconcileFolder(displayName, folder, fileObject, resource, conflicted);
+				if(hasChanged(displayName, fileObject, resource, folder)) {
+					folder = repository.reconcileFolder(displayName, folder, fileObject, resource, conflicted, principal);
+					stats.foldersUpdated++;	
+					if(stats.generateChangeEvents) {
+						fireUpdateEvent(folder);
+					}
+				}
 			}
 		}
 
 		Map<String, List<VirtualFile>> reconciledChildren = new HashMap<String, List<VirtualFile>>();
-		for (VirtualFile virtual : repository.getReconciledFiles(folder)) {
+		for (VirtualFile virtual : repository.getReconciledFiles(folder, principal)) {
 			if (!reconciledChildren.containsKey(virtual.getFilename())) {
 				reconciledChildren.put(virtual.getFilename(), new ArrayList<VirtualFile>());
 			}
@@ -75,7 +132,7 @@ public class VirtualFileSynchronizationServiceImpl implements VirtualFileSynchro
 							if (virtual.getMount().equals(resource)) {
 								if (obj.getType() == FileType.FOLDER || obj.getType() == FileType.FILE_OR_FOLDER) {
 									if (isReconciledFolder(resource, obj)) {
-										reconcileFolder(stats, obj, resource, virtual, childConflicted);
+										reconcileFolder(stats, obj, resource, virtual, childConflicted, depth - 1, principal);
 									} else {
 										toDeleteList.add(virtual);
 									}
@@ -83,7 +140,7 @@ public class VirtualFileSynchronizationServiceImpl implements VirtualFileSynchro
 								} else {
 									if (isReconciledFile(resource, obj)) {
 										if (hasChanged(childDisplayName, obj, resource, virtual)) {
-											reconcileFile(stats, obj, resource, virtual, folder, childConflicted);
+											reconcileFile(stats, obj, resource, virtual, folder, childConflicted, principal);
 										}
 									} else {
 										toDeleteList.add(virtual);
@@ -102,16 +159,19 @@ public class VirtualFileSynchronizationServiceImpl implements VirtualFileSynchro
 						if (isReconciledFolder(resource, obj)) {
 							VirtualFile childFolder = repository.getVirtualFileByResource(
 									FileUtils.checkEndsWithSlash(folder.getVirtualPath()) + obj.getName().getBaseName(),
-									resource);
+									principal, resource);
 							if (childFolder == null) {
 								childFolder = repository.reconcileNewFolder(childDisplayName, folder, obj, resource,
-										childConflicted);
+										childConflicted, principal);
 								stats.foldersCreated++;
+								if(stats.generateChangeEvents) {
+									fireCreatedEvent(childFolder);
+								}
 							}
-							reconcileFolder(stats, obj, resource, childFolder, childConflicted);
+							reconcileFolder(stats, obj, resource, childFolder, childConflicted, depth - 1, principal);
 						}
 					} else if (isReconciledFile(resource, obj)) {
-						reconcileFile(stats, obj, resource, null, folder, childConflicted);
+						reconcileFile(stats, obj, resource, null, folder, childConflicted, principal);
 					}
 
 				} catch (FileSystemException e) {
@@ -134,6 +194,8 @@ public class VirtualFileSynchronizationServiceImpl implements VirtualFileSynchro
 						repository.removeReconciledFile(toDelete);
 						stats.filesDeleted++;
 					}
+					
+					fireDeletedEvent(toDelete);
 				}
 			}
 
@@ -183,7 +245,9 @@ public class VirtualFileSynchronizationServiceImpl implements VirtualFileSynchro
 	
 	@Override
 	public void reconcileFile(ReconcileStatistics stats, FileObject obj, FileResource resource, VirtualFile virtual,
-			VirtualFile parent, boolean conflicted) throws FileSystemException {
+			VirtualFile parent, 
+			boolean conflicted,
+			Principal principal) throws IOException {
 		
 		String displayName = conflicted ? 
 				String.format("%s (%s)", obj.getName().getBaseName(), resource.getName())
@@ -193,17 +257,88 @@ public class VirtualFileSynchronizationServiceImpl implements VirtualFileSynchro
 			if (log.isDebugEnabled()) {
 				log.debug("Creating file " + parent.getVirtualPath() + obj.getName().getBaseName());
 			}
-			repository.reconcileFile(displayName, obj, resource, parent);
+			virtual = repository.reconcileFile(displayName, obj, resource, parent, principal);
 			stats.filesCreated++;
+			
+			if(stats.generateChangeEvents) {
+				fireCreatedEvent(virtual);
+			}
 		} else {
 			if (log.isDebugEnabled()) {
 				log.debug("Updating file " + parent.getVirtualPath() + obj.getName().getBaseName());
 			}
-			repository.reconcileFile(displayName, obj, resource, virtual, parent);
+			
+			virtual = repository.reconcileFile(displayName, obj, resource, virtual, parent, principal);
 			stats.filesUpdated++;
+			
+			if(stats.generateChangeEvents) {
+				fireUpdateEvent(virtual);
+			}
 		}
 	}
 	
+	private void fireUpdateEvent(VirtualFile virtual) throws InvalidAuthenticationContext, IOException {
+		
+		switch(virtual.getType()) {
+		case FOLDER:
+			eventService.publishEvent(new FolderUpdatedEvent(this, getCurrentSession(), 
+					virtual.getMount(), 
+					FileUtils.stripParentPath(virtual.getMount().getVirtualPath(), virtual.getVirtualPath()), 
+					"SYSTEM"));
+			break;
+		case FILE:
+			eventService.publishEvent(new FileUpdatedEvent(this, getCurrentSession(), 
+					virtual.getMount(), 
+					FileUtils.stripParentPath(virtual.getMount().getVirtualPath(), virtual.getVirtualPath()), 
+					"SYSTEM"));
+			break;
+		default:
+			// Ignore?
+			break;
+		}
+		
+	}
+
+	private void fireCreatedEvent(VirtualFile virtual) throws InvalidAuthenticationContext, IOException {
+		switch(virtual.getType()) {
+		case FOLDER:
+			eventService.publishEvent(new FolderCreatedEvent(this, getCurrentSession(), 
+					virtual.getMount(), 
+					FileUtils.stripParentPath(virtual.getMount().getVirtualPath(), virtual.getVirtualPath()), 
+					"SYSTEM"));
+			break;
+		case FILE:
+			eventService.publishEvent(new FileCreatedEvent(this, getCurrentSession(), 
+					virtual.getMount(), 
+					FileUtils.stripParentPath(virtual.getMount().getVirtualPath(), virtual.getVirtualPath()), 
+					"SYSTEM"));
+			break;
+		default:
+			// Ignore?
+			break;
+		}
+	}
+	
+	private void fireDeletedEvent(VirtualFile virtual) throws InvalidAuthenticationContext, IOException {
+		switch(virtual.getType()) {
+		case FOLDER:
+			eventService.publishEvent(new FolderDeletedEvent(this, getCurrentSession(), 
+					virtual.getMount(), 
+					FileUtils.stripParentPath(virtual.getMount().getVirtualPath(), virtual.getVirtualPath()), 
+					"SYSTEM"));
+			break;
+		case FILE:
+			eventService.publishEvent(new FileDeletedEvent(this, getCurrentSession(), 
+					virtual.getMount(), 
+					FileUtils.stripParentPath(virtual.getMount().getVirtualPath(), virtual.getVirtualPath()), 
+					"SYSTEM"));
+			break;
+		default:
+			// Ignore?
+			break;
+		}
+	}
+
 	public void removeFileResource(FileResource resource) {
 		repository.removeFileResource(resource);
 	}
@@ -216,4 +351,134 @@ public class VirtualFileSynchronizationServiceImpl implements VirtualFileSynchro
 				!displayName.equals(obj.getName().getBaseName()));
 	}
 
+	@Override
+	public void reconcileTopFolder(FileResource resource, int depth, boolean makeDefault, Principal principal) throws IOException {
+		
+		ReconcileStatistics stats = new ReconcileStatistics();
+		stats.generateChangeEvents = fileService.getResourceBooleanProperty(resource, "fs.generateChangeEventsOnRebuild");
+		
+		VirtualFile parentFile = repository.getVirtualFile(resource.getVirtualPath(), principal);
+
+		if(makeDefault) {
+			parentFile.setDefaultMount(resource);
+			parentFile.setWritable(true);
+			repository.saveFile(parentFile);
+		}
+		
+		if(!canSynchronize(resource)) {
+			return;
+		}
+		
+		FileObject fileObject = resourceService.getFileObject(resource);
+		
+		FileResourceReconcileStartedEvent started;
+		eventService.publishEvent(
+				started = new FileResourceReconcileStartedEvent(this, true, resource.getRealm(), resource));
+		
+		try {
+		
+		if(fileObject.getType()==FileType.FOLDER) {
+			reconcileFolder(stats, fileObject, resource, parentFile, false, depth, null);
+			
+			eventService.publishEvent(new FileResourceReconcileCompletedEvent(this, true, resource.getRealm(), started,
+					stats.filesCreated, 
+					stats.filesUpdated, 
+					stats.filesDeleted, 
+					stats.foldersCreated, 
+					stats.foldersUpdated, 
+					stats.foldersDeleted));
+		}
+		
+		} catch(IOException ex) {
+			eventService.publishEvent(new FileResourceReconcileCompletedEvent(this, ex, resource, resource.getRealm()));
+			throw ex;
+		}
+	}
+	
+	@Override
+	public boolean canSynchronize(FileResource resource) {
+		
+		if(!fileService.getResourceBooleanProperty(resource, "fs.reconcileEnabled")) {
+			return false;
+		}
+		
+		if(!fileService.getScheme(resource.getScheme()).isSupportsCredentials()) {
+			return true;
+		}
+		
+		return !isUserFilesystem(resource);
+	}
+	
+	@Override
+	public boolean isUserFilesystem(FileResource resource) {
+		
+		if(StringUtils.isNotBlank(resource.getUsername()) && StringUtils.isNotBlank(resource.getPassword())) {
+			/**
+			 * We have filled in credentials, but are they variables?
+			 */
+			return !(!ResourceUtils.containsReplacementVariable(resource.getUsername()) 
+					&& !ResourceUtils.containsReplacementVariable(resource.getPassword())
+					&& !ResourceUtils.containsReplacementVariable(resource.getPath()));
+		}
+		
+		/**
+		 * We consider no credentials also valid
+		 */
+		return !(StringUtils.isBlank(resource.getUsername()) 
+				&& StringUtils.isBlank(resource.getPassword()) 
+				&& !ResourceUtils.containsReplacementVariable(resource.getPath()));
+	}
+
+	@Override
+	public void synchronize(String virtualPath, Principal principal, FileResource... resources) {
+		
+		ReconcileStatistics stats = new ReconcileStatistics();
+		for(FileResource resource : resources) {
+			try {
+				if(FileUtils.checkEndsWithSlash(virtualPath).startsWith(FileUtils.checkEndsWithSlash(resource.getVirtualPath()))) {
+					String childPath = FileUtils.stripParentPath(resource.getVirtualPath(), virtualPath);
+					
+					FileObject fileObject = resourceService.getFileObject(resource);
+					if(StringUtils.isNotBlank(childPath)) {
+						fileObject = fileObject.resolveFile(childPath);
+					}
+					
+					if(!fileObject.exists()) {
+						continue;
+					}
+					
+	
+					int depth = 0;
+					String parentPath = virtualPath; 
+					VirtualFile parentFile;
+					
+					do {
+						depth++;
+						parentPath = FileUtils.stripLastPathElement(parentPath);
+						parentFile = repository.getVirtualFile(parentPath, principal);
+					} while(parentFile==null);
+					
+					VirtualFile file = repository.getVirtualFile(virtualPath, principal);
+					
+					switch(fileObject.getType()) {
+					case FOLDER:
+						 reconcileFolder(stats, fileObject, resource, file, false, depth, resourceService.getOwnerPrincipal(resource));
+						 break;
+					case FILE:
+						reconcileFile(stats, fileObject, resource, file, parentFile, false, resourceService.getOwnerPrincipal(resource));
+						break;
+					default:
+						if(log.isDebugEnabled()) {
+							log.debug(String.format("Unhandled file type %s for path %s/%s",fileObject.getType().getName(), resource.getUrl(), childPath));
+						}
+						break;
+					}
+				}
+
+			} catch (IOException e) {
+				log.error("I/O error during synchronize", e);
+			}
+		}
+		repository.flush();
+	}
 }

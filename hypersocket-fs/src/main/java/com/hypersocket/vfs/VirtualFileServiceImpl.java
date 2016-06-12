@@ -47,6 +47,7 @@ import com.hypersocket.fs.events.RenameEvent;
 import com.hypersocket.fs.events.UploadCompleteEvent;
 import com.hypersocket.fs.events.UploadStartedEvent;
 import com.hypersocket.permissions.AccessDeniedException;
+import com.hypersocket.realm.Principal;
 import com.hypersocket.realm.Realm;
 import com.hypersocket.realm.UserVariableReplacement;
 import com.hypersocket.resource.ResourceChangeException;
@@ -127,12 +128,21 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	@Override
 	public VirtualFile getFile(String virtualPath) throws FileNotFoundException, AccessDeniedException {
 		
-		
-		VirtualFile file = virtualRepository.getVirtualFileByResource(virtualPath, getPrincipalResources());
+		FileResource[] resources = getPrincipalResources();
+		VirtualFile file = virtualRepository.getVirtualFileByResource(virtualPath, getCurrentPrincipal(), resources);
 		if(file==null) {
-			throw new FileNotFoundException(virtualPath);
+			syncService.synchronize(virtualPath, getCurrentPrincipal(), resources);
+			file = virtualRepository.getVirtualFileByResource(virtualPath, getCurrentPrincipal(), resources);
+			if(file==null) {
+				throw new FileNotFoundException(virtualPath);
+			}
 		}
 		return file;
+	}
+	
+	@Override
+	public Principal getOwnerPrincipal(FileResource resource) {
+		return syncService.canSynchronize(resource) ? null : syncService.isUserFilesystem(resource) ? getCurrentPrincipal() : null;
 	}
 	
 	@Override
@@ -149,7 +159,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	
 	@Override
 	public Collection<VirtualFile> getChildren(VirtualFile folder) throws AccessDeniedException {
-		return virtualRepository.getVirtualFiles(folder, getPrincipalResources());
+		return virtualRepository.getVirtualFiles(folder, getCurrentPrincipal(), getPrincipalResources());
 	}
 
 	@Override
@@ -203,7 +213,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			VirtualFile parent = getFile(parentPath);
 			
 			FileObject newFolder = resolver.processRequest(virtualPath);
-			return virtualRepository.reconcileFile(newFolder.getName().getBaseName(), newFolder, resolver.getParentResource(), parent);
+			return virtualRepository.reconcileFile(newFolder.getName().getBaseName(), newFolder, resolver.getParentResource(), parent, getOwnerPrincipal(resolver.getParentResource()));
 		}
 	}
 	
@@ -224,7 +234,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			VirtualFile parent = getFile(parentPath);
 			
 			FileObject newFolder = resolver.processRequest(virtualPath);
-			return virtualRepository.reconcileNewFolder(newFolder.getName().getBaseName(), parent, newFolder, resolver.getParentResource(), false);
+			return virtualRepository.reconcileNewFolder(newFolder.getName().getBaseName(), parent, newFolder, resolver.getParentResource(), false, getOwnerPrincipal(resolver.getParentResource()));
 			
 		}
 	}
@@ -274,7 +284,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		CreateFolderFileResolver resolver = new CreateFolderFileResolver(newName, proto);
 		
 		FileObject newFolder = resolver.processRequest(virtualPath);
-		return virtualRepository.reconcileNewFolder(newFolder.getName().getBaseName(), parentFile, newFolder, parentFile.getMount(), false);
+		return virtualRepository.reconcileNewFolder(newFolder.getName().getBaseName(), parentFile, newFolder, parentFile.getMount(), false, getOwnerPrincipal(resolver.getParentResource()));
 	}
 
 	@Override
@@ -313,17 +323,17 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			}
 			
 			VirtualFile parent = getFile(FileUtils.stripLastPathElement(toVirtualPath));
-			VirtualFile existingFile = virtualRepository.getVirtualFile(toVirtualPath);
+			VirtualFile existingFile = virtualRepository.getVirtualFile(toVirtualPath, getCurrentPrincipal());
 			String displayName = FileUtils.lastPathElement(toVirtualPath);
 			if(existingFile!=null) {
 				displayName = String.format("%s (%s)", displayName, resolver.getToMount().getName());
 			}
 			if(fromFile.isFolder()) {
-				return virtualRepository.reconcileFolder(displayName, fromFile, resolver.getToFile(), resolver.getFromMount(), existingFile!=null);
+				return virtualRepository.reconcileFolder(displayName, fromFile, resolver.getToFile(), resolver.getToMount(), existingFile!=null, getOwnerPrincipal(resolver.getToMount()));
 			} else {
 				
 				virtualRepository.removeReconciledFile(fromFile);	
-				return virtualRepository.reconcileFile(displayName, resolver.getToFile(), resolver.getToMount(), parent);
+				return virtualRepository.reconcileFile(displayName, resolver.getToFile(), resolver.getToMount(), parent, getOwnerPrincipal(resolver.getToMount()));
 			}
 		}
 	}
@@ -339,14 +349,14 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		CopyFileResolver resolver = new CopyFileResolver(proto);
 		boolean success = resolver.processRequest(fromPath, toPath);
 
-		VirtualFile existingFile = virtualRepository.getVirtualFile(toPath);
+		VirtualFile existingFile = virtualRepository.getVirtualFile(toPath, getCurrentPrincipal());
 		
 		String displayName = FileUtils.lastPathElement(fromPath);
 		if(existingFile!=null) {
 			displayName = String.format("%s (%s)", displayName, toParent.getMount().getName());
 		}
 		if(success) {
-			virtualRepository.reconcileFile(displayName, resolver.getToFile(), toParent.getMount(), toParent);
+			virtualRepository.reconcileFile(displayName, resolver.getToFile(), toParent.getMount(), toParent, getOwnerPrincipal(resolver.getToMount()));
 			return true;
 		}
 		return false;
@@ -425,14 +435,14 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 						processor.processUpload(resource, resolveVFSFile(parentFile.getMount()), childPath, file);
 					}
 					
-					VirtualFile existingFile = virtualRepository.getVirtualFile(virtualPath);
+					VirtualFile existingFile = virtualRepository.getVirtualFile(virtualPath, getCurrentPrincipal());
 					
 					String displayName = FileUtils.lastPathElement(virtualPath);
 					if(existingFile!=null) {
 						displayName = String.format("%s (%s)", displayName, parentFile.getMount().getName());
 					}
 					virtualRepository.reconcileFile(displayName, file, resource, 
-							VirtualFileServiceImpl.this.getFile(FileUtils.stripLastPathElement(virtualPath)));
+							VirtualFileServiceImpl.this.getFile(FileUtils.stripLastPathElement(virtualPath)), getOwnerPrincipal(resource));
 					return upload;
 
 				} catch (ResourceCreationException e) {
@@ -460,7 +470,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 
 	@Override
 	public long getSearchCount(String virtualPath, String searchColumn, String search) throws AccessDeniedException {
-		VirtualFile file = virtualRepository.getVirtualFileByResource(virtualPath, getPrincipalResources());
+		VirtualFile file = virtualRepository.getVirtualFileByResource(virtualPath, getCurrentPrincipal(), getPrincipalResources());
 		return virtualRepository.getCount(VirtualFile.class, searchColumn, search, new ParentCriteria(file));
 	}
 
@@ -471,9 +481,21 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			int offset, 
 			int limit,
 			ColumnSort[] sort,
-			String proto) throws AccessDeniedException {
-		VirtualFile parent = virtualRepository.getVirtualFileByResource(virtualPath, getPrincipalResources());
-		return virtualRepository.search(searchColumn, search, offset, limit, sort, parent, getPrincipalResources());
+			String proto) throws AccessDeniedException, IOException {
+		
+		
+		FileResource[] resources = getPrincipalResources();
+		
+		for(FileResource resource : resources) {
+			if(!syncService.canSynchronize(resource)) {
+				syncService.synchronize(virtualPath, getOwnerPrincipal(resource), resource);
+			}
+		}
+		
+		VirtualFile parent = virtualRepository.getVirtualFileByResource(virtualPath, getCurrentPrincipal(), resources);
+		
+		return virtualRepository.search(searchColumn, search, offset, limit, sort, parent, getCurrentPrincipal(), resources);
+
 	}
 
 	
@@ -1144,7 +1166,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 						event.getOutputFile(), event.getOutputStream(), position, event.getTimestamp(), 
 						new SessionAwareUploadEventProcessor(getCurrentSession(),
 								getCurrentLocale(), VirtualFileServiceImpl.this, VirtualFileServiceImpl.this),
-						proto);
+						proto, getOwnerPrincipal(resource));
 			}
 
 			@Override

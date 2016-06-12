@@ -1,5 +1,6 @@
 package com.hypersocket.fs;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -8,6 +9,7 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.VFS;
@@ -46,8 +48,10 @@ import com.hypersocket.permissions.PermissionCategory;
 import com.hypersocket.permissions.PermissionService;
 import com.hypersocket.permissions.PermissionType;
 import com.hypersocket.properties.PropertyCategory;
+import com.hypersocket.properties.ResourceUtils;
 import com.hypersocket.realm.RealmService;
 import com.hypersocket.realm.UserVariableReplacement;
+import com.hypersocket.replace.ReplacementUtils;
 import com.hypersocket.resource.AbstractAssignableResourceRepository;
 import com.hypersocket.resource.AbstractAssignableResourceServiceImpl;
 import com.hypersocket.resource.ResourceChangeException;
@@ -58,7 +62,7 @@ import com.hypersocket.server.HypersocketServer;
 import com.hypersocket.ui.IndexPageFilter;
 import com.hypersocket.ui.UserInterfaceContentHandler;
 import com.hypersocket.upload.FileUploadService;
-import com.hypersocket.vfs.VirtualFileService;
+import com.hypersocket.utils.HypersocketUtils;
 import com.hypersocket.vfs.VirtualFileSynchronizationService;
 
 @Service
@@ -372,7 +376,7 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 		results.addAll(getRepository().getPropertyCategories(resource));
 		return results;
 	}
-
+	
 	@Override
 	public void createFileResource(FileResource resource, Map<String, String> properties) throws ResourceCreationException, AccessDeniedException {
 		createResource(resource, properties, new TransactionAdapter<FileResource>() {
@@ -385,10 +389,37 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 					scheme.getFileService().getRepository().setValues(resource, properties);
 				}
 				
+				doInitialReconcile(resource, scheme);
 			}
 		});
 	}
 
+	private void doInitialReconcile(FileResource resource, FileResourceScheme scheme) {
+		
+		try {
+			boolean makeDefault = !resource.isReadOnly();
+			if(makeDefault) {
+				Collection<FileResource> resources = getResourcesByVirtualPath(resource.getVirtualPath());
+				for(FileResource r : resources) {
+					if(!r.equals(resource)) {
+						if(!r.isReadOnly()) {
+							makeDefault = false;
+							break;
+						}
+					}
+				}
+			}
+			
+			syncService.reconcileTopFolder(resource, resourceRepository.getIntValue(resource, "fs.initialReconcileDepth"), makeDefault, null);
+				
+		} catch (AccessDeniedException e) {
+			throw new IllegalStateException(e);
+		} catch (IOException e) {
+			throw new IllegalStateException(e);
+		}
+		
+	}
+	
 	@Override
 	public void updateFileResource(FileResource resource, Map<String, String> properties) throws ResourceChangeException, AccessDeniedException {
 		
@@ -411,6 +442,7 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 					scheme.getFileService().getRepository().setValues(resource, properties);
 				}
 				
+				doInitialReconcile(resource, scheme);
 			}
 		});
 	}

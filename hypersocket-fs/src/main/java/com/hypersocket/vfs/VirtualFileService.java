@@ -12,6 +12,7 @@ import com.hypersocket.auth.AuthenticatedService;
 import com.hypersocket.fs.FileResource;
 import com.hypersocket.fs.UploadProcessor;
 import com.hypersocket.permissions.AccessDeniedException;
+import com.hypersocket.realm.Principal;
 import com.hypersocket.realm.UserVariableReplacement;
 import com.hypersocket.resource.ResourceChangeException;
 import com.hypersocket.tables.ColumnSort;
@@ -39,7 +40,7 @@ public interface VirtualFileService extends AuthenticatedService {
 	long getSearchCount(String virtualPath, String searchColumn, String search) throws AccessDeniedException;
 
 	Collection<VirtualFile> searchFiles(String virtualPath, String searchColumn, String search, int offset, int limit,
-			ColumnSort[] sorting, String proto) throws AccessDeniedException;
+			ColumnSort[] sorting, String proto) throws AccessDeniedException, IOException;
 
 	VirtualFile getRootFolder() throws FileNotFoundException, AccessDeniedException;
 
@@ -85,5 +86,7 @@ public interface VirtualFileService extends AuthenticatedService {
 	VirtualFile getFileById(Long id) throws AccessDeniedException;
 
 	void setDefaultMount(VirtualFile file, FileResource mount) throws AccessDeniedException, ResourceChangeException;
+
+	Principal getOwnerPrincipal(FileResource resource);
 
 }

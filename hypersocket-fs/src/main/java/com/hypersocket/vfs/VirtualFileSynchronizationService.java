@@ -1,18 +1,31 @@
 package com.hypersocket.vfs;
 
+import java.io.IOException;
+
 import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemException;
 
+import com.hypersocket.auth.AuthenticatedService;
 import com.hypersocket.fs.FileResource;
+import com.hypersocket.realm.Principal;
 
-public interface VirtualFileSynchronizationService {
+public interface VirtualFileSynchronizationService extends AuthenticatedService {
 
 	void reconcileFile(ReconcileStatistics stats, FileObject fileObject, FileResource resource, VirtualFile virtualFile,
-			VirtualFile parent, boolean b) throws FileSystemException;
+			VirtualFile parent, boolean conflicted,
+			Principal principal) throws IOException;
 
 	void reconcileFolder(ReconcileStatistics stats, FileObject fileObject, FileResource resource, VirtualFile folder,
-			boolean conflicted) throws FileSystemException;
+			boolean conflicted, int recurseDepth,
+			Principal principal) throws IOException;
 
 	void removeFileResource(FileResource resource);
+
+	void reconcileTopFolder(FileResource resource, int depth, boolean makeDefault, Principal principal) throws IOException;
+
+	boolean canSynchronize(FileResource resource);
+
+	void synchronize(String virtualPath, Principal principal, FileResource... fileResources);
+
+	boolean isUserFilesystem(FileResource resource);
 
 }
