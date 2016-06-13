@@ -1,6 +1,5 @@
 package com.hypersocket.vfs;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -244,7 +243,7 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 	}
 	
 	@Override
-	public void reconcileFile(ReconcileStatistics stats, FileObject obj, FileResource resource, VirtualFile virtual,
+	public VirtualFile reconcileFile(ReconcileStatistics stats, FileObject obj, FileResource resource, VirtualFile virtual,
 			VirtualFile parent, 
 			boolean conflicted,
 			Principal principal) throws IOException {
@@ -257,8 +256,13 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 			if (log.isDebugEnabled()) {
 				log.debug("Creating file " + parent.getVirtualPath() + obj.getName().getBaseName());
 			}
-			virtual = repository.reconcileFile(displayName, obj, resource, parent, principal);
-			stats.filesCreated++;
+			if(obj.getType()==FileType.FILE) {
+				virtual = repository.reconcileFile(displayName, obj, resource, parent, principal);
+				stats.filesCreated++;
+			} else if(obj.getType()==FileType.FOLDER) {
+				virtual = repository.reconcileNewFolder(displayName, parent, obj, resource, conflicted, principal);
+				stats.foldersCreated++;
+			}
 			
 			if(stats.generateChangeEvents) {
 				fireCreatedEvent(virtual);
@@ -268,13 +272,20 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 				log.debug("Updating file " + parent.getVirtualPath() + obj.getName().getBaseName());
 			}
 			
-			virtual = repository.reconcileFile(displayName, obj, resource, virtual, parent, principal);
-			stats.filesUpdated++;
+			if(obj.getType()==FileType.FILE) {
+				virtual = repository.reconcileFile(displayName, obj, resource, virtual, parent, principal);
+				stats.filesUpdated++;
+			} else if(obj.getType()==FileType.FOLDER) {
+				virtual = repository.reconcileFolder(displayName, virtual, obj, resource, conflicted, principal);
+				stats.foldersUpdated++;
+			}
 			
 			if(stats.generateChangeEvents) {
 				fireUpdateEvent(virtual);
 			}
 		}
+		
+		return virtual;
 	}
 	
 	private void fireUpdateEvent(VirtualFile virtual) throws InvalidAuthenticationContext, IOException {
@@ -438,31 +449,41 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 				if(FileUtils.checkEndsWithSlash(virtualPath).startsWith(FileUtils.checkEndsWithSlash(resource.getVirtualPath()))) {
 					String childPath = FileUtils.stripParentPath(resource.getVirtualPath(), virtualPath);
 					
-					FileObject fileObject = resourceService.getFileObject(resource);
+					FileObject resourceFile = resourceService.getFileObject(resource);
+					FileObject fileObject = resourceFile;
 					if(StringUtils.isNotBlank(childPath)) {
-						fileObject = fileObject.resolveFile(childPath);
+						fileObject = resourceFile.resolveFile(childPath);
+						if(!fileObject.exists()) {
+							continue;
+						}
 					}
-					
-					if(!fileObject.exists()) {
-						continue;
-					}
-					
-	
-					int depth = 0;
+
 					String parentPath = virtualPath; 
 					VirtualFile parentFile;
 					
+					List<String> parentPaths = new ArrayList<String>();
 					do {
-						depth++;
 						parentPath = FileUtils.stripLastPathElement(parentPath);
 						parentFile = repository.getVirtualFile(parentPath, principal);
+						if(parentFile==null) {
+							parentPaths.add(0, parentPath);
+						}
 					} while(parentFile==null);
 					
+					for(String parent : parentPaths) {
+						String path = FileUtils.stripParentPath(resource.getVirtualPath(), parent);
+						parentFile = reconcileFile(stats, resourceFile.resolveFile(path), resource, null, parentFile, false, principal);
+					}
+
 					VirtualFile file = repository.getVirtualFile(virtualPath, principal);
+					
 					
 					switch(fileObject.getType()) {
 					case FOLDER:
-						 reconcileFolder(stats, fileObject, resource, file, false, depth, resourceService.getOwnerPrincipal(resource));
+						if(file==null) {
+							file = repository.reconcileNewFolder(fileObject.getName().getBaseName(), parentFile, fileObject, resource, false, principal);
+						}
+						reconcileFolder(stats, fileObject, resource, file, false, 1, resourceService.getOwnerPrincipal(resource));
 						 break;
 					case FILE:
 						reconcileFile(stats, fileObject, resource, file, parentFile, false, resourceService.getOwnerPrincipal(resource));

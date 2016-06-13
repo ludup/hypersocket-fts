@@ -10,7 +10,7 @@ import com.hypersocket.realm.Principal;
 
 public interface VirtualFileSynchronizationService extends AuthenticatedService {
 
-	void reconcileFile(ReconcileStatistics stats, FileObject fileObject, FileResource resource, VirtualFile virtualFile,
+	VirtualFile reconcileFile(ReconcileStatistics stats, FileObject fileObject, FileResource resource, VirtualFile virtualFile,
 			VirtualFile parent, boolean conflicted,
 			Principal principal) throws IOException;
 

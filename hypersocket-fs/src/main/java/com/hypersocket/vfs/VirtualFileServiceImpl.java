@@ -282,7 +282,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			
 			eventService.publishEvent(new VirtualFolderCreatedEvent(this, 
 					getCurrentSession(), 
-					 virtualPath));
+					 FileUtils.checkEndsWithSlash(virtualPath) + newName));
 			return file;
 		} catch(Throwable e) {
 			eventService.publishEvent(new VirtualFolderCreatedEvent(this, 
@@ -360,11 +360,11 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 				 * Rename a virtual folder
 				 */
 				try {
+					String originalPath = fromFile.getVirtualPath();
 					VirtualFile file =  virtualRepository.renameVirtualFolder(fromFile, toVirtualPath);
 					eventService.publishEvent(new VirtualFolderUpdatedEvent(this, 
-							new FileExistsException(toVirtualPath),
 							getCurrentSession(), 
-							fromFile.getVirtualPath(),
+							originalPath,
 							toVirtualPath));
 					return file;
 				} catch(Throwable t) {
