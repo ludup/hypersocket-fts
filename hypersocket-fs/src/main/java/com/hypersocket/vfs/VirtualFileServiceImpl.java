@@ -46,6 +46,9 @@ import com.hypersocket.fs.events.DownloadStartedEvent;
 import com.hypersocket.fs.events.RenameEvent;
 import com.hypersocket.fs.events.UploadCompleteEvent;
 import com.hypersocket.fs.events.UploadStartedEvent;
+import com.hypersocket.fs.events.VirtualFolderCreatedEvent;
+import com.hypersocket.fs.events.VirtualFolderDeletedEvent;
+import com.hypersocket.fs.events.VirtualFolderUpdatedEvent;
 import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.realm.Principal;
 import com.hypersocket.realm.Realm;
@@ -177,12 +180,28 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		if(!file.isMounted()) {
 			
 			Collection<FileResource> mounts = fileService.getResourcesByVirtualPath(file.getVirtualPath());
-			if(!mounts.isEmpty()) {
+			if(!mounts.isEmpty()) {			
+				eventService.publishEvent(new VirtualFolderDeletedEvent(this, 
+						new AccessDeniedException(),
+						getCurrentSession(), 
+						file.getVirtualPath()));
 				throw new AccessDeniedException();
 			}
 			
-			virtualRepository.removeReconciledFolder(file, true);
-			return true;
+			try {
+				virtualRepository.removeReconciledFolder(file, true);
+				eventService.publishEvent(new VirtualFolderDeletedEvent(this, 
+						getCurrentSession(), 
+						file.getVirtualPath()));
+				return true;
+			
+			} catch(Throwable t) {
+				eventService.publishEvent(new VirtualFolderDeletedEvent(this, 
+						t,
+						getCurrentSession(), 
+						file.getVirtualPath()));
+				throw t;
+			}
 		} else {
 		
 			boolean success = new DeleteFileResolver(proto).processRequest(file);
@@ -258,7 +277,20 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			}
 		}
 
-		return virtualRepository.createVirtualFolder(newName, parent);
+		try {
+			VirtualFile file = virtualRepository.createVirtualFolder(newName, parent);
+			
+			eventService.publishEvent(new VirtualFolderCreatedEvent(this, 
+					getCurrentSession(), 
+					 virtualPath));
+			return file;
+		} catch(Throwable e) {
+			eventService.publishEvent(new VirtualFolderCreatedEvent(this, 
+					e,
+					getCurrentSession(), 
+					 virtualPath));
+			throw e;
+		}
 	}
 	
 	@Override
@@ -305,17 +337,44 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	public VirtualFile renameFile(VirtualFile fromFile, String toVirtualPath, String proto) throws IOException, AccessDeniedException {
 		try {
 			getFile(toVirtualPath);
+			if(!fromFile.isMounted()) {
+				eventService.publishEvent(new VirtualFolderUpdatedEvent(this, 
+						new FileExistsException(toVirtualPath),
+						getCurrentSession(), 
+						fromFile.getVirtualPath(),
+						toVirtualPath));
+			}
 			throw new FileExistsException(toVirtualPath);
 		} catch(FileNotFoundException ex) {
 			
 			if(!fromFile.isMounted()) {
 				if(!getChildren(fromFile).isEmpty()) {
+					eventService.publishEvent(new VirtualFolderUpdatedEvent(this, 
+							new AccessDeniedException(),
+							getCurrentSession(), 
+							fromFile.getVirtualPath(),
+							toVirtualPath));
 					throw new AccessDeniedException();
 				}
 				/**
 				 * Rename a virtual folder
 				 */
-				return virtualRepository.renameVirtualFolder(fromFile, toVirtualPath);
+				try {
+					VirtualFile file =  virtualRepository.renameVirtualFolder(fromFile, toVirtualPath);
+					eventService.publishEvent(new VirtualFolderUpdatedEvent(this, 
+							new FileExistsException(toVirtualPath),
+							getCurrentSession(), 
+							fromFile.getVirtualPath(),
+							toVirtualPath));
+					return file;
+				} catch(Throwable t) {
+					eventService.publishEvent(new VirtualFolderUpdatedEvent(this, 
+							t,
+							getCurrentSession(), 
+							fromFile.getVirtualPath(),
+							toVirtualPath));
+					throw t;
+				}
 			}
 			RenameFileResolver resolver = new RenameFileResolver(proto);
 			if(!resolver.processRequest(fromFile, toVirtualPath)) {
