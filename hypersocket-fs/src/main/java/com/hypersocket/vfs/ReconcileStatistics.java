@@ -5,6 +5,9 @@ import java.util.List;
 
 public class ReconcileStatistics {
 
+	boolean generateChangeEvents = false;
+	boolean rebuild = false;
+	
 	int filesUpdated;
 	int filesCreated;
 	int filesDeleted;

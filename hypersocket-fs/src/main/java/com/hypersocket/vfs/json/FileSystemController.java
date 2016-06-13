@@ -143,61 +143,73 @@ public class FileSystemController extends ResourceController {
 			Collection<FileResource> mounts = fileService.getRootMounts();
 			
 			for(FileResource resource : mounts) {
-				TreeNode node = new TreeNode();
-				node.setParent(rootNode.id);
-				node.setText(resource.getName());
-				node.getState().opened = true;
-				node.setFileType(VirtualFileType.FOLDER);
-				node.setType("mount");
-				node.setVirtualPath(resource.getVirtualPath());
-				node.setResourceId(resource.getId());
-				rootNode.children.add(node);
+				try {
+					TreeNode node = new TreeNode();
+					node.setParent(rootNode.id);
+					node.setText(resource.getName());
+					node.getState().opened = true;
+					node.setFileType(VirtualFileType.FOLDER);
+					node.setType("mount");
+					node.setVirtualPath(resource.getVirtualPath());
+					node.setResourceId(resource.getId());
+					rootNode.children.add(node);
+				} catch (Throwable e) {
+					log.error(String.format("Could not add root mount resource %s", resource.getName()), e);
+				}
 			}
 			
 			Map<String,TreeNode> nodesById = new HashMap<String,TreeNode>();
 			Map<String,TreeNode> nodesByPath = new HashMap<String,TreeNode>();
 			for(VirtualFile file : fileService.getVirtualFolders()) {
-				if(file.getParent()!=null) {
-					TreeNode node = new TreeNode();
-					node.setText(file.getDisplayName());
-					if(file.isMounted()) {
-						node.setResourceId(file.getMount().getId());
-					} else {
-						node.setResourceId(file.getId());
-					}
-					node.setId(String.valueOf(file.getId()));
-					node.setParent(String.valueOf(file.getParent().getId()));
-					node.getState().opened = true;
-					node.setFileType(file.getType());
-					
-					node.setVirtualPath(file.getVirtualPath());
-					node.setType("default");
+				try {
+					if(file.getParent()!=null) {
+						TreeNode node = new TreeNode();
+						node.setText(file.getDisplayName());
+						if(file.isMounted()) {
+							node.setResourceId(file.getMount().getId());
+						} else {
+							node.setResourceId(file.getId());
+						}
+						node.setId(String.valueOf(file.getId()));
+						node.setParent(String.valueOf(file.getParent().getId()));
+						node.getState().opened = true;
+						node.setFileType(file.getType());
+						
+						node.setVirtualPath(file.getVirtualPath());
+						node.setType("default");
 
-					nodesById.get(String.valueOf(file.getParent().getId())).children.add(node);
-					nodesByPath.put(FileUtils.checkEndsWithSlash(file.getVirtualPath()), node);
-					nodesById.put(node.getId(), node);
-					
-				} else {
-					rootNode.setId(String.valueOf(file.getId()));
-					nodesById.put(rootNode.getId(), rootNode);
+						nodesById.get(String.valueOf(file.getParent().getId())).children.add(node);
+						nodesByPath.put(FileUtils.checkEndsWithSlash(file.getVirtualPath()), node);
+						nodesById.put(node.getId(), node);
+						
+					} else {
+						rootNode.setId(String.valueOf(file.getId()));
+						nodesById.put(rootNode.getId(), rootNode);
+					}
+				} catch (Throwable e) {
+					log.error(String.format("Could not add virtual folder %s %s", file.getFilename(), file.getVirtualPath()), e);
 				}
 			}
 			
 			for(FileResource resource : fileService.getNonRootMounts()) {
-				TreeNode node = new TreeNode();
-				TreeNode parent = nodesByPath.get(FileUtils.checkEndsWithSlash(resource.getVirtualPath()));
-				if(parent==null) {
-					log.info(resource.getVirtualPath());
+				try {
+					TreeNode node = new TreeNode();
+					TreeNode parent = nodesByPath.get(FileUtils.checkEndsWithSlash(resource.getVirtualPath()));
+					if(parent==null) {
+						log.info(resource.getVirtualPath());
+					}
+					node.setId(String.valueOf(resource.getId()));
+					node.setParent(parent.id);
+					node.setText(resource.getName());
+					node.getState().opened = true;
+					node.setResourceId(resource.getId());
+					node.setFileType(VirtualFileType.FOLDER);
+					node.setType("mount");
+					node.setVirtualPath(resource.getVirtualPath());
+					parent.children.add(node);
+				} catch (Throwable e) {
+					log.error(String.format("Could not add file resource %s", resource.getName()), e);
 				}
-				node.setId(String.valueOf(resource.getId()));
-				node.setParent(parent.id);
-				node.setText(resource.getName());
-				node.getState().opened = true;
-				node.setResourceId(resource.getId());
-				node.setFileType(VirtualFileType.FOLDER);
-				node.setType("mount");
-				node.setVirtualPath(resource.getVirtualPath());
-				parent.children.add(node);
 			}
 			
 			return results;
@@ -489,7 +501,11 @@ public class FileSystemController extends ResourceController {
 				@Override
 				public Collection<?> getPage(String searchColumn, String searchPattern, int start, int length, ColumnSort[] sorting)
 						throws UnauthorizedException, AccessDeniedException {
-					return fileService.searchFiles(virtualPath, "filename", searchPattern, start, length, sorting, HTTP_PROTOCOL);
+					try {
+						return fileService.searchFiles(virtualPath, "filename", searchPattern, start, length, sorting, HTTP_PROTOCOL);
+					} catch (IOException e) {
+						throw new IllegalStateException(e);
+					}
 				}
 				
 				@Override
@@ -503,10 +519,11 @@ public class FileSystemController extends ResourceController {
 				}
 			});
 
-		} catch (FileSystemException e) {
+		} catch (IllegalStateException e) {
 			request.getSession().setAttribute("lastError", e);
 			throw e;
 		} catch (IOException e) {
+			request.getSession().setAttribute("lastError", e);
 			throw e;
 		} finally {
 			clearAuthenticatedContext();

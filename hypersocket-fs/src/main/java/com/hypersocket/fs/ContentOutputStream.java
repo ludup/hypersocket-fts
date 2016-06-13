@@ -6,10 +6,10 @@ import java.io.OutputStream;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 
+import com.hypersocket.realm.Principal;
 import com.hypersocket.utils.FileUtils;
 import com.hypersocket.vfs.VirtualFile;
 import com.hypersocket.vfs.VirtualFileRepository;
-import com.hypersocket.vfs.VirtualFileServiceImpl;
 
 public class ContentOutputStream extends OutputStream {
 
@@ -24,6 +24,7 @@ public class ContentOutputStream extends OutputStream {
 	String virtualPath;
 	VirtualFile parentFile;
 	VirtualFileRepository virtualRepository;
+	Principal principal;
 	
 	public ContentOutputStream(FileResource resource, 
 			String childPath,
@@ -35,7 +36,8 @@ public class ContentOutputStream extends OutputStream {
 			long position, 
 			long started,
 			UploadEventProcessor eventProcessor,
-			String protocol)
+			String protocol,
+			Principal principal)
 			throws FileSystemException {
 		this.out = out;
 		this.started = started;
@@ -47,6 +49,7 @@ public class ContentOutputStream extends OutputStream {
 		this.virtualPath = virtualPath;
 		this.parentFile = parentFile;
 		this.virtualRepository = virtualRepository;
+		this.principal = principal;
 	}
 
 	@Override
@@ -93,12 +96,12 @@ public class ContentOutputStream extends OutputStream {
 	}
 
 	private void reconcileFile() throws FileSystemException {
-		VirtualFile existingFile = virtualRepository.getVirtualFile(virtualPath);
+		VirtualFile existingFile = virtualRepository.getVirtualFile(virtualPath, principal);
 		
 		String displayName = FileUtils.lastPathElement(virtualPath);
 		if(existingFile!=null) {
 			displayName = String.format("%s (%s)", displayName, parentFile.getMount().getName());
 		}
-		virtualRepository.reconcileFile(displayName, file, resource, parentFile);
+		virtualRepository.reconcileFile(displayName, file, resource, parentFile, principal);
 	}
 }

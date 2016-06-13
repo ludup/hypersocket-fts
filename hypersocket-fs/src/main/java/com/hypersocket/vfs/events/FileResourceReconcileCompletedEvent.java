@@ -28,8 +28,8 @@ public class FileResourceReconcileCompletedEvent extends ReconcileCompleteEvent<
 		addAttribute(ATTR_FOLDERS_DELETED, String.valueOf(foldersDeleted));		
 	}
 
-	public FileResourceReconcileCompletedEvent(Object source, Throwable t, Realm realm) {
-		super(source, t, realm);
+	public FileResourceReconcileCompletedEvent(Object source, Throwable t, FileResource resource, Realm realm) {
+		super(source, t, resource, realm);
 	}
 
 }
