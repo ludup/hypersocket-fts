@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+<propertyTemplates context="fTPInterfaceResource">
+	<propertyCategory resourceKey="category.ftp.interface" resourceBundle="FTPInterfaceResourceService" weight="0">
+		<property resourceKey="interfaces" inputType="multipleSelect"
+			restart="false" url="server/networkInterfaces" selectAllIfEmpty="false"	weight="0" />
+		<property resourceKey="port" inputType="integer" minValue="1"
+			maxValue="65535" restart="true" defaultValue="21" weight="100" />
+	</propertyCategory>
+	<propertyCategory resourceKey="category.ftp.protocol" resourceBundle="FTPInterfaceResourceService" weight="100">
+		<property id="ftp_p" resourceKey="protocol" inputType="select" 
+			options="FTP,FTPS" defaultValue="FTPS" weight="200" />
+		<property id="ftp_cert" resourceKey="certificate" inputType="select" emptySelectionAllowed="true" valueAttr="id"
+			url="certificates/list" defaultValue="" weight="300" visibilityDependsOn="protocol" visibilityDependsValue="FTPS"/>
+	</propertyCategory>
+</propertyTemplates>
