@@ -9,7 +9,9 @@ import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.hypersocket.fs.FileResource;
+import com.hypersocket.realm.Principal;
 import com.hypersocket.realm.Realm;
 import com.hypersocket.repository.AbstractEntity;
 
@@ -57,6 +59,9 @@ public class VirtualFile extends AbstractEntity<Long> {
 	
 	@OneToOne
 	FileResource defaultMount;
+	
+	@OneToOne
+	Principal principal;
 	
 	@Column(name="hash")
 	int hash;
@@ -191,6 +196,15 @@ public class VirtualFile extends AbstractEntity<Long> {
 	
 	public FileResource getDefaultMount() {
 		return defaultMount;
+	}
+
+	public void setPrincipal(Principal principal) {
+		this.principal = principal;
+	}
+	
+	@JsonIgnore
+	public Principal getPrincipal() {
+		return principal;
 	}
 	
 }
