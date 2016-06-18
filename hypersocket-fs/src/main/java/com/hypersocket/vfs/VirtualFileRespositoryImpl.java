@@ -18,8 +18,10 @@ import org.springframework.transaction.annotation.Transactional;
 import com.hypersocket.fs.FileResource;
 import com.hypersocket.realm.Principal;
 import com.hypersocket.realm.Realm;
+import com.hypersocket.realm.RealmRestriction;
 import com.hypersocket.repository.AbstractRepositoryImpl;
 import com.hypersocket.repository.CriteriaConfiguration;
+import com.hypersocket.resource.RealmCriteria;
 import com.hypersocket.tables.ColumnSort;
 import com.hypersocket.utils.FileUtils;
 
@@ -28,25 +30,25 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 	
 	@Override
 	@Transactional(readOnly=true)
-	public Collection<VirtualFile> getVirtualFiles(VirtualFile parent, Principal principal, FileResource... resources) {
-		return list("parent", parent, VirtualFile.class, new FileResourceCriteria(resources), new PrincipalCriteria(principal), new ConflictCriteria());
+	public Collection<VirtualFile> getVirtualFiles(VirtualFile parent, Realm realm, Principal principal, FileResource... resources) {
+		return list("parent", parent, VirtualFile.class, new RealmCriteria(realm), new FileResourceCriteria(resources), new PrincipalCriteria(principal), new ConflictCriteria());
 	}
 
 	@Override
 	@Transactional(readOnly=true)
-	public VirtualFile getVirtualFileByResource(String virtualPath, Principal principal, FileResource... resources) {
-		return get(VirtualFile.class, new VirtualPathCriteria(virtualPath), new FileResourceCriteria(resources), new PrincipalCriteria(principal), new ConflictCriteria());
+	public VirtualFile getVirtualFileByResource(String virtualPath, Realm realm, Principal principal, FileResource... resources) {
+		return get(VirtualFile.class, new VirtualPathCriteria(virtualPath), new RealmCriteria(realm), new FileResourceCriteria(resources), new PrincipalCriteria(principal), new ConflictCriteria());
 	}
 	
 	@Override
 	@Transactional(readOnly=true)
-	public VirtualFile getVirtualFile(String virtualPath, Principal principal) {
-		return get(VirtualFile.class, new VirtualPathCriteria(virtualPath), new PrincipalCriteria(principal), new ConflictCriteria());
+	public VirtualFile getVirtualFile(String virtualPath, Realm realm, Principal principal) {
+		return get(VirtualFile.class, new VirtualPathCriteria(virtualPath), new RealmCriteria(realm), new PrincipalCriteria(principal), new ConflictCriteria());
 	}
 		
 	@Override
 	@Transactional(readOnly=true)
-	public Collection<VirtualFile> getReconciledFiles(VirtualFile parent, Principal principal) {
+	public Collection<VirtualFile> getReconciledFiles(VirtualFile parent, Realm realm, Principal principal) {
 		return list("parent", parent, VirtualFile.class, new PrincipalCriteria(principal), new ConflictCriteria());
 	}
 	
@@ -289,8 +291,8 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 	
 	@Override
 	@Transactional(readOnly=true)
-	public Collection<VirtualFile> search(String searchColumn, String search, int start, int length, ColumnSort[] sort, VirtualFile parent, Principal principal, FileResource... resources) {
-		return super.search(VirtualFile.class, searchColumn, search, start, length, sort, new ParentCriteria(parent), new FileResourceCriteria(resources), new PrincipalCriteria(principal), new ConflictCriteria());
+	public Collection<VirtualFile> search(String searchColumn, String search, int start, int length, ColumnSort[] sort, VirtualFile parent, Realm realm, Principal principal, FileResource... resources) {
+		return super.search(VirtualFile.class, searchColumn, search, start, length, sort, new ParentCriteria(parent), new RealmCriteria(realm), new FileResourceCriteria(resources), new PrincipalCriteria(principal), new ConflictCriteria());
 	}
 
 	@Override
@@ -352,9 +354,9 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 
 	@Override
 	@Transactional(readOnly=true)
-	public Collection<VirtualFile> getVirtualFolders() {
+	public Collection<VirtualFile> getVirtualFolders(Realm realm) {
 		
-		return list(VirtualFile.class, new CriteriaConfiguration() {
+		return list(VirtualFile.class, new RealmRestriction(realm), new CriteriaConfiguration() {
 			
 			@Override
 			public void configure(Criteria criteria) {

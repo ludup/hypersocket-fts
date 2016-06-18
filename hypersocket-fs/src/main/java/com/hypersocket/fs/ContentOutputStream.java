@@ -96,7 +96,7 @@ public class ContentOutputStream extends OutputStream {
 	}
 
 	private void reconcileFile() throws FileSystemException {
-		VirtualFile existingFile = virtualRepository.getVirtualFile(virtualPath, principal);
+		VirtualFile existingFile = virtualRepository.getVirtualFile(virtualPath, resource.getRealm(), principal);
 		
 		String displayName = FileUtils.lastPathElement(virtualPath);
 		if(existingFile!=null) {
