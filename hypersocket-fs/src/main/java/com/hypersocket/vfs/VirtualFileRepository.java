@@ -31,22 +31,23 @@ public interface VirtualFileRepository extends AbstractRepository<Long> {
 
 	VirtualFile reconcileMount(String displayName, FileResource resource, FileObject fileObject, VirtualFile virtualFile, Principal principal) throws FileSystemException;
 
-	Collection<VirtualFile> getVirtualFiles(VirtualFile parent, Principal principal, FileResource... resources);
+	Collection<VirtualFile> getVirtualFiles(VirtualFile parent, Realm realm, Principal principal, FileResource... resources);
 
-	VirtualFile getVirtualFileByResource(String virtualPath, Principal principal, FileResource... resources);
+	VirtualFile getVirtualFileByResource(String virtualPath, Realm realm, Principal principal, FileResource... resources);
 
-	Collection<VirtualFile> getReconciledFiles(VirtualFile parent, Principal principal);
+	Collection<VirtualFile> getReconciledFiles(VirtualFile parent, Realm realm, Principal principal);
 
 	Collection<VirtualFile> search(String searchColumn, String search, int start, int length, ColumnSort[] sort, 
 			VirtualFile parent,
+			Realm realm,
 			Principal principal,
 			FileResource... resources);
 
-	Collection<VirtualFile> getVirtualFolders();
+	Collection<VirtualFile> getVirtualFolders(Realm realm);
 
 	VirtualFile getRootFolder(Realm realm);
 
-	VirtualFile getVirtualFile(String virtualPath, Principal principal);
+	VirtualFile getVirtualFile(String virtualPath, Realm realm, Principal principal);
 
 	VirtualFile createVirtualFolder(String displayName, VirtualFile parent);
 

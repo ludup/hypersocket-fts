@@ -103,7 +103,7 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 		}
 
 		Map<String, List<VirtualFile>> reconciledChildren = new HashMap<String, List<VirtualFile>>();
-		for (VirtualFile virtual : repository.getReconciledFiles(folder, principal)) {
+		for (VirtualFile virtual : repository.getReconciledFiles(folder, getCurrentRealm(), principal)) {
 			if (!reconciledChildren.containsKey(virtual.getFilename())) {
 				reconciledChildren.put(virtual.getFilename(), new ArrayList<VirtualFile>());
 			}
@@ -158,7 +158,7 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 						if (isReconciledFolder(resource, obj)) {
 							VirtualFile childFolder = repository.getVirtualFileByResource(
 									FileUtils.checkEndsWithSlash(folder.getVirtualPath()) + obj.getName().getBaseName(),
-									principal, resource);
+									getCurrentRealm(), principal, resource);
 							if (childFolder == null) {
 								childFolder = repository.reconcileNewFolder(childDisplayName, folder, obj, resource,
 										childConflicted, principal);
@@ -368,7 +368,7 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 		ReconcileStatistics stats = new ReconcileStatistics();
 		stats.generateChangeEvents = fileService.getResourceBooleanProperty(resource, "fs.generateChangeEventsOnRebuild");
 		
-		VirtualFile parentFile = repository.getVirtualFile(resource.getVirtualPath(), principal);
+		VirtualFile parentFile = repository.getVirtualFile(resource.getVirtualPath(), getCurrentRealm(), principal);
 
 		if(makeDefault) {
 			parentFile.setDefaultMount(resource);
@@ -464,7 +464,7 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 					List<String> parentPaths = new ArrayList<String>();
 					do {
 						parentPath = FileUtils.stripLastPathElement(parentPath);
-						parentFile = repository.getVirtualFile(parentPath, principal);
+						parentFile = repository.getVirtualFile(parentPath, getCurrentRealm(), principal);
 						if(parentFile==null) {
 							parentPaths.add(0, parentPath);
 						}
@@ -475,7 +475,7 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 						parentFile = reconcileFile(stats, resourceFile.resolveFile(path), resource, null, parentFile, false, principal);
 					}
 
-					VirtualFile file = repository.getVirtualFile(virtualPath, principal);
+					VirtualFile file = repository.getVirtualFile(virtualPath, getCurrentRealm(), principal);
 					
 					
 					switch(fileObject.getType()) {

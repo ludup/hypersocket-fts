@@ -96,7 +96,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		
 		assertPermission(FileResourcePermission.READ);
 		
-		return virtualRepository.getVirtualFolders();
+		return virtualRepository.getVirtualFolders(getCurrentRealm());
 	}
 	
 	@Override
@@ -132,10 +132,10 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	public VirtualFile getFile(String virtualPath) throws FileNotFoundException, AccessDeniedException {
 		
 		FileResource[] resources = getPrincipalResources();
-		VirtualFile file = virtualRepository.getVirtualFileByResource(virtualPath, getCurrentPrincipal(), resources);
+		VirtualFile file = virtualRepository.getVirtualFileByResource(virtualPath, getCurrentRealm(), getCurrentPrincipal(), resources);
 		if(file==null) {
 			syncService.synchronize(virtualPath, getCurrentPrincipal(), resources);
-			file = virtualRepository.getVirtualFileByResource(virtualPath, getCurrentPrincipal(), resources);
+			file = virtualRepository.getVirtualFileByResource(virtualPath, getCurrentRealm(), getCurrentPrincipal(), resources);
 			if(file==null) {
 				throw new FileNotFoundException(virtualPath);
 			}
@@ -162,7 +162,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	
 	@Override
 	public Collection<VirtualFile> getChildren(VirtualFile folder) throws AccessDeniedException {
-		return virtualRepository.getVirtualFiles(folder, getCurrentPrincipal(), getPrincipalResources());
+		return virtualRepository.getVirtualFiles(folder, getCurrentRealm(), getCurrentPrincipal(), getPrincipalResources());
 	}
 
 	@Override
@@ -382,7 +382,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			}
 			
 			VirtualFile parent = getFile(FileUtils.stripLastPathElement(toVirtualPath));
-			VirtualFile existingFile = virtualRepository.getVirtualFile(toVirtualPath, getCurrentPrincipal());
+			VirtualFile existingFile = virtualRepository.getVirtualFile(toVirtualPath, getCurrentRealm(), getCurrentPrincipal());
 			String displayName = FileUtils.lastPathElement(toVirtualPath);
 			if(existingFile!=null) {
 				displayName = String.format("%s (%s)", displayName, resolver.getToMount().getName());
@@ -408,7 +408,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		CopyFileResolver resolver = new CopyFileResolver(proto);
 		boolean success = resolver.processRequest(fromPath, toPath);
 
-		VirtualFile existingFile = virtualRepository.getVirtualFile(toPath, getCurrentPrincipal());
+		VirtualFile existingFile = virtualRepository.getVirtualFile(toPath, getCurrentRealm(), getCurrentPrincipal());
 		
 		String displayName = FileUtils.lastPathElement(fromPath);
 		if(existingFile!=null) {
@@ -494,7 +494,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 						processor.processUpload(resource, resolveVFSFile(parentFile.getMount()), childPath, file);
 					}
 					
-					VirtualFile existingFile = virtualRepository.getVirtualFile(virtualPath, getCurrentPrincipal());
+					VirtualFile existingFile = virtualRepository.getVirtualFile(virtualPath, getCurrentRealm(), getCurrentPrincipal());
 					
 					String displayName = FileUtils.lastPathElement(virtualPath);
 					if(existingFile!=null) {
@@ -529,7 +529,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 
 	@Override
 	public long getSearchCount(String virtualPath, String searchColumn, String search) throws AccessDeniedException {
-		VirtualFile file = virtualRepository.getVirtualFileByResource(virtualPath, getCurrentPrincipal(), getPrincipalResources());
+		VirtualFile file = virtualRepository.getVirtualFileByResource(virtualPath, getCurrentRealm(), getCurrentPrincipal(), getPrincipalResources());
 		return virtualRepository.getCount(VirtualFile.class, searchColumn, search, new ParentCriteria(file));
 	}
 
@@ -551,9 +551,9 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			}
 		}
 		
-		VirtualFile parent = virtualRepository.getVirtualFileByResource(virtualPath, getCurrentPrincipal(), resources);
+		VirtualFile parent = virtualRepository.getVirtualFileByResource(virtualPath, getCurrentRealm(), getCurrentPrincipal(), resources);
 		
-		return virtualRepository.search(searchColumn, search, offset, limit, sort, parent, getCurrentPrincipal(), resources);
+		return virtualRepository.search(searchColumn, search, offset, limit, sort, parent, getCurrentRealm(), getCurrentPrincipal(), resources);
 
 	}
 
