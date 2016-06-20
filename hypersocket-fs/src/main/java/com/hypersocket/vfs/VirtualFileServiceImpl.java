@@ -412,10 +412,10 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		
 		String displayName = FileUtils.lastPathElement(fromPath);
 		if(existingFile!=null) {
-			displayName = String.format("%s (%s)", displayName, toParent.getMount().getName());
+			displayName = String.format("%s (%s)", displayName, resolver.getToMount().getName());
 		}
 		if(success) {
-			virtualRepository.reconcileFile(displayName, resolver.getToFile(), toParent.getMount(), toParent, getOwnerPrincipal(resolver.getToMount()));
+			virtualRepository.reconcileFile(displayName, resolver.getToFile(), resolver.getToMount(), toParent, getOwnerPrincipal(resolver.getToMount()));
 			return true;
 		}
 		return false;
