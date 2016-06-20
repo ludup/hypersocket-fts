@@ -76,7 +76,7 @@
 								'click',
 								'#dropdown_' + index + ' .row-' + act.resourceKey,
 								function(e) {
-									debugger;
+									
 									path = row.virtualPath;
 									act.action(path, row, function(resource) {
 										
@@ -327,7 +327,7 @@
 											$.each(data.resources, function(idx, action) {
 												var div = action.resourceKey + 'Div';
 												$('#additionalActions').append('<div id="' + div + '"></div>');
-												$('#' + div).load(uiPath + 'content/' + action.url + '.html');
+												$('#' + div).load(uiPath + '/content/' + action.url + '.html');
 												actions.push({
 													resourceKey : action.resourceKey,
 													iconClass : action.iconClass,

@@ -201,7 +201,6 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 		registerScheme(new FileResourceScheme("tmp", false, false, false, false, false, true, false));
 		registerScheme(new FileResourceScheme("smb", true, true, false, true, false, true, true));
 
-		jQueryUIContentHandler.addAlias("^/viewfs/.*$", "content/fileview.html");
 		indexPage.addScript("${uiPath}/js/jstree.js");
 		indexPage.addStyleSheet("${uiPath}/css/themes/default/style.min.css");
 		indexPage.addStyleSheet("${uiPath}/css/fs.css");

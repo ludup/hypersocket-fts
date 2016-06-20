@@ -85,13 +85,13 @@ public class VirtualFileReconcileJob extends AbstractReconcileNonTransactionalJo
 		}
 
 		FileObject fileObject = resourceService.getFileObject(resource);
-		VirtualFile parentFile = repository.getVirtualFile(resource.getVirtualPath(), null);
+		VirtualFile parentFile = repository.getVirtualFile(resource.getVirtualPath(), resource.getRealm(), null);
 
 		if (fileObject.exists() && fileObject.getType() == FileType.FILE) {
 			
 			VirtualFile virtualFile = repository.getVirtualFile(
 					FileUtils.checkEndsWithSlash((resource.getVirtualPath())
-					+ FileUtils.lastPathElement(resource.getPath())), null);
+					+ FileUtils.lastPathElement(resource.getPath())), resource.getRealm(), null);
 			syncService.reconcileFile(stats, fileObject, resource, virtualFile, parentFile, 
 					virtualFile!=null && !virtualFile.getMount().equals(resource), null);
 		} else {
