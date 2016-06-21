@@ -17,7 +17,7 @@
 						<label class="col-xs-3 control-label" localize="fTPInterface.name.label"></label>
 						<div class="propertyValue col-xs-9">
 							<input type="text" class="form-control"
-								placeholder="" id="resourceNameX" maxlength="" name="resourceNameX" value="">
+								placeholder="" id="resourceNameFtp" maxlength="" name="resourceNameFtp" value="">
 							<div>
 								<span class="help-block" localize="fTPInterface.name.info"></span>
 							</div>
@@ -25,7 +25,7 @@
 					</div>
 					
 					<div id="fTPInterfaceProperties"></div>
-					<input type="hidden" id="resourceIdX" name="resourceIdX" value="" />
+					<input type="hidden" id="resourceIdFtp" name="resourceIdFtp" value="" />
 				</div>
 				<div class="modal-footer"></div>
 			</div>
@@ -59,9 +59,10 @@
 							canCreate: currentMenu.canCreate,
 							canUpdate: currentMenu.canUpdate,
 							canDelete: currentMenu.canDelete,
+							disableDecoration: true,
 							validate : function() {
 
-								if ($('#resourceNameX').val() == '') {
+								if ($('#resourceNameFtp').val() == '') {
 									showError("error.nameRequired");
 									return false;
 								}
@@ -75,8 +76,8 @@
 							},
 							clearDialog : function(create) {
 								
-								$('#resourceIdX').val('');
-								$('#resourceNameX').val('');
+								$('#resourceIdFtp').val('');
+								$('#resourceNameFtp').val('');
 								
 								$('#fTPInterfaceProperties').clearProperties();
 								if(create) {
@@ -92,8 +93,8 @@
 							},
 							createResource : function() {
 								resource = new Object();
-								resource.id = $('#resourceIdX').val();
-								resource.name = $('#resourceNameX').val();
+								resource.id = $('#resourceIdFtp').val();
+								resource.name = $('#resourceNameFtp').val();
 								
 								$('#fTPInterfaceProperties').saveProperties(true,
 										function(items) {
@@ -104,8 +105,8 @@
 							},
 							displayResource : function(resource, readOnly) {
 								
-								$('#resourceIdX').val(resource.id);
-								$('#resourceNameX').val(resource.name);
+								$('#resourceIdFtp').val(resource.id);
+								$('#resourceNameFtp').val(resource.name);
 								
 								$('#fTPInterfaceProperties').propertyPage(
 										{ url : 'fTPInterfaces/properties/' + resource.id, 

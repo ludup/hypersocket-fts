@@ -12,48 +12,50 @@ import com.hypersocket.resource.RealmResource;
 @Table(name="fTPInterface_resource")
 public class FTPInterfaceResource extends RealmResource {
 
+	private static final long serialVersionUID = -7196348246139661166L;
+
 	@Column(name="interfaces", length=1024)
-	String interfaces;
+	String ftpInterfaces;
 	
 	@Column(name="port")
-	Integer port;
+	Integer ftpPort;
 	
 	@Column(name="protocol")
-	FTPProtocol protocol;
+	FTPProtocol ftpProtocol;
 	
 	@OneToOne
-	CertificateResource certificate;
+	CertificateResource ftpCertificate;
 
-	public String getInterfaces() {
-		return interfaces;
+	public String getFtpInterfaces() {
+		return ftpInterfaces;
 	}
 
-	public void setInterfaces(String interfaces) {
-		this.interfaces = interfaces;
+	public void setFtpInterfaces(String ftpInterfaces) {
+		this.ftpInterfaces = ftpInterfaces;
 	}
 
-	public Integer getPort() {
-		return port;
+	public Integer getFtpPort() {
+		return ftpPort;
 	}
 
-	public void setPort(Integer port) {
-		this.port = port;
+	public void setFtpPort(Integer ftpPort) {
+		this.ftpPort = ftpPort;
 	}
 
-	public FTPProtocol getProtocol() {
-		return protocol;
+	public FTPProtocol getFtpProtocol() {
+		return ftpProtocol;
 	}
 
-	public void setProtocol(String protocol) {
-		this.protocol = FTPProtocol.valueOf(protocol.toUpperCase());
+	public void setFtpProtocol(FTPProtocol ftpProtocol) {
+		this.ftpProtocol = ftpProtocol;
 	}
 
-	public CertificateResource getCertificate() {
-		return certificate;
+	public CertificateResource getFtpCertificate() {
+		return ftpCertificate;
 	}
 
-	public void setCertificate(CertificateResource certificate) {
-		this.certificate = certificate;
+	public void setFtpCertificate(CertificateResource ftpCertificate) {
+		this.ftpCertificate = ftpCertificate;
 	}
 
 }
