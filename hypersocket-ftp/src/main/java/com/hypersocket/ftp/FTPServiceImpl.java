@@ -240,7 +240,7 @@ public class FTPServiceImpl implements FTPService,
 		}
 
 		@Override
-		public void start() {
+		public boolean start() {
 			
 			FtpServerFactory serverFactory = new FtpServerFactory();
 
@@ -334,10 +334,12 @@ public class FTPServiceImpl implements FTPService,
 				if (log.isInfoEnabled()) {
 					log.info("Started FTP server");
 				}
+				return true;
 			} catch (FtpException e) {
 				log.error("Failed to start FTP server", e);
 				lastError = e;
 				ftpServer = null;
+				return false;
 			}
 		}
 
@@ -388,7 +390,7 @@ public class FTPServiceImpl implements FTPService,
 		}
 
 		@Override
-		public void start() {
+		public boolean start() {
 			
 			try {
 				FtpServerFactory serverFactory = new FtpServerFactory();
@@ -509,14 +511,17 @@ public class FTPServiceImpl implements FTPService,
 					if (log.isInfoEnabled()) {
 						log.info("Started FTPS server");
 					}
+					return true;
 				} catch (FtpException e) {
 					log.error("Failed to start FTPS server", e);
 					lastError = e;
 					ftpsServer = null;
+					return false;
 				}
 			} catch(Throwable t) {
 				log.error("Failed to start FTPS service", t);
 			}
+			return false;
 		}
 
 		@Override
