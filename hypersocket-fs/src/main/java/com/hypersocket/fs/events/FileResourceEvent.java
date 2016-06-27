@@ -5,6 +5,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.hypersocket.fs.FileResource;
 import com.hypersocket.fs.FileResourceServiceImpl;
+import com.hypersocket.properties.ResourceUtils;
+import com.hypersocket.replace.ReplacementUtils;
 import com.hypersocket.resource.AssignableResourceEvent;
 import com.hypersocket.session.Session;
 
@@ -42,8 +44,12 @@ public class FileResourceEvent extends AssignableResourceEvent {
 		addAttribute(ATTR_FILE_PATH, resource.getPath());
 		addAttribute(ATTR_PROTOCOL, resource.getScheme());
 		addAttribute(ATTR_USERNAME, resource.getUsername());
-		if(StringUtils.isEmpty(resource.getPassword())) {
-			addAttribute(ATTR_PASSWORD, "********" + StringUtils.right(resource.getPassword(), 3));
+		if(!StringUtils.isEmpty(resource.getPassword())) {
+			if(ResourceUtils.isReplacementVariable(resource.getPassword())) {
+				addAttribute(ATTR_PASSWORD, resource.getPassword());
+			} else {
+				addAttribute(ATTR_PASSWORD, "********" + StringUtils.right(resource.getPassword(), 3));
+			}
 		} else {
 			addAttribute(ATTR_PASSWORD, "");
 		}
