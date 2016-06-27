@@ -23,6 +23,15 @@ public class FTPInterfaceResource extends RealmResource {
 	@Column(name="protocol")
 	FTPProtocol ftpProtocol;
 	
+	@Column(name="passive_ports")
+	String ftpPassivePorts;
+	
+	@Column(name="passive_external_address")
+	String ftpPassiveExternalAddress;
+	
+	@Column(name="idle_timeout")
+	Integer ftpIdleTimeout;
+	
 	@OneToOne
 	CertificateResource ftpCertificate;
 
@@ -56,6 +65,30 @@ public class FTPInterfaceResource extends RealmResource {
 
 	public void setFtpCertificate(CertificateResource ftpCertificate) {
 		this.ftpCertificate = ftpCertificate;
+	}
+
+	public String getFtpPassivePorts() {
+		return ftpPassivePorts;
+	}
+
+	public void setFtpPassivePorts(String ftpPassivePorts) {
+		this.ftpPassivePorts = ftpPassivePorts;
+	}
+
+	public String getFtpPassiveExternalAddress() {
+		return ftpPassiveExternalAddress;
+	}
+
+	public void setFtpPassiveExternalAddress(String ftpPassiveExternalAddress) {
+		this.ftpPassiveExternalAddress = ftpPassiveExternalAddress;
+	}
+
+	public Integer getFtpIdleTimeout() {
+		return ftpIdleTimeout;
+	}
+
+	public void setFtpIdleTimeout(Integer ftpIdleTimeout) {
+		this.ftpIdleTimeout = ftpIdleTimeout;
 	}
 
 }
