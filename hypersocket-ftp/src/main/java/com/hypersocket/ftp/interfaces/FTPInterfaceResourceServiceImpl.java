@@ -66,12 +66,12 @@ public class FTPInterfaceResourceServiceImpl extends
 
 		repository.loadPropertyTemplates("fTPInterfaceResourceTemplate.xml");
 
-		menuService.registerMenu(new MenuRegistration(RESOURCE_BUNDLE,
-				"fTPInterfaces", "fa-flash", "fTPInterfaces", 100,
-				FTPInterfaceResourcePermission.READ,
-				FTPInterfaceResourcePermission.CREATE,
-				FTPInterfaceResourcePermission.UPDATE,
-				FTPInterfaceResourcePermission.DELETE), MenuService.MENU_RESOURCES);
+//		menuService.registerMenu(new MenuRegistration(RESOURCE_BUNDLE,
+//				"fTPInterfaces", "fa-flash", "fTPInterfaces", 100,
+//				FTPInterfaceResourcePermission.READ,
+//				FTPInterfaceResourcePermission.CREATE,
+//				FTPInterfaceResourcePermission.UPDATE,
+//				FTPInterfaceResourcePermission.DELETE), MenuService.MENU_RESOURCES);
 
 		/**
 		 * Register the events. All events have to be registerd so the system
