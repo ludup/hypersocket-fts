@@ -207,10 +207,12 @@
 			if(erow && erow.length == 1 && erow[0].id == row.id) {
 				return;
 			}
+			
+			$('.notifyjs-confirm-base .no').trigger('click');
+			
 			var arr = new Array();
 			arr.push(row);
 			$(document).data('deleteRow', arr);
-			$('.notifyjs-confirm-base .no').trigger('click');
 			
 			$(e.target).closest('a').notify({
 				title : getResource("text.confirmDelete").format(row.displayName),
@@ -360,6 +362,7 @@
 
 									$(document).on('click',
 											'.notifyjs-confirm-base .no', function() {
+												$(document).data('deleteRow', null);
 												$(this).trigger('notify-hide');
 											});
 
