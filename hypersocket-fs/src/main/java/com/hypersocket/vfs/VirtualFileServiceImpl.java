@@ -136,8 +136,10 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 
 		if(file!=null) {
 			int invalidateCacheMs = fileService.getResourceIntProperty(file.getMount(), "fs.invalidateCacheSeconds") * 1000;
-			if((file.isFolder() && !file.getSync()) || (System.currentTimeMillis() - file.getModifiedDate().getTime()) > invalidateCacheMs) {
-				file = null;
+			if(file.isFolder()) {
+				if(!file.getSync() || (System.currentTimeMillis() - file.getModifiedDate().getTime()) > invalidateCacheMs) {
+					file = null;
+				}
 			}
 		}
 		
