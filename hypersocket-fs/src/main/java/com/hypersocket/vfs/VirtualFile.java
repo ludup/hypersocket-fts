@@ -57,6 +57,9 @@ public class VirtualFile extends AbstractEntity<Long> {
 	@Column(name="conflicted")
 	Boolean conflicted;
 	
+	@Column(name="sync")
+	Boolean sync;
+	
 	@OneToOne
 	FileResource defaultMount;
 	
@@ -206,5 +209,15 @@ public class VirtualFile extends AbstractEntity<Long> {
 	public Principal getPrincipal() {
 		return principal;
 	}
+
+	public Boolean getSync() {
+		return sync==null ? Boolean.FALSE : sync;
+	}
+
+	public void setSync(Boolean sync) {
+		this.sync = sync;
+	}
+	
+	
 	
 }
