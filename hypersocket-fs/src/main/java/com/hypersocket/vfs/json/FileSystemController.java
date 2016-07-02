@@ -129,6 +129,7 @@ public class FileSystemController extends ResourceController {
 			
 			VirtualFile rootFolder = fileService.getRootFolder();
 			TreeNode rootNode = new TreeNode();
+			rootNode.setId(rootFolder.getId().toString());
 			rootNode.setParent("#");
 			rootNode.setText("/");
 			rootNode.getState().opened = true;
@@ -160,16 +161,17 @@ public class FileSystemController extends ResourceController {
 			
 			Map<String,TreeNode> nodesById = new HashMap<String,TreeNode>();
 			Map<String,TreeNode> nodesByPath = new HashMap<String,TreeNode>();
+			
+			nodesById.put(rootNode.getId().toString(), rootNode);
+			nodesByPath.put(rootNode.getVirtualPath(), rootNode);
+			
 			for(VirtualFile file : fileService.getVirtualFolders()) {
 				try {
 					if(file.getParent()!=null) {
 						TreeNode node = new TreeNode();
 						node.setText(file.getDisplayName());
-						if(file.isMounted()) {
-							node.setResourceId(file.getMount().getId());
-						} else {
-							node.setResourceId(file.getId());
-						}
+						node.setResourceId(file.getId());
+					
 						node.setId(String.valueOf(file.getId()));
 						node.setParent(String.valueOf(file.getParent().getId()));
 						node.getState().opened = true;
@@ -182,10 +184,7 @@ public class FileSystemController extends ResourceController {
 						nodesByPath.put(FileUtils.checkEndsWithSlash(file.getVirtualPath()), node);
 						nodesById.put(node.getId(), node);
 						
-					} else {
-						rootNode.setId(String.valueOf(file.getId()));
-						nodesById.put(rootNode.getId(), rootNode);
-					}
+					} 
 				} catch (Throwable e) {
 					log.error(String.format("Could not add virtual folder %s %s", file.getFilename(), file.getVirtualPath()), e);
 				}
