@@ -49,7 +49,7 @@ public class fs_1_DOT_2_DOT_0 implements Runnable {
 				vFolder.setDefaultMount(resource);				
 				virtualRepository.saveFile(vFolder);
 				try {
-					resource.setVirtualPath("/" + resource.getName());
+					resource.setVirtualPath("/" + resource.getName() + "/");
 					repository.saveResource(resource, new HashMap<String,String>());
 				} catch (ResourceChangeException e) {
 					log.error(String.format("Could not upgrade file resource %s. Resource requires virtual path value", resource.getName()), e);

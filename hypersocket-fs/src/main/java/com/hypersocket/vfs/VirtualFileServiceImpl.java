@@ -133,6 +133,16 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		
 		FileResource[] resources = getPrincipalResources();
 		VirtualFile file = virtualRepository.getVirtualFileByResource(virtualPath, getCurrentRealm(), getCurrentPrincipal(), resources);
+
+		if(file!=null) {
+			int invalidateCacheMs = fileService.getResourceIntProperty(file.getMount(), "fs.invalidateCacheSeconds") * 1000;
+			if(file.isFolder()) {
+				if(!file.getSync() || (System.currentTimeMillis() - file.getModifiedDate().getTime()) > invalidateCacheMs) {
+					file = null;
+				}
+			}
+		}
+		
 		if(file==null) {
 			syncService.synchronize(virtualPath, getCurrentPrincipal(), resources);
 			file = virtualRepository.getVirtualFileByResource(virtualPath, getCurrentRealm(), getCurrentPrincipal(), resources);
@@ -542,18 +552,9 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			ColumnSort[] sort,
 			String proto) throws AccessDeniedException, IOException {
 		
-		
 		FileResource[] resources = getPrincipalResources();
-		
-		for(FileResource resource : resources) {
-			if(!syncService.canSynchronize(resource)) {
-				syncService.synchronize(virtualPath, getOwnerPrincipal(resource), resource);
-			}
-		}
-		
-		VirtualFile parent = virtualRepository.getVirtualFileByResource(virtualPath, getCurrentRealm(), getCurrentPrincipal(), resources);
-		
-		return virtualRepository.search(searchColumn, search, offset, limit, sort, parent, getCurrentRealm(), getCurrentPrincipal(), resources);
+		VirtualFile searchPath = getFile(virtualPath);
+		return virtualRepository.search(searchColumn, search, offset, limit, sort, searchPath, getCurrentRealm(), getCurrentPrincipal(), resources);
 
 	}
 
