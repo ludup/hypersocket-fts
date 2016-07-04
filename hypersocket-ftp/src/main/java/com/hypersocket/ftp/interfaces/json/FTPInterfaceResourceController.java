@@ -47,14 +47,14 @@ public class FTPInterfaceResourceController extends ResourceController {
 	 * TODO rename this class to match your entity.
 	 * 
 	 * rename RequestMapping annotions for your desired resource URLs. e.g
-	 * replace fTPInterfaces for example with "applications" FTPInterfaces with "Applications"
-	 * fTPInterface with "application" and FTPInterface with "Application"
+	 * replace ftpInterfaces for example with "applications" FTPInterfaces with "Applications"
+	 * ftpInterface with "application" and FTPInterface with "Application"
 	 */
 	@Autowired
 	FTPInterfaceResourceService resourceService;
 
 	@AuthenticationRequired
-	@RequestMapping(value = "fTPInterfaces/list", method = RequestMethod.GET, produces = { "application/json" })
+	@RequestMapping(value = "ftpInterfaces/list", method = RequestMethod.GET, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
 	public ResourceList<FTPInterfaceResource> getResources(HttpServletRequest request,
@@ -73,7 +73,7 @@ public class FTPInterfaceResourceController extends ResourceController {
 	}
 	
 	@AuthenticationRequired
-	@RequestMapping(value = "fTPInterfaces/table", method = RequestMethod.GET, produces = { "application/json" })
+	@RequestMapping(value = "ftpInterfaces/table", method = RequestMethod.GET, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
 	public BootstrapTableResult tableResources(
@@ -118,7 +118,7 @@ public class FTPInterfaceResourceController extends ResourceController {
 	}
 
 	@AuthenticationRequired
-	@RequestMapping(value = "fTPInterfaces/template", method = RequestMethod.GET, produces = { "application/json" })
+	@RequestMapping(value = "ftpInterfaces/template", method = RequestMethod.GET, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
 	public ResourceList<PropertyCategory> getResourceTemplate(
@@ -135,7 +135,7 @@ public class FTPInterfaceResourceController extends ResourceController {
 	}
 	
 	@AuthenticationRequired
-	@RequestMapping(value = "fTPInterfaces/properties/{id}", method = RequestMethod.GET, produces = { "application/json" })
+	@RequestMapping(value = "ftpInterfaces/properties/{id}", method = RequestMethod.GET, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
 	public ResourceList<PropertyCategory> getActionTemplate(
@@ -153,7 +153,7 @@ public class FTPInterfaceResourceController extends ResourceController {
 	}
 
 	@AuthenticationRequired
-	@RequestMapping(value = "fTPInterfaces/fTPInterface/{id}", method = RequestMethod.GET, produces = { "application/json" })
+	@RequestMapping(value = "ftpInterfaces/ftpInterface/{id}", method = RequestMethod.GET, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
 	public FTPInterfaceResource getResource(HttpServletRequest request,
@@ -172,7 +172,7 @@ public class FTPInterfaceResourceController extends ResourceController {
 	}
 
 	@AuthenticationRequired
-	@RequestMapping(value = "fTPInterfaces/fTPInterface", method = RequestMethod.POST, produces = { "application/json" })
+	@RequestMapping(value = "ftpInterfaces/ftpInterface", method = RequestMethod.POST, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
 	public ResourceStatus<FTPInterfaceResource> createOrUpdateResource(
@@ -221,7 +221,7 @@ public class FTPInterfaceResourceController extends ResourceController {
 
 	@SuppressWarnings("unchecked")
 	@AuthenticationRequired
-	@RequestMapping(value = "fTPInterfaces/fTPInterface/{id}", method = RequestMethod.DELETE, produces = { "application/json" })
+	@RequestMapping(value = "ftpInterfaces/ftpInterface/{id}", method = RequestMethod.DELETE, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
 	public ResourceStatus<FTPInterfaceResource> deleteResource(

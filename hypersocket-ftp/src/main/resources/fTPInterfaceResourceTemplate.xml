@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<propertyTemplates context="fTPInterfaceResource">
+<propertyTemplates context="ftpInterfaceResource">
 	<propertyCategory resourceKey="category.ftp.interface" resourceBundle="FTPInterfaceResourceService" weight="0">
 		<property resourceKey="ftpInterfaces" inputType="multipleSelect" restart="false" url="server/networkInterfaces" selectAllIfEmpty="false"	weight="0" />
 		<property resourceKey="ftpPort" inputType="integer" minValue="1" maxValue="65535" restart="true" defaultValue="21" weight="100" />

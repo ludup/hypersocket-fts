@@ -8,7 +8,7 @@ import com.hypersocket.session.Session;
 
 public class FTPInterfaceResourceEvent extends ResourceEvent {
 
-	public static final String EVENT_RESOURCE_KEY = "fTPInterface.event";
+	public static final String EVENT_RESOURCE_KEY = "ftpInterface.event";
 	
 	public FTPInterfaceResourceEvent(Object source, String resourceKey,
 			Session session, FTPInterfaceResource resource) {

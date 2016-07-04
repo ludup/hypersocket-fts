@@ -19,7 +19,7 @@ public enum FTPInterfaceResourcePermission implements PermissionType {
 	
 	private final String val;
 	
-	private final static String name = "fTPInterface";
+	private final static String name = "ftpInterface";
 	
 	private PermissionType[] implies;
 	

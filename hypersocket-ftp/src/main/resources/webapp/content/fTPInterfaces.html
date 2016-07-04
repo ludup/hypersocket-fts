@@ -1,6 +1,6 @@
 <!-- 
 	Replace any FTPInterface or FTPInterfaces with Capitalized name of your resources e.g. Application or Applications
-	Replace any fTPInterface or fTPInterfaces with lower case name of your resources e.g. application or applications
+	Replace any ftpInterface or ftpInterfaces with lower case name of your resources e.g. application or applications
  -->
 
 <div id="contentFTPInterfaces">
@@ -14,17 +14,17 @@
 				</div>
 				<div class="modal-body">
 					<div class="propertyItem form-group">
-						<label class="col-xs-3 control-label" localize="fTPInterface.name.label"></label>
+						<label class="col-xs-3 control-label" localize="ftpInterface.name.label"></label>
 						<div class="propertyValue col-xs-9">
 							<input type="text" class="form-control"
 								placeholder="" id="resourceNameFtp" maxlength="" name="resourceNameFtp" value="">
 							<div>
-								<span class="help-block" localize="fTPInterface.name.info"></span>
+								<span class="help-block" localize="ftpInterface.name.info"></span>
 							</div>
 						</div>
 					</div>
 					
-					<div id="fTPInterfaceProperties"></div>
+					<div id="ftpInterfaceProperties"></div>
 					<input type="hidden" id="resourceIdFtp" name="resourceIdFtp" value="" />
 				</div>
 				<div class="modal-footer"></div>
@@ -38,8 +38,8 @@
 	$(document).ready(function() {
 				$('#contentFTPInterfaces').localize();
 				
-				$('#fTPInterfaceProperties').propertyPage({
-					url : 'fTPInterfaces/template',
+				$('#ftpInterfaceProperties').propertyPage({
+					url : 'ftpInterfaces/template',
 					showButtons : false,
 					useTemplates : true,
 					canUpdate : currentMenu.canUpdate
@@ -48,14 +48,14 @@
 				$('#contentFTPInterfaces').ajaxResourcePage(
 						{
 							id : "FTPInterface",
-							tableUrl : "fTPInterfaces/table",
-							title: getResource("fTPInterfaces.label"),
+							tableUrl : "ftpInterfaces/table",
+							title: getResource("ftpInterfaces.label"),
 							icon: 'fa-flash',
-							resourceUrl : "fTPInterfaces/fTPInterface",
+							resourceUrl : "ftpInterfaces/ftpInterface",
 							fields : [ {
 								name : "name"
 							}],
-							resourceKey : "fTPInterface",
+							resourceKey : "ftpInterface",
 							canCreate: currentMenu.canCreate,
 							canUpdate: currentMenu.canUpdate,
 							canDelete: currentMenu.canDelete,
@@ -67,7 +67,7 @@
 									return false;
 								}
 
-								if(!$('#fTPInterfaceProperties').validateProperties()) {
+								if(!$('#ftpInterfaceProperties').validateProperties()) {
 									showError("error.correctValidationErrors");
 									return false;
 								}
@@ -79,10 +79,10 @@
 								$('#resourceIdFtp').val('');
 								$('#resourceNameFtp').val('');
 								
-								$('#fTPInterfaceProperties').clearProperties();
+								$('#ftpInterfaceProperties').clearProperties();
 								if(create) {
-									$('#fTPInterfaceProperties').propertyPage({ 
-										url : 'fTPInterfaces/template/', 
+									$('#ftpInterfaceProperties').propertyPage({ 
+										url : 'ftpInterfaces/template/', 
 										showButtons : false, 
 										canUpdate : currentMenu.canUpdate, 
 										useTemplates : true 
@@ -96,7 +96,7 @@
 								resource.id = $('#resourceIdFtp').val();
 								resource.name = $('#resourceNameFtp').val();
 								
-								$('#fTPInterfaceProperties').saveProperties(true,
+								$('#ftpInterfaceProperties').saveProperties(true,
 										function(items) {
 											resource.properties = items;
 								});
@@ -108,8 +108,8 @@
 								$('#resourceIdFtp').val(resource.id);
 								$('#resourceNameFtp').val(resource.name);
 								
-								$('#fTPInterfaceProperties').propertyPage(
-										{ url : 'fTPInterfaces/properties/' + resource.id, 
+								$('#ftpInterfaceProperties').propertyPage(
+										{ url : 'ftpInterfaces/properties/' + resource.id, 
 											showButtons : false, 
 											canUpdate : currentMenu.canUpdate && !readOnly
 								});

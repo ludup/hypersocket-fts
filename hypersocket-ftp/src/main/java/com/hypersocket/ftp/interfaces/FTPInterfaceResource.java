@@ -9,7 +9,7 @@ import com.hypersocket.certificates.CertificateResource;
 import com.hypersocket.resource.RealmResource;
 
 @Entity
-@Table(name="fTPInterface_resource")
+@Table(name="ftpInterface_resource")
 public class FTPInterfaceResource extends RealmResource {
 
 	private static final long serialVersionUID = -7196348246139661166L;

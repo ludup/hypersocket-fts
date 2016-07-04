@@ -58,20 +58,14 @@ public class FTPInterfaceResourceServiceImpl extends
 		i18nService.registerBundle(RESOURCE_BUNDLE);
 
 		PermissionCategory cat = permissionService.registerPermissionCategory(
-				RESOURCE_BUNDLE, "category.fTPInterfaces");
+				RESOURCE_BUNDLE, "category.ftpInterfaces");
 
 		for (FTPInterfaceResourcePermission p : FTPInterfaceResourcePermission.values()) {
 			permissionService.registerPermission(p, cat);
 		}
 
-		repository.loadPropertyTemplates("fTPInterfaceResourceTemplate.xml");
+		repository.loadPropertyTemplates("ftpInterfaceResourceTemplate.xml");
 
-//		menuService.registerMenu(new MenuRegistration(RESOURCE_BUNDLE,
-//				"fTPInterfaces", "fa-flash", "fTPInterfaces", 100,
-//				FTPInterfaceResourcePermission.READ,
-//				FTPInterfaceResourcePermission.CREATE,
-//				FTPInterfaceResourcePermission.UPDATE,
-//				FTPInterfaceResourcePermission.DELETE), MenuService.MENU_RESOURCES);
 
 		/**
 		 * Register the events. All events have to be registerd so the system

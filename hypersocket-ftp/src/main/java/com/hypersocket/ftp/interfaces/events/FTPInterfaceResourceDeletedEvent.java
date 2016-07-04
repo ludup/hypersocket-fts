@@ -9,13 +9,13 @@ public class FTPInterfaceResourceDeletedEvent extends
 		FTPInterfaceResourceEvent {
 
 	/**
-	 * TODO rename to suit your resource and replace fTPInterface with lower case
+	 * TODO rename to suit your resource and replace ftpInterface with lower case
 	 * name of your resource.
 	 * 
 	 * You typically add attributes to the base FTPInterfaceResourceEvent
 	 * class so these can be reused across all resource events.
 	 */
-	public static final String EVENT_RESOURCE_KEY = "fTPInterface.deleted";
+	public static final String EVENT_RESOURCE_KEY = "ftpInterface.deleted";
 
 	public FTPInterfaceResourceDeletedEvent(Object source,
 			Session session, FTPInterfaceResource resource) {
