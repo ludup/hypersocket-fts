@@ -2,9 +2,9 @@
 <propertyTemplates context="ftpInterfaceResource">
 	<propertyCategory resourceKey="category.ftp.interface" resourceBundle="FTPInterfaceResourceService" weight="0">
 		<property resourceKey="ftpInterfaces" inputType="multipleSelect" restart="false" url="server/networkInterfaces" selectAllIfEmpty="false"	weight="0" />
-		<property resourceKey="ftpPort" inputType="integer" minValue="1" maxValue="65535" restart="true" defaultValue="21" weight="100" />
-		<property resourceKey="ftpIdleTimeout" inputType="slider" step="1" labelResourceKey="seconds.label" min="0" max="3600" weight="300" defaultValue="360" />
-		<property resourceKey="ftpPassivePorts" inputType="text" allowEmpty="false" weight="400" defaultValue="0" />
+		<property resourceKey="ftpPort" inputType="integer" minValue="1" maxValue="65535" restart="true" defaultValue="9021" weight="100" />
+		<property resourceKey="ftpIdleTimeout" inputType="slider" step="1" labelResourceKey="seconds.label" min="300" max="3600" weight="300" defaultValue="360" />
+		<property resourceKey="ftpPassivePorts" inputType="text" allowEmpty="false" weight="400" defaultValue="60000-61000" />
 		<property resourceKey="ftpPassiveExternalAddress" inputType="text" allowEmpty="true" weight="500" validateAny="ipv4,ipv6" defaultValue="" />	
 	</propertyCategory>
 	<propertyCategory resourceKey="category.ftp.protocol" resourceBundle="FTPInterfaceResourceService" weight="100">

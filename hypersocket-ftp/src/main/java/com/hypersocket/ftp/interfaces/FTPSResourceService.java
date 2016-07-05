@@ -10,7 +10,6 @@ import java.util.Locale;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.FtpServerFactory;
 import org.apache.ftpserver.ftplet.DefaultFtplet;
 import org.apache.ftpserver.ftplet.FtpException;
@@ -35,7 +34,6 @@ import com.mysql.jdbc.StringUtils;
 public class FTPSResourceService extends AbstractFTPResourceService implements ManageableService{
 	
 	static Logger log = LoggerFactory.getLogger(FTPSResourceService.class);
-	
 
 	@PostConstruct
 	protected void postConstruct() {
@@ -155,25 +153,22 @@ public class FTPSResourceService extends AbstractFTPResourceService implements M
 				}
 				
 				// start the server
-				FtpServer ftpServer = serverFactory.createServer();
+				ftpServer = serverFactory.createServer();
 				
-				FtpServerStatus ftpServerStatus = new FtpServerStatus();
-				ftpServerStatus.ftpServer = ftpServer;
 				
 				try {
 					ftpServer.start();
-					ftpServerStatus.lastError = null;
-					ftpServerStatus.running = true;
+					lastError = null;
+					running = true;
 					if (log.isInfoEnabled()) {
 						log.info("Started FTPS server");
 					}
 				} catch (FtpException e) {
 					log.error("Failed to start FTPS server", e);
-					ftpServerStatus.lastError = e;
-					ftpServerStatus.ftpServer = null;
+					lastError = e;
+					ftpServer = null;
 				}
 				
-				serverStatusMap.put(ftpInterfaceResource.getName(), ftpServerStatus);
 			}
 			
 		}catch(Exception e){

@@ -6,7 +6,6 @@ import java.util.List;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.FtpServerFactory;
 import org.apache.ftpserver.ftplet.DefaultFtplet;
 import org.apache.ftpserver.ftplet.FtpException;
@@ -42,7 +41,7 @@ public class FTPResourceService extends AbstractFTPResourceService implements Ma
 		FtpServerFactory serverFactory = new FtpServerFactory();
 		serverFactory.setUserManager(userManager);
 		serverFactory.setFileSystem(filesystemFactory);
-		
+		serverFactory.getListeners().remove("default");
 		
 		
 		serverFactory.getFtplets().put("default", new DefaultFtplet() {
@@ -77,39 +76,8 @@ public class FTPResourceService extends AbstractFTPResourceService implements Ma
 			
 			if (interfaces != null && interfaces.length > 0) {
 				for (String intface : interfaces) {
-					if (log.isInfoEnabled()) {
-						log.info("Starting FTP server on " + intface);
-					}
-
-					ListenerFactory factory = new ListenerFactory();
-
-					int idleTime = ftpInterfaceResource.ftpIdleTimeout;
-					// set the port of the listener
-					factory.setPort(ftpInterfaceResource.ftpPort);
-					factory.setIdleTimeout(idleTime);
-					factory.setServerAddress(intface);
-					
-					String passivePorts = ftpInterfaceResource.ftpPassivePorts;
-					
-					String passiveExternalAddress = ftpInterfaceResource.ftpPassiveExternalAddress;
-					if(StringUtils.isEmptyOrWhitespaceOnly(passiveExternalAddress)) {
-						passiveExternalAddress = intface;
-					}
-					
-					PassivePorts ports = new PassivePorts(passivePorts, true);
-					
-					factory.setDataConnectionConfiguration(new DefaultDataConnectionConfiguration(
-							idleTime, null, false, false, null, 0, intface, ports, passiveExternalAddress, false));
-					
-					factory.setIpFilter(new IpFilter() {
-						
-						@Override
-						public boolean accept(InetAddress address) {
-							return !ipRestrictionService.isBlockedAddress(address);
-						}
-					});
-					
-					serverFactory.addListener(intface, factory.createListener());
+					ListenerFactory factory = createListener(ftpInterfaceResource, intface);
+					serverFactory.addListener(interfaceName(intface, ftpInterfaceResource.ftpPort), factory.createListener());
 				}
 			} else {
 				ListenerFactory factory = new ListenerFactory();
@@ -121,28 +89,59 @@ public class FTPResourceService extends AbstractFTPResourceService implements Ma
 				serverFactory.addListener(ftpInterfaceResource.getName(), factory.createListener());
 			}
 			
-			// start the server
-			FtpServer ftpServer = serverFactory.createServer();
-			
-			FtpServerStatus ftpServerStatus = new FtpServerStatus();
-			ftpServerStatus.ftpServer = ftpServer;
-			
-			try {
-				ftpServer.start();
-				ftpServerStatus.lastError = null;
-				ftpServerStatus.running = true;
-				if (log.isInfoEnabled()) {
-					log.info("Started FTP server");
-				}
-			} catch (FtpException e) {
-				log.error("Failed to start FTP server", e);
-				ftpServerStatus.lastError = e;
-				ftpServerStatus.ftpServer = null;
-			}
-			
-			serverStatusMap.put(ftpInterfaceResource.getName(), ftpServerStatus);
 		}
-		return true;
+		// start the server
+		ftpServer = serverFactory.createServer();
+		
+		try {
+			ftpServer.start();
+			lastError = null;
+			running = true;
+			if (log.isInfoEnabled()) {
+				log.info("Started FTP server");
+			}
+			return true;
+		} catch (FtpException e) {
+			log.error("Failed to start FTP server", e);
+			lastError = e;
+			ftpServer = null;
+			return false;
+		}
+	}
+
+	public ListenerFactory createListener(FTPInterfaceResource ftpInterfaceResource, String intface) {
+		if (log.isInfoEnabled()) {
+			log.info(String.format("Starting FTP server on interface %s:%d ",intface, ftpInterfaceResource.ftpPort));
+		}
+
+		ListenerFactory factory = new ListenerFactory();
+
+		int idleTime = ftpInterfaceResource.ftpIdleTimeout;
+		// set the port of the listener
+		factory.setPort(ftpInterfaceResource.ftpPort);
+		factory.setIdleTimeout(idleTime);
+		factory.setServerAddress(intface);
+		
+		String passivePorts = ftpInterfaceResource.ftpPassivePorts;
+		
+		String passiveExternalAddress = ftpInterfaceResource.ftpPassiveExternalAddress;
+		if(StringUtils.isEmptyOrWhitespaceOnly(passiveExternalAddress)) {
+			passiveExternalAddress = intface;
+		}
+		
+		PassivePorts ports = new PassivePorts(passivePorts, true);
+		
+		factory.setDataConnectionConfiguration(new DefaultDataConnectionConfiguration(
+				idleTime, null, false, false, null, ftpInterfaceResource.ftpPort, intface, ports, passiveExternalAddress, false));
+		
+		factory.setIpFilter(new IpFilter() {
+			
+			@Override
+			public boolean accept(InetAddress address) {
+				return !ipRestrictionService.isBlockedAddress(address);
+			}
+		});
+		return factory;
 	}
 
 }

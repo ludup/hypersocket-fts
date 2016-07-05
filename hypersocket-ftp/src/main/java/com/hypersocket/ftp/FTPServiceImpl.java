@@ -102,8 +102,8 @@ public class FTPServiceImpl implements FTPService,
 	@Autowired
 	IPRestrictionService ipRestrictionService; 
 	
-	FTPService ftpService = new FTPService();
-	FTPSService ftpsService = new FTPSService();
+	//FTPService ftpService = new FTPService();
+	//FTPSService ftpsService = new FTPSService();
 	
 	@PostConstruct
 	private void postConstruct() {
@@ -111,8 +111,8 @@ public class FTPServiceImpl implements FTPService,
 		
 		setupRealms();
 		
-		serviceManagementService.registerService(ftpService);
-		serviceManagementService.registerService(ftpsService);
+		//serviceManagementService.registerService(ftpService);
+		//serviceManagementService.registerService(ftpsService);
 		
 	}
 	
@@ -147,56 +147,56 @@ public class FTPServiceImpl implements FTPService,
 	
 	public void onApplicationEvent(final SystemEvent event) {
 
-		sessionService.executeInSystemContext(new Runnable() {
-
-			@Override
-			public void run() {
-				if (event instanceof ServerStartedEvent) {
-
-					if (systemConfigurationService.getBooleanValue("ftp.enabled")) {
-						startFTP();
-					}
-					if (systemConfigurationService.getBooleanValue("ftps.enabled")) {
-						try {
-							startFTPS();
-						} catch (Exception e) {
-							log.error("Failed to start FTPS server", e);
-						}
-					}
-				} else if (event instanceof ServerStoppingEvent) {
-				
-					stopFTP();
-					stopFTPS();
-				
-				} else if(event instanceof ConfigurationChangedEvent) {
-					
-					if(event.getAttribute(ConfigurationChangedEvent.ATTR_CONFIG_RESOURCE_KEY).equals("ftp.enabled")) {
-						boolean enabled = Boolean.parseBoolean(event.getAttribute(ConfigurationChangedEvent.ATTR_NEW_VALUE).toString());
-						
-						if(enabled) {
-							startFTP();
-						} else if(!enabled) {
-							stopFTP();
-						}
-					}
-					
-					if(event.getAttribute(ConfigurationChangedEvent.ATTR_CONFIG_RESOURCE_KEY).equals("ftps.enabled")) {
-						boolean enabled = Boolean.parseBoolean(event.getAttribute(ConfigurationChangedEvent.ATTR_NEW_VALUE).toString());
-						
-						if(enabled) {
-							try {
-								startFTPS();
-							} catch (Exception e) {
-								log.error("Failed to start FTPS server");
-							}
-						} else if(!enabled) {
-							stopFTPS();
-						}
-					}
-				}
-			}
-			
-		});
+//		sessionService.executeInSystemContext(new Runnable() {
+//
+//			@Override
+//			public void run() {
+//				if (event instanceof ServerStartedEvent) {
+//
+//					if (systemConfigurationService.getBooleanValue("ftp.enabled")) {
+//						startFTP();
+//					}
+//					if (systemConfigurationService.getBooleanValue("ftps.enabled")) {
+//						try {
+//							startFTPS();
+//						} catch (Exception e) {
+//							log.error("Failed to start FTPS server", e);
+//						}
+//					}
+//				} else if (event instanceof ServerStoppingEvent) {
+//				
+//					stopFTP();
+//					stopFTPS();
+//				
+//				} else if(event instanceof ConfigurationChangedEvent) {
+//					
+//					if(event.getAttribute(ConfigurationChangedEvent.ATTR_CONFIG_RESOURCE_KEY).equals("ftp.enabled")) {
+//						boolean enabled = Boolean.parseBoolean(event.getAttribute(ConfigurationChangedEvent.ATTR_NEW_VALUE).toString());
+//						
+//						if(enabled) {
+//							startFTP();
+//						} else if(!enabled) {
+//							stopFTP();
+//						}
+//					}
+//					
+//					if(event.getAttribute(ConfigurationChangedEvent.ATTR_CONFIG_RESOURCE_KEY).equals("ftps.enabled")) {
+//						boolean enabled = Boolean.parseBoolean(event.getAttribute(ConfigurationChangedEvent.ATTR_NEW_VALUE).toString());
+//						
+//						if(enabled) {
+//							try {
+//								startFTPS();
+//							} catch (Exception e) {
+//								log.error("Failed to start FTPS server");
+//							}
+//						} else if(!enabled) {
+//							stopFTPS();
+//						}
+//					}
+//				}
+//			}
+//			
+//		});
 
 		
 		
@@ -204,20 +204,20 @@ public class FTPServiceImpl implements FTPService,
 	}
 	
 	private void stopFTP() {
-		ftpService.stop();
+		//ftpService.stop();
 	}
 	
 	private void stopFTPS() {
-		ftpsService.stop();
+		//ftpsService.stop();
 	}
 	
 	private void startFTP() {
-		ftpService.start();
+		//ftpService.start();
 	}
 	
 	
 	private void startFTPS() {
-		ftpsService.start();
+		//ftpsService.start();
 	}
 	
 	class FTPService implements ManageableService {

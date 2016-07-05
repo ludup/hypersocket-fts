@@ -1,53 +1,5 @@
 <?xml version="1.0" ?>
-<propertyTemplates>
-	<propertyCategory resourceKey="category.ftp"
-		resourceBundle="FTPService" weight="1000">
-
-	    <property resourceKey="ftp.enabled" inputType="switch"
-			weight="100" defaultValue="true" />
-	    
-		<property resourceKey="ftp.port" inputType="integer"
-			minValue="1" maxValue="65535" weight="200" defaultValue="21" developmentValue="2221" />
-		
-		<property resourceKey="ftp.idleTimeout" inputType="slider" step="1" labelResourceKey="seconds.label"
-			min="0" max="3600" weight="300" defaultValue="360" />
-		
-		<property resourceKey="ftp.passivePorts" inputType="text" 
-			allowEmpty="false" weight="400" defaultValue="0" />
-			
-		<property resourceKey="ftp.passiveExternalInterface" inputType="text" 
-			allowEmpty="true" weight="500" defaultValue="" />
-		
-		
-		<property resourceKey="ftp.interfaces" inputType="multipleSelect"
-			restart="true" url="server/networkInterfaces" selectAllIfEmpty="true"
-			weight="600"/>
-	</propertyCategory>
-
-
-	<propertyCategory resourceKey="category.ftps"
-		resourceBundle="FTPService" weight="1000">
-
-	    <property resourceKey="ftps.enabled" inputType="switch"
-			weight="100" defaultValue="true" />
-	    
-		<property resourceKey="ftps.port" inputType="integer"
-			minValue="1" maxValue="65535" weight="200" defaultValue="990" developmentValue="9990" />
-		
-		<property resourceKey="ftps.idleTimeout" inputType="slider" step="1" labelResourceKey="seconds.label"
-			min="0" max="3600" weight="300" defaultValue="360" />
-		
-		<property resourceKey="ftps.passivePorts" inputType="text" 
-			allowEmpty="false" weight="400" defaultValue="0" />
-		
-		<property resourceKey="ftps.passiveExternalInterface" inputType="text" 
-			allowEmpty="true" weight="500" defaultValue="" />
-			
-		<property resourceKey="ftps.interfaces" inputType="multipleSelect"
-			restart="true" url="server/networkInterfaces" selectAllIfEmpty="true"
-			weight="600"/>
-	</propertyCategory>
-	
+<propertyTemplates>	
 </propertyTemplates>
 
 		
