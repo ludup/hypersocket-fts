@@ -494,6 +494,10 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 						}
 						break;
 					}
+					
+					file.setSync(true);
+					repository.saveFile(file); // Ensure modified date gets updated.
+					
 				}
 
 			} catch (IOException e) {

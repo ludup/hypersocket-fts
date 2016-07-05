@@ -162,7 +162,7 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 	@Override
 	@Transactional
 	public VirtualFile getRootFolder(Realm realm) {
-		VirtualFile rootFile = get("filename", "__ROOT__", VirtualFile.class);
+		VirtualFile rootFile = get("filename", "__ROOT__", VirtualFile.class, new RealmCriteria(realm));
 		if(rootFile==null) {
 			rootFile = buildFile(new VirtualFile(),
 					"__ROOT__",
