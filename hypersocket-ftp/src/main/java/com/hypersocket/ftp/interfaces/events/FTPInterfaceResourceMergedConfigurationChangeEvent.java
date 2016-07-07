@@ -172,5 +172,15 @@ public class FTPInterfaceResourceMergedConfigurationChangeEvent extends
 			resourceClone.setId(resource.getId());
 			resourceClone.setName(resource.getName());
 		}
+
+		@Override
+		public String toString() {
+			return "ChangeLog [isPortChange=" + isPortChange + ", isIdelTimeOutChange=" + isIdelTimeOutChange
+					+ ", isPassiveExternalAddressChange=" + isPassiveExternalAddressChange + ", isPassivePortChange="
+					+ isPassivePortChange + ", isInterfaceChange=" + isInterfaceChange + ", isProtocolChange="
+					+ isProtocolChange + ", isCertificateChange=" + isCertificateChange + "]";
+		}
+		
+		
 	}
 }

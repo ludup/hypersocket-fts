@@ -218,6 +218,9 @@ public class FTPInterfaceResourceController extends ResourceController {
 		} catch(IllegalStateException e){
 			return new ResourceStatus<FTPInterfaceResource>(false,
 					e.getMessage());
+		} catch(IllegalArgumentException e){
+			return new ResourceStatus<FTPInterfaceResource>(false,
+					e.getMessage());
 		} finally {
 			clearAuthenticatedContext();
 		}

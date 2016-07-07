@@ -13,8 +13,11 @@ import javax.annotation.PostConstruct;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ftpserver.impl.DefaultFtpServer;
 import org.apache.ftpserver.impl.DefaultFtpServerContext;
+import org.apache.ftpserver.impl.PassivePorts;
 import org.apache.ftpserver.listener.Listener;
 import org.apache.ftpserver.listener.ListenerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Service;
@@ -52,6 +55,8 @@ import com.hypersocket.session.SessionService;
 public class FTPInterfaceResourceServiceImpl extends
 		AbstractResourceServiceImpl<FTPInterfaceResource> implements
 		FTPInterfaceResourceService, ApplicationListener<SystemEvent> {
+	
+	static Logger log = LoggerFactory.getLogger(FTPInterfaceResourceServiceImpl.class);
 
 	public static final String RESOURCE_BUNDLE = "FTPInterfaceResourceService";
 
@@ -204,9 +209,9 @@ public class FTPInterfaceResourceServiceImpl extends
 
 		resource.setName(name);
 		
-		if(FTPProtocol.FTPS.name().equals(properties.get("ftpProtocol")) && StringUtils.isEmpty(properties.get("ftpCertificate"))){
-			throw new IllegalStateException(I18N.getResource(getCurrentLocale(), FTPInterfaceResourceServiceImpl.RESOURCE_BUNDLE, "ftps.certificate.missing", new Object[0]));
-		}
+		checkFTPSHasCertificate(properties);
+		
+		checkPassivePortRange(properties.get("ftpPassivePorts"));
 		
 		Set<String> fromSource = null;
 		if(resource.getFtpInterfaces() != null){
@@ -251,7 +256,10 @@ public class FTPInterfaceResourceServiceImpl extends
 		FTPInterfaceResource resource = new FTPInterfaceResource();
 		resource.setName(name);
 		resource.setRealm(realm);
-		sessionService.getCurrentLocale();
+
+		checkFTPSHasCertificate(properties);
+		
+		checkPassivePortRange(properties.get("ftpPassivePorts"));
 		
 		DefaultFtpServer ftpServer = (DefaultFtpServer) ftpResourceService.ftpServer;
 		String[] interfaces = ResourceUtils.explodeValues(properties.get("ftpInterfaces"));
@@ -275,6 +283,7 @@ public class FTPInterfaceResourceServiceImpl extends
 
 		return resource;
 	}
+
 
 	@Override
 	public Collection<PropertyCategory> getPropertyTemplate()
@@ -306,6 +315,7 @@ public class FTPInterfaceResourceServiceImpl extends
 					ftpResourceService.stop();
 				}else if(event instanceof FTPInterfaceResourceMergedConfigurationChangeEvent){
 					FTPInterfaceResourceMergedConfigurationChangeEvent mergedChangeEvent = (FTPInterfaceResourceMergedConfigurationChangeEvent) event;
+					log.info(String.format("The merged event had following changes %s", mergedChangeEvent.getChangeLog()));
 					deleteInterfaces(mergedChangeEvent.getChangeLog().getToDeleteFtpInterfaceResource());
 					createInterfaces(mergedChangeEvent.getChangeLog().getToCreateFtpInterfaceResource());
 				}else if(event instanceof FTPInterfaceResourceCreatedEvent){
@@ -355,6 +365,7 @@ public class FTPInterfaceResourceServiceImpl extends
 			if (interfaces != null && interfaces.length > 0) {
 				for (String intface : interfaces) {
 					String interfaceName = AbstractFTPResourceService.interfaceName(intface, ftpInterfaceResource.ftpPort);
+					log.info(String.format("Stopping ftp instance %s:%s", interfaceName, ftpInterfaceResource.ftpProtocol.name()));
 					if(ftpServerContext.getListener(interfaceName) != null){
 						ftpServerContext.getListener(interfaceName).stop();
 					}
@@ -362,6 +373,20 @@ public class FTPInterfaceResourceServiceImpl extends
 				}
 			}
 		}	
+	}
+	
+	private void checkFTPSHasCertificate(Map<String, String> properties) {
+		if(FTPProtocol.FTPS.name().equals(properties.get("ftpProtocol")) && StringUtils.isEmpty(properties.get("ftpCertificate"))){
+			throw new IllegalStateException(I18N.getResource(getCurrentLocale(), FTPInterfaceResourceServiceImpl.RESOURCE_BUNDLE, "ftps.certificate.missing", new Object[0]));
+		}
+	}
+	
+	private void checkPassivePortRange(String passivePorts){
+		try{
+			new PassivePorts(passivePorts, true);
+		}catch(IllegalArgumentException e){
+			throw new IllegalArgumentException(I18N.getResource(getCurrentLocale(), FTPInterfaceResourceServiceImpl.RESOURCE_BUNDLE, "ftp.port.range.large", passivePorts));
+		}
 	}
 
 }
