@@ -72,6 +72,7 @@ public class FTPInterfaceResourceController extends ResourceController {
 		}
 	}
 	
+	@SuppressWarnings("rawtypes")
 	@AuthenticationRequired
 	@RequestMapping(value = "ftpInterfaces/table", method = RequestMethod.GET, produces = { "application/json" })
 	@ResponseBody
