@@ -72,7 +72,7 @@ public abstract class AbstractFTPResourceService implements ManageableService{
 
 	@Override
 	public String getResourceBundle() {
-		return "";
+		return FTPInterfaceResourceServiceImpl.RESOURCE_BUNDLE;
 	}
 
 	@Override

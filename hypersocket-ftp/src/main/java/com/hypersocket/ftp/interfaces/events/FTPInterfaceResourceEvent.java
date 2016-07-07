@@ -8,6 +8,8 @@ import com.hypersocket.session.Session;
 
 public class FTPInterfaceResourceEvent extends ResourceEvent {
 
+	private static final long serialVersionUID = -6953931827114901275L;
+	
 	public static final String EVENT_RESOURCE_KEY = "ftpInterface.event";
 	
 	public FTPInterfaceResourceEvent(Object source, String resourceKey,

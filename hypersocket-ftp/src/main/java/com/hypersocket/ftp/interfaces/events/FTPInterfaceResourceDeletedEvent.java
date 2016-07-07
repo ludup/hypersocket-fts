@@ -8,6 +8,8 @@ import com.hypersocket.session.Session;
 public class FTPInterfaceResourceDeletedEvent extends
 		FTPInterfaceResourceEvent {
 
+	private static final long serialVersionUID = -8344184695531380409L;
+	
 	/**
 	 * TODO rename to suit your resource and replace ftpInterface with lower case
 	 * name of your resource.
