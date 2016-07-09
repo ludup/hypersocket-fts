@@ -101,7 +101,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	
 	@Override
 	public VirtualFile getRootFolder() throws FileNotFoundException, AccessDeniedException {
-		return getFile("/");
+		return virtualRepository.getRootFolder(getCurrentRealm());
 	}
 	
 	@Override
