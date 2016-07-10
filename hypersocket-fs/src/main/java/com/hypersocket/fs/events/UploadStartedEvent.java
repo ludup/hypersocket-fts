@@ -30,11 +30,7 @@ public class UploadStartedEvent extends FileOperationEvent implements FileInputT
 		this.out = null;
 		this.transformationFilename = FileUtils.lastPathElement(sourcePath);
 		this.originalFilename = this.transformationFilename;
-		if(FileUtils.hasParents(sourcePath)) {
-			this.originalPath = FileUtils.stripLastPathElement(sourcePath);
-		} else {
-			this.originalPath = "";
-		}
+		this.originalPath = FileUtils.stripLastPathElement(FileUtils.checkEndsWithSlash(sourceResource.getVirtualPath()) + sourcePath);
 	}
 
 	public UploadStartedEvent(Object source, Throwable t,
@@ -90,10 +86,6 @@ public class UploadStartedEvent extends FileOperationEvent implements FileInputT
 	}
 
 	public String getTransformationPath() {
-		if(StringUtils.isNotBlank(originalPath)) {
-			return originalPath + "/" + transformationFilename;
-		} else {
-			return transformationFilename; 
-		}
+		return FileUtils.checkEndsWithSlash(originalPath) + transformationFilename;
 	}
 }

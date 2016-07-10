@@ -259,7 +259,8 @@
 		$('.open').on('click', function() {
 			mountPath = $(this).data('path');
 			$('#dragAndDrop').widget().setOptions({url: basePath + '/api/fs/upload' + mountPath})
-			$('#table').bootstrapTable('refresh', {url: basePath + '/api/fs/search' + mountPath});
+			$('#table').bootstrapTable('refreshOptions', {url: basePath + '/api/fs/search' + mountPath});
+			$('#table').bootstrapTable('refresh');
 		});
 		
 		$('.fileLabel').editable(
@@ -419,7 +420,10 @@
 										},
 										onLoadError: function(status) {
 											getJSON(basePath + '/api/fs/lastError', null, function(data) {
-												showError(data.message);
+												if(data.success) {
+													showError(data.message);
+												}
+												log(status);
 											});
 										}
 									});

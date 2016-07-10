@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 
@@ -131,6 +132,12 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	@Override
 	public VirtualFile getFile(String virtualPath) throws FileNotFoundException, AccessDeniedException {
 		
+		virtualPath = normalise(virtualPath);
+		
+		if(virtualPath.equals("/")) {
+			return getRootFolder();
+		}
+		
 		FileResource[] resources = getPrincipalResources();
 		VirtualFile file = virtualRepository.getVirtualFileByResource(virtualPath, getCurrentRealm(), getCurrentPrincipal(), resources);
 
@@ -214,8 +221,9 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			}
 		} else {
 		
-			boolean success = new DeleteFileResolver(proto).processRequest(file);
-			if(success) {
+			DeleteFileResolver resolver = new DeleteFileResolver(proto);
+			boolean success = resolver.processRequest(file);
+			if(success || !resolver.getFile().exists()) {
 				virtualRepository.removeReconciledFile(file);
 				return true;
 			} else {
@@ -246,8 +254,14 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		}
 	}
 	
+	
 	@Override
 	public VirtualFile createFolder(String virtualPath, String proto) throws IOException, AccessDeniedException {
+		return createFolder(virtualPath, proto, false);
+	}
+	
+	@Override
+	public VirtualFile createFolder(String virtualPath, String proto, boolean disableEvent) throws IOException, AccessDeniedException {
 		
 		virtualPath = FileUtils.checkEndsWithSlash(normalise(virtualPath));
 		
@@ -258,7 +272,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			String parentPath = FileUtils.stripLastPathElement(virtualPath);
 			String newName = FileUtils.stripParentPath(parentPath, virtualPath);
 			
-			CreateFolderFileResolver resolver = new CreateFolderFileResolver(newName, proto);
+			CreateFolderFileResolver resolver = new CreateFolderFileResolver(newName, proto, !disableEvent);
 			
 			VirtualFile parent = getFile(parentPath);
 			
@@ -323,7 +337,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		
 		VirtualFile parentFile = getFile(FileUtils.stripLastPathElement(virtualPath));
 
-		CreateFolderFileResolver resolver = new CreateFolderFileResolver(newName, proto);
+		CreateFolderFileResolver resolver = new CreateFolderFileResolver(newName, proto, false);
 		
 		FileObject newFolder = resolver.processRequest(virtualPath);
 		return virtualRepository.reconcileNewFolder(newFolder.getName().getBaseName(), parentFile, newFolder, parentFile.getMount(), false, getOwnerPrincipal(resolver.getParentResource()));
@@ -497,20 +511,21 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 
 				FileUpload upload;
 				try {
-					upload = uploadService.createFile(in, PathUtil.getBaseName(childPath), getCurrentRealm(), false,
-							"upload", new FileObjectUploadStore(file, resource, childPath, proto));
+					
+					FileObjectUploadStore store = new FileObjectUploadStore(file, resource, childPath, proto);
+					upload = uploadService.createFile(in, PathUtil.getBaseName(childPath), getCurrentRealm(), false, "upload", store);
 
 					if (processor != null) {
 						processor.processUpload(resource, resolveVFSFile(parentFile.getMount()), childPath, file);
 					}
 					
-					VirtualFile existingFile = virtualRepository.getVirtualFile(virtualPath, getCurrentRealm(), getCurrentPrincipal());
+					VirtualFile existingFile = virtualRepository.getVirtualFile(store.getVirtualPath(), getCurrentRealm(), getOwnerPrincipal(resource));
 					
-					String displayName = FileUtils.lastPathElement(virtualPath);
-					if(existingFile!=null) {
+					String displayName = FileUtils.lastPathElement(store.getVirtualPath());
+					if(existingFile!=null && !existingFile.getMount().equals(resource)) {
 						displayName = String.format("%s (%s)", displayName, parentFile.getMount().getName());
 					}
-					virtualRepository.reconcileFile(displayName, file, resource, 
+					virtualRepository.reconcileFile(displayName, store.getFileObject(), resource, 
 							VirtualFileServiceImpl.this.getFile(FileUtils.stripLastPathElement(virtualPath)), getOwnerPrincipal(resource));
 					return upload;
 
@@ -722,8 +737,9 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 
 		String newName;
 		String protocol;
+		boolean wantsEvent = true;
 		
-		CreateFolderFileResolver(String newName, String protocol) {
+		CreateFolderFileResolver(String newName, String protocol, boolean wantsEvent) {
 			this.newName = newName;
 			this.protocol = protocol;
 		}
@@ -761,15 +777,19 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 
 			boolean created = newFile.exists();
 
-			eventService.publishEvent(new CreateFolderEvent(this, !exists && created, getCurrentSession(), resource,
+			if(wantsEvent) {
+				eventService.publishEvent(new CreateFolderEvent(this, !exists && created, getCurrentSession(), resource,
 					childPath, protocol));
+			}
 
 			return newFile;
 		}
 
 		@Override
 		void onFileUnresolved(String path, Exception t) {
-			eventService.publishEvent(new CreateFolderEvent(this, t, getCurrentSession(), path, protocol));
+			if(wantsEvent) {
+				eventService.publishEvent(new CreateFolderEvent(this, t, getCurrentSession(), path, protocol));
+			}
 		}
 
 	}
@@ -950,7 +970,6 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		@Override
 		void onFileUnresolved(String path, Exception t) {
 			eventService.publishEvent(new DeleteFileEvent(this, t, getCurrentSession(), path, protocol));
-			
 		}
 	};
 	
@@ -1131,34 +1150,51 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		FileResource resource;
 		String childPath;
 		String protocol;
-
+		String virtualPath;
+		
 		FileObjectUploadStore(FileObject file, FileResource resource, String childPath, String protocol) {
 			this.file = file;
 			this.resource = resource;
 			this.childPath = childPath;
 			this.protocol = protocol;
+			this.virtualPath = FileUtils.checkEndsWithSlash(resource.getVirtualPath()) + childPath;
+		}
+		
+		public FileObject getFileObject() {
+			return file;
 		}
 
+		public String getVirtualPath() {
+			return virtualPath;
+		}
+		
 		@Override
 		public long writeFile(Realm realm, String filename, String uuid, InputStream in) throws IOException {
 
 			long bytesIn = 0;
 
 			UploadStartedEvent event = uploadStarted(resource, childPath, file, protocol);
-
+			file = event.getOutputFile();
+			virtualPath = event.getTransformationPath();
+			
 			OutputStream out = event.getOutputStream();
 			try {
 
 				bytesIn = IOUtils.copyLarge(in, out);
 				event.getOutputFile().refresh();
 
-				uploadComplete(resource, event.getTransformationPath(), event.getOutputFile(), bytesIn, System.currentTimeMillis() - event.getTimestamp(),
+				uploadComplete(resource, 
+						FileUtils.stripParentPath(resource.getVirtualPath(), event.getTransformationPath()), 
+						event.getOutputFile(), 
+						bytesIn, 
+						System.currentTimeMillis() - event.getTimestamp(),
 						protocol);
 
 			} catch (Exception e) {
 
 				eventService.publishEvent(
-						new UploadCompleteEvent(this, getCurrentSession(), e, resource, childPath, protocol));
+						new UploadCompleteEvent(this, getCurrentSession(), e, resource, 
+								FileUtils.stripParentPath(resource.getVirtualPath(), event.getTransformationPath()), protocol));
 			} finally {
 				FileUtils.closeQuietly(in);
 				FileUtils.closeQuietly(out);
@@ -1198,9 +1234,14 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		
 		return resolver.processRequest(virtualPath);
 	}
-
 	@Override
 	public OutputStream uploadFile(String virtualPath, final long position, final String proto)
+			throws IOException, AccessDeniedException {
+		return uploadFile(virtualPath, position, proto, this);
+	}
+	
+	@Override
+	public OutputStream uploadFile(String virtualPath, final long position, final String proto, final UploadEventProcessor uploadProcessor)
 			throws IOException, AccessDeniedException {
 		
 		virtualPath = normalise(virtualPath);
@@ -1220,18 +1261,18 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			@Override
 			OutputStream onFileResolved(FileResource resource, String childPath, FileObject file, String virtualPath)
 					throws IOException {
-				UploadStartedEvent event = uploadStarted(resource, childPath, file, proto);
+				UploadStartedEvent event = uploadProcessor.uploadStarted(resource, childPath, file, proto);
 				
 				return new ContentOutputStream(resource, childPath, virtualPath, virtualRepository, parentFile,
 						event.getOutputFile(), event.getOutputStream(), position, event.getTimestamp(), 
 						new SessionAwareUploadEventProcessor(getCurrentSession(),
-								getCurrentLocale(), VirtualFileServiceImpl.this, VirtualFileServiceImpl.this),
+								getCurrentLocale(), VirtualFileServiceImpl.this, uploadProcessor),
 						proto, getOwnerPrincipal(resource));
 			}
 
 			@Override
 			void onFileUnresolved(String virtualPath, Exception t) {
-				uploadCannotStart(virtualPath, t, proto);
+				uploadProcessor.uploadCannotStart(virtualPath, t, proto);
 			}
 		};
 		return resolver.processRequest(virtualPath);

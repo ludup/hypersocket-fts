@@ -9,6 +9,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
 import org.hibernate.Criteria;
+import org.hibernate.Hibernate;
 import org.hibernate.Query;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
@@ -21,6 +22,7 @@ import com.hypersocket.realm.Realm;
 import com.hypersocket.realm.RealmRestriction;
 import com.hypersocket.repository.AbstractRepositoryImpl;
 import com.hypersocket.repository.CriteriaConfiguration;
+import com.hypersocket.repository.HibernateUtils;
 import com.hypersocket.resource.RealmCriteria;
 import com.hypersocket.tables.ColumnSort;
 import com.hypersocket.utils.FileUtils;
@@ -291,8 +293,19 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 	
 	@Override
 	@Transactional(readOnly=true)
-	public Collection<VirtualFile> search(String searchColumn, String search, int start, int length, ColumnSort[] sort, VirtualFile parent, Realm realm, Principal principal, FileResource... resources) {
-		return super.search(VirtualFile.class, searchColumn, search, start, length, sort, new ParentCriteria(parent), new RealmCriteria(realm), new FileResourceCriteria(resources), new PrincipalCriteria(principal), new ConflictCriteria());
+	public Collection<VirtualFile> search(String searchColumn, String search, int start, int length, ColumnSort[] sort, final VirtualFile parent, Realm realm, Principal principal, final FileResource... resources) {
+		return super.search(VirtualFile.class, searchColumn, search, start, length, sort, new ParentCriteria(parent), new FileResourceCriteria(resources), new PrincipalCriteria(principal), new RealmCriteria(realm), new ConflictCriteria());
+//				
+//				new CriteriaConfiguration(){
+//			@Override
+//			public void configure(Criteria criteria) {
+//				
+//				criteria.add(Restrictions.eq("parent", parent));
+//				criteria.createAlias("folderMounts", "folderMount", Criteria.LEFT_JOIN);
+//				criteria.add(Restrictions.or(Restrictions.in("folderMount.id", HibernateUtils.getResourceIds(resources)), Restrictions.in("mount", resources)));
+//				
+//			} 	
+//		}, );
 	}
 
 	@Override
@@ -335,6 +348,11 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 	@Transactional
 	public void removeFileResource(FileResource resource) {
 
+		VirtualFile mountPoint = getVirtualFile(resource.getVirtualPath(), resource.getRealm(), null);
+		Hibernate.initialize(mountPoint);
+		mountPoint.getFolderMounts().remove(resource);
+		save(mountPoint);
+		
 		Query update = createQuery("update VirtualFile set defaultMount = null where defaultMount = :mount", true);
 		update.setEntity("mount", resource);
 		update.executeUpdate();

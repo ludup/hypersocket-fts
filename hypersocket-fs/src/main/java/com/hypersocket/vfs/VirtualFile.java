@@ -1,13 +1,22 @@
 package com.hypersocket.vfs;
 
 
+import java.util.Set;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.hypersocket.fs.FileResource;
@@ -53,6 +62,12 @@ public class VirtualFile extends AbstractEntity<Long> {
 	
 	@OneToOne
 	FileResource mount;
+	
+	@ManyToMany(fetch=FetchType.LAZY)
+	@Fetch(FetchMode.SELECT)
+	@JoinTable(name = "virtual_fs_mounts", joinColumns={@JoinColumn(name="resource_id")}, 
+			inverseJoinColumns={@JoinColumn(name="mount_id")})
+	Set<FileResource> folderMounts;
 	
 	@Column(name="conflicted")
 	Boolean conflicted;
@@ -218,6 +233,9 @@ public class VirtualFile extends AbstractEntity<Long> {
 		this.sync = sync;
 	}
 	
-	
+	@JsonIgnore
+	public Set<FileResource> getFolderMounts() {
+		return folderMounts;
+	}
 	
 }
