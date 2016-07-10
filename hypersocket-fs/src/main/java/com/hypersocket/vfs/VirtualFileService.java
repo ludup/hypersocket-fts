@@ -10,6 +10,7 @@ import org.apache.commons.vfs2.FileObject;
 
 import com.hypersocket.auth.AuthenticatedService;
 import com.hypersocket.fs.FileResource;
+import com.hypersocket.fs.UploadEventProcessor;
 import com.hypersocket.fs.UploadProcessor;
 import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.realm.Principal;
@@ -88,5 +89,11 @@ public interface VirtualFileService extends AuthenticatedService {
 	void setDefaultMount(VirtualFile file, FileResource mount) throws AccessDeniedException, ResourceChangeException;
 
 	Principal getOwnerPrincipal(FileResource resource);
+
+	OutputStream uploadFile(String virtualPath, long position, String proto, UploadEventProcessor uploadProcessor)
+			throws IOException, AccessDeniedException;
+
+	VirtualFile createFolder(String virtualPath, String proto, boolean disableEvent)
+			throws IOException, AccessDeniedException;
 
 }
