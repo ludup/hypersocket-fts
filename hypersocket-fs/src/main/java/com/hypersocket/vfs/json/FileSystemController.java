@@ -465,9 +465,12 @@ public class FileSystemController extends ResourceController {
 				sessionUtils.getLocale(request));
 		try {
 			Throwable e = (Throwable) request.getSession().getAttribute("lastError");
-			String msg = e.getMessage() + (e.getCause()!=null ? "; " + e.getCause().getMessage() : "");
-			return new RequestStatus(true, msg);
-		
+			if(e!=null) {
+				String msg = e.getMessage() + (e.getCause()!=null ? "; " + e.getCause().getMessage() : "");
+				return new RequestStatus(true, msg);
+			} else {
+				return new RequestStatus(false);
+			}
 		} finally {
 			clearAuthenticatedContext();
 		}
@@ -494,14 +497,16 @@ public class FileSystemController extends ResourceController {
 				@Override
 				public Long getTotalCount(String searchColumn, String searchPattern)
 						throws UnauthorizedException, AccessDeniedException {
-					return fileService.getSearchCount(virtualPath, "filename", searchPattern);
+					long count = fileService.getSearchCount(virtualPath, "filename", searchPattern);
+					return count;
 				}
 				
 				@Override
 				public Collection<?> getPage(String searchColumn, String searchPattern, int start, int length, ColumnSort[] sorting)
 						throws UnauthorizedException, AccessDeniedException {
 					try {
-						return fileService.searchFiles(virtualPath, "filename", searchPattern, start, length, sorting, HTTP_PROTOCOL);
+						Collection<?> results = fileService.searchFiles(virtualPath, "filename", searchPattern, start, length, sorting, HTTP_PROTOCOL);
+						return results;
 					} catch (IOException e) {
 						throw new IllegalStateException(e);
 					}

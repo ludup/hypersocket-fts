@@ -27,13 +27,17 @@
 	background: white;
 }
 
+#table a.open {
+	margin-right: 0px;
+}
+
 /* .tableAction { */
 /* 	cursor: pointer; */
 /* 	margin-right: 10px; */
 /* } */
 
 .fileIcon {
-	margin-right: 10px;
+	margin-right: 5px;
 }
 
 .conflicted {

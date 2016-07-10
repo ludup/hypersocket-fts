@@ -1,10 +1,12 @@
 package com.hypersocket.vfs;
 
 import org.hibernate.Criteria;
+import org.hibernate.criterion.Junction;
 import org.hibernate.criterion.Restrictions;
 
 import com.hypersocket.fs.FileResource;
 import com.hypersocket.repository.CriteriaConfiguration;
+import com.hypersocket.repository.HibernateUtils;
 
 public class FileResourceCriteria implements CriteriaConfiguration {
 
@@ -21,16 +23,20 @@ public class FileResourceCriteria implements CriteriaConfiguration {
 
 	@Override
 	public void configure(Criteria criteria) {
+		
+		criteria.createAlias("folderMounts", "folderMount", Criteria.LEFT_JOIN);
+		
 		if(resource!=null) {
-			criteria.add(Restrictions.or(
-					Restrictions.eq("mount", resource),
-					Restrictions.isNull("mount")));
+			criteria.add(Restrictions.or(Restrictions.eq("mount", resource), Restrictions.or(Restrictions.and(Restrictions.isNull("mount"), 
+					Restrictions.isNull("parent")), Restrictions.and(Restrictions.isNull("mount"), 
+							Restrictions.eq("folderMount.id", resource.getId())))));
 		} else if(resources!=null && resources.length > 0) {
-			criteria.add(Restrictions.or(
-					Restrictions.in("mount", resources),
-					Restrictions.isNull("mount")));
+			criteria.add(Restrictions.or(Restrictions.in("mount", resources), Restrictions.or(Restrictions.and(Restrictions.isNull("mount"), 
+					Restrictions.isNull("parent")), Restrictions.and(Restrictions.isNull("mount"), 
+							Restrictions.in("folderMount.id", HibernateUtils.getResourceIds(resources))))));
 		} else {
-			criteria.add(Restrictions.isNull("mount"));
+			criteria.add(Restrictions.and(Restrictions.isNull("mount"), 
+					Restrictions.isNull("parent")));
 		}
 	}
 

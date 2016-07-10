@@ -15,7 +15,7 @@ public class ParentCriteria implements CriteriaConfiguration {
 	@Override
 	public void configure(Criteria criteria) {
 		if(parent==null) {
-			criteria.add(Restrictions.isNull("mount"));
+			criteria.add(Restrictions.isNull("parent"));
 		} else {
 			criteria.add(Restrictions.eq("parent", parent));
 		}

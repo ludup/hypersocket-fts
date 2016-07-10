@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 
@@ -130,6 +131,12 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	
 	@Override
 	public VirtualFile getFile(String virtualPath) throws FileNotFoundException, AccessDeniedException {
+		
+		virtualPath = normalise(virtualPath);
+		
+		if(virtualPath.equals("/")) {
+			return getRootFolder();
+		}
 		
 		FileResource[] resources = getPrincipalResources();
 		VirtualFile file = virtualRepository.getVirtualFileByResource(virtualPath, getCurrentRealm(), getCurrentPrincipal(), resources);

@@ -12,6 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
+import org.hibernate.Hibernate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -370,6 +371,13 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 		
 		VirtualFile parentFile = repository.getVirtualFile(resource.getVirtualPath(), getCurrentRealm(), principal);
 
+		Hibernate.initialize(parentFile);
+		
+		if(!parentFile.getFolderMounts().contains(resource)) {
+			parentFile.getFolderMounts().add(resource);
+			repository.saveFile(parentFile);
+		}
+		
 		if(makeDefault) {
 			parentFile.setDefaultMount(resource);
 			parentFile.setWritable(true);
