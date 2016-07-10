@@ -221,8 +221,9 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			}
 		} else {
 		
-			boolean success = new DeleteFileResolver(proto).processRequest(file);
-			if(success) {
+			DeleteFileResolver resolver = new DeleteFileResolver(proto);
+			boolean success = resolver.processRequest(file);
+			if(success || !resolver.getFile().exists()) {
 				virtualRepository.removeReconciledFile(file);
 				return true;
 			} else {
@@ -504,20 +505,21 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 
 				FileUpload upload;
 				try {
-					upload = uploadService.createFile(in, PathUtil.getBaseName(childPath), getCurrentRealm(), false,
-							"upload", new FileObjectUploadStore(file, resource, childPath, proto));
+					
+					FileObjectUploadStore store = new FileObjectUploadStore(file, resource, childPath, proto);
+					upload = uploadService.createFile(in, PathUtil.getBaseName(childPath), getCurrentRealm(), false, "upload", store);
 
 					if (processor != null) {
 						processor.processUpload(resource, resolveVFSFile(parentFile.getMount()), childPath, file);
 					}
 					
-					VirtualFile existingFile = virtualRepository.getVirtualFile(virtualPath, getCurrentRealm(), getCurrentPrincipal());
+					VirtualFile existingFile = virtualRepository.getVirtualFile(store.getVirtualPath(), getCurrentRealm(), getCurrentPrincipal());
 					
-					String displayName = FileUtils.lastPathElement(virtualPath);
+					String displayName = FileUtils.lastPathElement(store.getVirtualPath());
 					if(existingFile!=null) {
 						displayName = String.format("%s (%s)", displayName, parentFile.getMount().getName());
 					}
-					virtualRepository.reconcileFile(displayName, file, resource, 
+					virtualRepository.reconcileFile(displayName, store.getFileObject(), resource, 
 							VirtualFileServiceImpl.this.getFile(FileUtils.stripLastPathElement(virtualPath)), getOwnerPrincipal(resource));
 					return upload;
 
@@ -957,7 +959,6 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		@Override
 		void onFileUnresolved(String path, Exception t) {
 			eventService.publishEvent(new DeleteFileEvent(this, t, getCurrentSession(), path, protocol));
-			
 		}
 	};
 	
@@ -1138,21 +1139,33 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		FileResource resource;
 		String childPath;
 		String protocol;
-
+		String virtualPath;
+		
 		FileObjectUploadStore(FileObject file, FileResource resource, String childPath, String protocol) {
 			this.file = file;
 			this.resource = resource;
 			this.childPath = childPath;
 			this.protocol = protocol;
+			this.virtualPath = FileUtils.checkEndsWithSlash(resource.getVirtualPath()) + childPath;
+		}
+		
+		public FileObject getFileObject() {
+			return file;
 		}
 
+		public String getVirtualPath() {
+			return virtualPath;
+		}
+		
 		@Override
 		public long writeFile(Realm realm, String uuid, InputStream in) throws IOException {
 
 			long bytesIn = 0;
 
 			UploadStartedEvent event = uploadStarted(resource, childPath, file, protocol);
-
+			file = event.getOutputFile();
+			virtualPath = event.getTransformationPath();
+			
 			OutputStream out = event.getOutputStream();
 			try {
 
