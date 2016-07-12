@@ -152,7 +152,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		
 		if(file==null) {
 			syncService.synchronize(virtualPath, getCurrentPrincipal(), resources);
-			file = virtualRepository.getVirtualFileByResource(virtualPath, getCurrentRealm(), getCurrentPrincipal(), resources);
+			file = virtualRepository.getVirtualFile(virtualPath, getCurrentRealm(), null);
 			if(file==null) {
 				throw new FileNotFoundException(virtualPath);
 			}
