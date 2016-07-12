@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 
@@ -524,9 +523,16 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 					String displayName = FileUtils.lastPathElement(store.getVirtualPath());
 					if(existingFile!=null && !existingFile.getMount().equals(resource)) {
 						displayName = String.format("%s (%s)", displayName, parentFile.getMount().getName());
+					} 
+					
+					if(existingFile!=null) {
+						virtualRepository.reconcileFile(displayName, store.getFileObject(), resource, 
+								existingFile, existingFile.getParent(), getOwnerPrincipal(resource));
+					} else {
+						virtualRepository.reconcileFile(displayName, store.getFileObject(), resource, 
+								VirtualFileServiceImpl.this.getFile(FileUtils.stripLastPathElement(virtualPath)), getOwnerPrincipal(resource));
 					}
-					virtualRepository.reconcileFile(displayName, store.getFileObject(), resource, 
-							VirtualFileServiceImpl.this.getFile(FileUtils.stripLastPathElement(virtualPath)), getOwnerPrincipal(resource));
+
 					return upload;
 
 				} catch (ResourceCreationException e) {
@@ -1057,9 +1063,23 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		
 		virtualPath = normalise(virtualPath);
 		
-		VirtualFile file = getFile(virtualPath);
-		String childPath = FileUtils.stripParentPath(file.getMount().getVirtualPath(), virtualPath);
-		return resolveVFSFile(file.getMount()).resolveFile(childPath);
+		VirtualFile file;
+		try {
+			file = getFile(virtualPath);
+			String childPath = FileUtils.stripParentPath(file.getMount().getVirtualPath(), virtualPath);
+			return resolveVFSFile(file.getMount()).resolveFile(childPath);
+		} catch (FileNotFoundException e) {
+			String parent = FileUtils.stripLastPathElement(virtualPath);
+			VirtualFile parentFile = getFile(parent);
+			if(parentFile.getMount()==null && parentFile.getDefaultMount()==null) {
+				throw new AccessDeniedException();
+			}
+			FileResource resource = parentFile.getMount()!=null ? parentFile.getMount() : parentFile.getDefaultMount();
+			FileObject parentObject = resolveVFSFile(resource);
+			String childPath =  FileUtils.stripParentPath(resource.getVirtualPath(), virtualPath);
+			return parentObject.resolveFile(childPath);
+		}
+		
 	}
 	
 	protected FileObject resolveVFSFile(FileResource resource) throws FileSystemException {

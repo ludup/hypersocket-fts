@@ -492,9 +492,9 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 							file = repository.reconcileNewFolder(fileObject.getName().getBaseName(), parentFile, fileObject, resource, false, principal);
 						}
 						reconcileFolder(stats, fileObject, resource, file, false, 1, resourceService.getOwnerPrincipal(resource));
-						 break;
+						break;
 					case FILE:
-						reconcileFile(stats, fileObject, resource, file, parentFile, false, resourceService.getOwnerPrincipal(resource));
+						file = reconcileFile(stats, fileObject, resource, file, parentFile, false, resourceService.getOwnerPrincipal(resource));
 						break;
 					default:
 						if(log.isDebugEnabled()) {
