@@ -193,7 +193,7 @@ public class FileResource extends AssignableResource  {
 				thisPath = replacementService.replaceVariables(principal,
 						thisPath);
 			}
-			buf.append(FileUtils.checkEndsWithSlash(FileUtils.checkStartsWithSlash(Utils.checkNull(thisPath))));
+			buf.append(FileUtils.checkStartsWithSlash(Utils.checkNull(thisPath)));
 			return buf.toString();
 		} catch (UnsupportedEncodingException e) {
 			throw new IllegalStateException(
