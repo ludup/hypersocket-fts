@@ -30,6 +30,7 @@ import com.hypersocket.fs.events.FileUpdatedEvent;
 import com.hypersocket.fs.events.FolderCreatedEvent;
 import com.hypersocket.fs.events.FolderDeletedEvent;
 import com.hypersocket.fs.events.FolderUpdatedEvent;
+import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.properties.ResourceUtils;
 import com.hypersocket.realm.Principal;
 import com.hypersocket.utils.FileUtils;
@@ -358,7 +359,7 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 	private boolean hasChanged(String displayName, FileObject obj, FileResource resource, VirtualFile virtual)
 			throws FileSystemException {
 		return virtual.getHash() != VirtualFileUtils.generateHash(obj.getName().getBaseName(), virtual.getVirtualPath(),
-				virtual.getType().ordinal(), obj.getContent().getLastModifiedTime(),
+				virtual.getType().ordinal(), obj.getType().hasAttributes() ? obj.getContent().getLastModifiedTime() : 0L,
 				virtual.getType() == VirtualFileType.FILE ? obj.getContent().getSize() : 0L, !resource.isReadOnly(),
 				!displayName.equals(obj.getName().getBaseName()));
 	}
@@ -384,7 +385,7 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 			repository.saveFile(parentFile);
 		}
 		
-		if(!canSynchronize(resource)) {
+		if(isUserFilesystem(resource)) {
 			return;
 		}
 		
@@ -396,7 +397,11 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 		
 		try {
 		
-		if(fileObject.getType()==FileType.FOLDER) {
+		switch(fileObject.getType()) {
+//		case FILE:
+//			reconcileFile(stats, fileObject, resource, null, parentFile, false, null);
+//			break;
+		case FOLDER:
 			reconcileFolder(stats, fileObject, resource, parentFile, false, depth, null);
 			
 			eventService.publishEvent(new FileResourceReconcileCompletedEvent(this, true, resource.getRealm(), started,
@@ -406,6 +411,9 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 					stats.foldersCreated, 
 					stats.foldersUpdated, 
 					stats.foldersDeleted));
+			break;
+		default:
+			// We don't handle others
 		}
 		
 		} catch(IOException ex) {
@@ -462,6 +470,7 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 					if(StringUtils.isNotBlank(childPath)) {
 						fileObject = resourceFile.resolveFile(childPath);
 						if(!fileObject.exists()) {
+							log.warn(String.format("Cannot synchronize %s/%s because it does not exist", resource.getName(), childPath));
 							continue;
 						}
 					}
@@ -508,7 +517,7 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 					
 				}
 
-			} catch (IOException e) {
+			} catch (Exception e) {
 				log.error("I/O error during synchronize", e);
 			}
 		}

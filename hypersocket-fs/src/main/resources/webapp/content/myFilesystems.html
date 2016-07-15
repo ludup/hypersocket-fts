@@ -259,8 +259,7 @@
 		$('.open').on('click', function() {
 			mountPath = $(this).data('path');
 			$('#dragAndDrop').widget().setOptions({url: basePath + '/api/fs/upload' + mountPath})
-			$('#table').bootstrapTable('refreshOptions', {url: basePath + '/api/fs/search' + mountPath});
-			$('#table').bootstrapTable('refresh');
+			$('#table').bootstrapTable('refreshOptions', {url: basePath + '/api/fs/search' + mountPath, pageNumber: 1, searchText: null });
 		});
 		
 		$('.fileLabel').editable(
@@ -390,6 +389,7 @@
 									$('#table').bootstrapTable({
 										url : basePath + '/api/fs/search' + mountPath,
 										queryParams: function(params) {
+											debugger;
  											params._ = new Date().getTime();
 											return params;
 										},
