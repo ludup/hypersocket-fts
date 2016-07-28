@@ -406,6 +406,48 @@
 										showToggle : true,
 										uniqueId: 'id',
 										sidePagination : 'server',
+										onPostHeader: function() {
+											
+											if($('#multipleDelete').length==0) {
+												$('.fixed-table-toolbar').find('.btn-group').first().prepend('<button id="multipleDelete" class="btn btn-default" type="button" name="multipleDelete" title="Delete"><i class="fa fa-trash"></i></button>');
+												
+												$('#multipleDelete').click(
+														function(e) {
+													
+															var arr = $('#table').bootstrapTable('getSelections');
+															if(arr.length > 0) {
+																$(document).data('deleteRow', arr);
+																$('#multipleDelete').notify({
+																	title : getResource("text.confirmMultipleDelete").format(arr.length),
+																	button : getResource("text.delete")
+																}, {
+																	style : 'confirm',
+																	position : 'left middle',
+																	autoHide : false,
+																	clickToHide : false,
+																	showDuration : 100
+																});
+															}
+												});
+											}
+											
+											if($('#newFolderButton').length==0) {
+												$('.fixed-table-toolbar').find('.btn-group').first().prepend('<button id="newFolderButton" class="btn btn-default" type="button" name="newFolder" title="New Folder"><i class="fa fa-folder-open"></i></button>');
+	
+												$('#newFolderButton').click(
+														function(e) {
+															
+															getJSON('fs/createFolder'
+																	+ mountPath, null, function(data) {
+																if(data.success) {
+																	$('#table').bootstrapTable('append', data.resource);
+																	rebindEditable();
+																	$('.fileLabel').last().editable('toggle');
+																}
+															});
+												});
+											}
+										},
 										onLoadSuccess : function(data) {
 											
 											if(data.resource.writable) {
@@ -416,6 +458,7 @@
 												$('#newFolderButton').prop('disabled', true);
 											}
 											rebindEditable();
+											
 											loadComplete();
 										},
 										onLoadError: function(status) {
@@ -428,40 +471,7 @@
 										}
 									});
 									
-									$('.fixed-table-toolbar').find('.btn-group').first().prepend('<button id="multipleDelete" class="btn btn-default" type="button" name="multipleDelete" title="Delete"><i class="fa fa-trash"></i></button>');
-									$('.fixed-table-toolbar').find('.btn-group').first().prepend('<button id="newFolderButton" class="btn btn-default" type="button" name="newFolder" title="New Folder"><i class="fa fa-folder-open"></i></button>');
-
-									$('#multipleDelete').click(
-											function(e) {
-										
-												var arr = $('#table').bootstrapTable('getSelections');
-												if(arr.length > 0) {
-													$(document).data('deleteRow', arr);
-													$('#multipleDelete').notify({
-														title : getResource("text.confirmMultipleDelete").format(arr.length),
-														button : getResource("text.delete")
-													}, {
-														style : 'confirm',
-														position : 'left middle',
-														autoHide : false,
-														clickToHide : false,
-														showDuration : 100
-													});
-												}
-									});
 									
-									$('#newFolderButton').click(
-											function(e) {
-												
-												getJSON('fs/createFolder'
-														+ mountPath, null, function(data) {
-													if(data.success) {
-														$('#table').bootstrapTable('append', data.resource);
-														rebindEditable();
-														$('.fileLabel').last().editable('toggle');
-													}
-												});
-									});
 								});
 						});
 						
