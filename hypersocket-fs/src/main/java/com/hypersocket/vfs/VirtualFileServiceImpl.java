@@ -221,8 +221,12 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		} else {
 		
 			DeleteFileResolver resolver = new DeleteFileResolver(proto);
+			if(resolver.getFile()==null || !resolver.getFile().exists()) {
+				virtualRepository.removeReconciledFile(file);
+				return true;
+			}
 			boolean success = resolver.processRequest(file);
-			if(success || !resolver.getFile().exists()) {
+			if(success) {
 				virtualRepository.removeReconciledFile(file);
 				return true;
 			} else {
@@ -431,20 +435,40 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		CopyFileResolver resolver = new CopyFileResolver(proto);
 		boolean success = resolver.processRequest(fromPath, toPath);
 
+		boolean isTargetRootOfMount = FileUtils.checkEndsWithNoSlash(resolver.getToMount().getVirtualPath()).equals(FileUtils.checkEndsWithNoSlash(toPath));
 		VirtualFile existingFile = virtualRepository.getVirtualFile(toPath, getCurrentRealm(), getCurrentPrincipal());
 		
-		String displayName = FileUtils.lastPathElement(fromPath);
-		if(existingFile!=null) {
+		String displayName = FileUtils.lastPathElement(toPath);
+		boolean conflicted = false;
+		if(existingFile!=null && !existingFile.getMount().equals(resolver.getToMount())) {
 			displayName = String.format("%s (%s)", displayName, resolver.getToMount().getName());
+			conflicted = true;
 		}
 		if(success) {
-			virtualRepository.reconcileFile(displayName, resolver.getToFile(), resolver.getToMount(), toParent, getOwnerPrincipal(resolver.getToMount()));
+			switch(resolver.getToFile().getType()) {
+			case FILE:
+				virtualRepository.reconcileFile(displayName, resolver.getToFile(), resolver.getToMount(), toParent, getOwnerPrincipal(resolver.getToMount()));
+				break;
+			case FOLDER:
+				if(!isTargetRootOfMount) {
+					if(existingFile==null) {
+						virtualRepository.reconcileNewFolder(displayName, toParent, resolver.getToFile(), resolver.getToMount(), conflicted, null);
+					} else {
+						
+						virtualRepository.reconcileFolder(displayName, existingFile, resolver.getToFile(), resolver.getToMount(), conflicted, null);
+					}
+				}
+				syncService.synchronize(toPath, getOwnerPrincipal(resolver.getToMount()), resolver.getToMount());
+				break;
+			default:
+				log.error(String.format("File %s is not a file or folder", toPath));
+				return false;
+			}
+		
 			return true;
 		}
 		return false;
 	}
-	
-	
 	
 	protected FileResource[] getPrincipalResources() throws AccessDeniedException {
 		if(permissionService.hasSystemPermission(getCurrentPrincipal())) {
@@ -863,6 +887,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 				FileResource toResource, String toChildPath, FileObject toFile) throws IOException {
 
 			try {
+
 				toFile.copyFrom(fromFile, new FileSelector() {
 
 					@Override
@@ -997,14 +1022,17 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		
 		T processRequest(VirtualFile fromFile, String toPath) throws IOException, AccessDeniedException {
 			
-			String toParent = FileUtils.stripLastPathElement(toPath);
-			VirtualFile toParentFile = getFile(toParent);
-			
 			fromMount = fromFile.getMount();
-			toMount = (toParentFile.equals(fromFile.getParent()) 
-					? fromFile.getMount() : toParentFile.getMount()!= null 
-					? toParentFile.getMount() : toParentFile.getDefaultMount());
 			
+			try {
+				VirtualFile toFile = getFile(toPath);
+				toMount = toFile.getMount()!=null ? toFile.getMount() : toFile.getDefaultMount();
+			} catch(FileNotFoundException ex) {
+				String toParent = FileUtils.stripLastPathElement(toPath);
+				VirtualFile toParentFile = getFile(toParent);
+				toMount = toParentFile.getMount()!=null ? toParentFile.getMount() : toParentFile.getDefaultMount();
+			}
+
 			if(toMount==null) {
 				throw new AccessDeniedException();
 			}
@@ -1029,6 +1057,29 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 				toFile = resolveVFSFile(toResource);
 				toFile = toFile.resolveFile(toChildPath);
 
+				switch(fromFile.getType()) {
+				case FILE: 
+					if(toFile.getType()!=FileType.FILE) {
+						String filename = FileUtils.lastPathElement(fromPath);
+						toFile = toFile.resolveFile(filename);
+						if(StringUtils.isBlank(toChildPath)) {
+							toChildPath = filename;
+						} else {
+							toChildPath = FileUtils.checkEndsWithSlash(toChildPath) + filename;
+						}
+					}
+					break;
+				case FOLDER:
+					switch(toFile.getType()) {
+					case FILE:
+					case FILE_OR_FOLDER:
+						throw new IOException(String.format("Source path %s and destination path %s types are incompatible", fromPath, toPath));
+					default:
+					}
+				
+					break;
+				default:
+				}
 				return onFilesResolved(fromResource, fromChildPath, fromFile, toResource, toChildPath, toFile);
 
 			} catch (IOException ex) {
