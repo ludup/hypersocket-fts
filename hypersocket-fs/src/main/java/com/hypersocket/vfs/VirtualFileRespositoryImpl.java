@@ -13,6 +13,8 @@ import org.hibernate.Hibernate;
 import org.hibernate.Query;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,13 +24,14 @@ import com.hypersocket.realm.Realm;
 import com.hypersocket.realm.RealmRestriction;
 import com.hypersocket.repository.AbstractRepositoryImpl;
 import com.hypersocket.repository.CriteriaConfiguration;
-import com.hypersocket.repository.HibernateUtils;
 import com.hypersocket.resource.RealmCriteria;
 import com.hypersocket.tables.ColumnSort;
 import com.hypersocket.utils.FileUtils;
 
 @Repository
 public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> implements VirtualFileRepository {
+	
+	static Logger log = LoggerFactory.getLogger(VirtualFileRespositoryImpl.class);
 	
 	@Override
 	@Transactional(readOnly=true)
@@ -295,28 +298,17 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 	@Transactional(readOnly=true)
 	public Collection<VirtualFile> search(String searchColumn, String search, int start, int length, ColumnSort[] sort, final VirtualFile parent, Realm realm, Principal principal, final FileResource... resources) {
 		return super.search(VirtualFile.class, searchColumn, search, start, length, sort, new ParentCriteria(parent), new FileResourceCriteria(resources), new PrincipalCriteria(principal), new RealmCriteria(realm), new ConflictCriteria());
-//				
-//				new CriteriaConfiguration(){
-//			@Override
-//			public void configure(Criteria criteria) {
-//				
-//				criteria.add(Restrictions.eq("parent", parent));
-//				criteria.createAlias("folderMounts", "folderMount", Criteria.LEFT_JOIN);
-//				criteria.add(Restrictions.or(Restrictions.in("folderMount.id", HibernateUtils.getResourceIds(resources)), Restrictions.in("mount", resources)));
-//				
-//			} 	
-//		}, );
 	}
 
 	@Override
 	@Transactional
-	public int removeReconciledFolder(VirtualFile toDelete, boolean topLevel) {
+	public int removeReconciledFolder(VirtualFile toDelete) {
 		
 		int filesToDelete = 0;
 		boolean hasFiles =  false;
 		for(VirtualFile child :  list("parent", toDelete, VirtualFile.class, new ConflictCriteria())) {
 			if(child.isFolder()) {
-				filesToDelete += removeReconciledFolder(child, false);
+				filesToDelete += removeReconciledFolder(child);
 				continue;
 			}
 			hasFiles = true;
@@ -326,11 +318,10 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 			filesToDelete += removeReconciledFiles(toDelete);
 		}
 		
-		if(topLevel) {
-			delete(toDelete);	
-		}
 		
-		flush();
+		Query update = createQuery("delete from VirtualFile where id = :id", true);
+		update.setParameter("id", toDelete.getId());
+		filesToDelete += update.executeUpdate();
 		return filesToDelete;
 	}
 	
@@ -338,10 +329,10 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 	@Transactional
 	public int removeReconciledFiles(VirtualFile folder) {
 		
-		Query update = createQuery("delete from VirtualFile where parent = :parent and mount = :mount", true);
+		Query update = createQuery("delete from VirtualFile where parent = :parent", true);
 		update.setEntity("parent", folder);
-		update.setEntity("mount", folder.getMount());
-		return update.executeUpdate();
+		int updates = update.executeUpdate();
+		return updates;
 	}
 	
 	@Override

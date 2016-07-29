@@ -205,7 +205,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			}
 			
 			try {
-				virtualRepository.removeReconciledFolder(file, true);
+				virtualRepository.removeReconciledFolder(file);
 				eventService.publishEvent(new VirtualFolderDeletedEvent(this, 
 						getCurrentSession(), 
 						file.getVirtualPath()));
@@ -447,7 +447,11 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		if(success) {
 			switch(resolver.getToFile().getType()) {
 			case FILE:
-				virtualRepository.reconcileFile(displayName, resolver.getToFile(), resolver.getToMount(), toParent, getOwnerPrincipal(resolver.getToMount()));
+				if(existingFile==null) {
+					virtualRepository.reconcileFile(displayName, resolver.getToFile(), resolver.getToMount(), toParent, getOwnerPrincipal(resolver.getToMount()));
+				} else {
+					virtualRepository.reconcileFile(displayName, resolver.getToFile(), resolver.getToMount(), existingFile, toParent, getOwnerPrincipal(resolver.getToMount()));
+				}
 				break;
 			case FOLDER:
 				if(!isTargetRootOfMount) {
@@ -560,9 +564,9 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 					return upload;
 
 				} catch (ResourceCreationException e) {
-					throw new IOException(e);
+					throw new IOException(e.getMessage(), e);
 				} catch (AccessDeniedException e) {
-					throw new IOException(e);
+					throw new IOException(e.getMessage(), e);
 				}
 			}
 
@@ -1135,13 +1139,13 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	
 	protected FileObject resolveVFSFile(FileResource resource) throws FileSystemException {
 		FileResourceScheme scheme = fileService.getScheme(resource.getScheme());
+		String url = resource.getPrivateUrl(getCurrentPrincipal(), userVariableReplacement);
 		if(scheme.getFileService()!=null) {
 			FileSystemOptions opts = scheme.getFileService().buildFileSystemOptions(resource);
 			return VFS.getManager().resolveFile(
-					resource.getPrivateUrl(getCurrentPrincipal(), userVariableReplacement), opts);
+					url, opts);
 		} else {
-			return VFS.getManager().resolveFile(
-					resource.getPrivateUrl(getCurrentPrincipal(), userVariableReplacement));
+			return VFS.getManager().resolveFile(url);
 		}
 	}
 	

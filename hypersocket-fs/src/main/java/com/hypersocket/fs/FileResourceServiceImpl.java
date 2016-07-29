@@ -167,10 +167,12 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 
 			try {
 				for (String s : VFS.getManager().getSchemes()) {
-					if (log.isInfoEnabled())
+					if (log.isInfoEnabled()) {
 						log.info(s);
+					}
 				}
 			} catch (FileSystemException e) {
+				log.error("Could not load file schemes", e);
 			}
 		}
 
@@ -194,17 +196,16 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 		eventService.registerEvent(DeleteFolderTaskResult.class, CreateFileTask.RESOURCE_BUNDLE);
 
 		registerScheme(new FileResourceScheme("file", false, false, false, true, false, true, true ));
-		registerScheme(new FileResourceScheme("ftp", true, true, true, true, false, true, true));
-		registerScheme(new FileResourceScheme("ftps", true, true, true, true, false, true, true));
-		registerScheme(new FileResourceScheme("http", true, true, true, true, true, false, false));
-		registerScheme(new FileResourceScheme("https", true, true, true, true, true, false, false));
+//		registerScheme(new FileResourceScheme("ftp", true, true, true, true, false, true, true));
+//		registerScheme(new FileResourceScheme("ftps", true, true, true, true, false, true, true));
+//		registerScheme(new FileResourceScheme("http", true, true, true, true, true, false, false));
+//		registerScheme(new FileResourceScheme("https", true, true, true, true, true, false, false));
 		registerScheme(new FileResourceScheme("tmp", false, false, false, false, false, true, false));
-		registerScheme(new FileResourceScheme("smb", true, true, false, true, false, true, true));
+//		registerScheme(new FileResourceScheme("smb", true, true, false, true, false, true, true));
 
 		indexPage.addScript("${uiPath}/js/jstree.js");
 		indexPage.addStyleSheet("${uiPath}/css/themes/default/style.min.css");
 		indexPage.addStyleSheet("${uiPath}/css/fs.css");
-		
 		
 		if (log.isDebugEnabled()) {
 			log.debug("FileResourceService constructed");
@@ -412,9 +413,9 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 			syncService.reconcileTopFolder(resource, resourceRepository.getIntValue(resource, "fs.initialReconcileDepth"), makeDefault, null);
 				
 		} catch (AccessDeniedException e) {
-			throw new IllegalStateException(e);
+			throw new IllegalStateException(e.getMessage(), e);
 		} catch (IOException e) {
-			throw new IllegalStateException(e);
+			throw new IllegalStateException(e.getMessage(), e);
 		}
 		
 	}

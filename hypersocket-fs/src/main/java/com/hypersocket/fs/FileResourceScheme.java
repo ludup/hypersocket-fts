@@ -51,6 +51,18 @@ public class FileResourceScheme {
 			boolean readOnly,
 			boolean showHidden,
 			boolean showFolders,
+			FileService fileService) {
+		this(scheme, isRemote, supportsCredentials, showPort, showPath, readOnly, showHidden, showFolders, null, fileService);
+	}
+	
+	public FileResourceScheme(String scheme, 
+			boolean isRemote, 
+			boolean supportsCredentials, 
+			boolean showPort, 
+			boolean showPath,
+			boolean readOnly,
+			boolean showHidden,
+			boolean showFolders,
 			Class<? extends FileProvider> provider,
 			FileService fileService) {
 		this.scheme = scheme;

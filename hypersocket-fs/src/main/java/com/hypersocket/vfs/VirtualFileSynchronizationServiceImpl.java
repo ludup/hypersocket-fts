@@ -1,5 +1,6 @@
 package com.hypersocket.vfs;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,7 +31,6 @@ import com.hypersocket.fs.events.FileUpdatedEvent;
 import com.hypersocket.fs.events.FolderCreatedEvent;
 import com.hypersocket.fs.events.FolderDeletedEvent;
 import com.hypersocket.fs.events.FolderUpdatedEvent;
-import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.properties.ResourceUtils;
 import com.hypersocket.realm.Principal;
 import com.hypersocket.utils.FileUtils;
@@ -189,7 +189,7 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 						continue;
 					}
 					if (toDelete.isFolder()) {
-						stats.filesDeleted += repository.removeReconciledFolder(toDelete, true);
+						stats.filesDeleted += repository.removeReconciledFolder(toDelete);
 						stats.foldersDeleted++;
 					} else {
 						repository.removeReconciledFile(toDelete);
@@ -457,7 +457,7 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 	}
 
 	@Override
-	public void synchronize(String virtualPath, Principal principal, FileResource... resources) {
+	public void synchronize(String virtualPath, Principal principal, FileResource... resources) throws FileNotFoundException {
 		
 		ReconcileStatistics stats = new ReconcileStatistics();
 		for(FileResource resource : resources) {
@@ -475,6 +475,9 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 						}
 					}
 
+					if(!fileObject.exists()) {
+						throw new FileNotFoundException(String.format("%s is not a valid path [%s]", virtualPath, fileObject.getPublicURIString()));
+					}
 					String parentPath = virtualPath; 
 					VirtualFile parentFile;
 					
@@ -501,9 +504,13 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 							file = repository.reconcileNewFolder(fileObject.getName().getBaseName(), parentFile, fileObject, resource, false, principal);
 						}
 						reconcileFolder(stats, fileObject, resource, file, false, 1, resourceService.getOwnerPrincipal(resource));
+						file.setSync(true);
+						repository.saveFile(file); // Ensure modified date gets updated.
 						break;
 					case FILE:
 						file = reconcileFile(stats, fileObject, resource, file, parentFile, false, resourceService.getOwnerPrincipal(resource));
+						file.setSync(true);
+						repository.saveFile(file); // Ensure modified date gets updated.
 						break;
 					default:
 						if(log.isDebugEnabled()) {
@@ -512,8 +519,7 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 						break;
 					}
 					
-					file.setSync(true);
-					repository.saveFile(file); // Ensure modified date gets updated.
+					
 					
 				}
 
