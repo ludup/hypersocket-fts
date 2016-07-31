@@ -28,9 +28,14 @@
 </div>
 <script src="${uiPath}/js/notify.min.js"></script>
 <script type="text/javascript">
-
+    
 	var mountPath = '/'
-	var cwd = mountPath;
+    var virtualPath = getAnchorByName('virtualPath');
+    if(virtualPath) {
+    	mountPath = virtualPath;
+    }
+    
+    var cwd = mountPath;
 
 	$.fn.editable.defaults.mode = 'inline';
 
@@ -302,9 +307,6 @@
 	};
 	$(document).ready(
 					function() {
-
-						
-							 
 							 loadResources(function() {
 								$('#dragAndDrop').html5Upload({
 									disabledText: getResource('filesystem.uploadDisabled'),
@@ -389,7 +391,7 @@
 									$('#table').bootstrapTable({
 										url : basePath + '/api/fs/search' + mountPath,
 										queryParams: function(params) {
-											debugger;
+											
  											params._ = new Date().getTime();
 											return params;
 										},
