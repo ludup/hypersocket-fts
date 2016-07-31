@@ -9,7 +9,6 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.VFS;
@@ -22,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import com.hypersocket.browser.BrowserLaunchableService;
 import com.hypersocket.config.ConfigurationChangedEvent;
+import com.hypersocket.config.ConfigurationPermission;
 import com.hypersocket.events.EventService;
 import com.hypersocket.fs.events.CopyFileEvent;
 import com.hypersocket.fs.events.CreateFolderEvent;
@@ -48,10 +48,8 @@ import com.hypersocket.permissions.PermissionCategory;
 import com.hypersocket.permissions.PermissionService;
 import com.hypersocket.permissions.PermissionType;
 import com.hypersocket.properties.PropertyCategory;
-import com.hypersocket.properties.ResourceUtils;
 import com.hypersocket.realm.RealmService;
 import com.hypersocket.realm.UserVariableReplacement;
-import com.hypersocket.replace.ReplacementUtils;
 import com.hypersocket.resource.AbstractAssignableResourceRepository;
 import com.hypersocket.resource.AbstractAssignableResourceServiceImpl;
 import com.hypersocket.resource.ResourceChangeException;
@@ -62,7 +60,6 @@ import com.hypersocket.server.HypersocketServer;
 import com.hypersocket.ui.IndexPageFilter;
 import com.hypersocket.ui.UserInterfaceContentHandler;
 import com.hypersocket.upload.FileUploadService;
-import com.hypersocket.utils.HypersocketUtils;
 import com.hypersocket.vfs.VirtualFileSynchronizationService;
 
 @Service
@@ -159,6 +156,13 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 					}
 				}, MenuService.MENU_MY_RESOURCES);
 
+		menuService.registerMenu(new MenuRegistration(RESOURCE_BUNDLE,
+				"fileSettings", "fa-cog", "fileSettings", 9999, 
+				ConfigurationPermission.READ,
+				null, 
+				ConfigurationPermission.UPDATE,
+				null), FileResourceServiceImpl.MENU_FILE_SYSTEMS);
+		
 		menuService.registerExtendableTable(ACTIONS_FILE);
 		menuService.registerExtendableTable(ACTIONS_BULK);
 
@@ -195,12 +199,12 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 		eventService.registerEvent(CreateFileTaskResult.class, CreateFileTask.RESOURCE_BUNDLE);
 		eventService.registerEvent(DeleteFolderTaskResult.class, CreateFileTask.RESOURCE_BUNDLE);
 
-		registerScheme(new FileResourceScheme("file", false, false, false, true, false, true, true ));
+		registerScheme(new FileResourceScheme("file", false, false, false, -1, true, false, true, true ));
 //		registerScheme(new FileResourceScheme("ftp", true, true, true, true, false, true, true));
 //		registerScheme(new FileResourceScheme("ftps", true, true, true, true, false, true, true));
 //		registerScheme(new FileResourceScheme("http", true, true, true, true, true, false, false));
 //		registerScheme(new FileResourceScheme("https", true, true, true, true, true, false, false));
-		registerScheme(new FileResourceScheme("tmp", false, false, false, false, false, true, false));
+		registerScheme(new FileResourceScheme("tmp", false, false, false, -1, false, false, true, false));
 //		registerScheme(new FileResourceScheme("smb", true, true, false, true, false, true, true));
 
 		indexPage.addScript("${uiPath}/js/jstree.js");

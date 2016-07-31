@@ -119,6 +119,12 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 
 				try {
 					String filename = obj.getName().getBaseName();
+					
+					if(!checkResourceFilter(filename, resource)) {
+						continue;
+					}
+					
+					
 					String childDisplayName = filename;
 					boolean reconciled = false;
 					boolean childConflicted = false;
@@ -204,6 +210,41 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 			log.error("Failed to reconcile folder", e);
 			stats.errors++;
 		} 
+	}
+	
+	private boolean checkResourceFilter(String filename, FileResource resource) {
+		
+		String[] includeFilters = ResourceUtils.explodeValues(fileService.getResourceProperty(resource,"fs.includeFilter"));
+		String[] excludeFilters = ResourceUtils.explodeValues(fileService.getResourceProperty(resource,"fs.excludeFilter"));
+		
+		boolean included = includeFilters.length==0;
+		
+		if(!included) {
+			for(String include : includeFilters) {
+				if(filename.matches(include)) {
+					included = true;
+					break;
+				}
+				if(filename.endsWith(include)) {
+					included = true;
+					break;
+				}
+			}
+		}
+		
+		if(included && excludeFilters.length > 0) {
+			for(String exclude : excludeFilters) {
+				if(filename.matches(exclude)) {
+					included = false;
+					break;
+				}
+				if(filename.endsWith(exclude)) {
+					included = false;
+					break;
+				}
+			}
+		}
+		return included;
 	}
 
 	private boolean isReconciledFile(FileResource resource, FileObject obj) {
@@ -391,33 +432,24 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 		
 		FileObject fileObject = resourceService.getFileObject(resource);
 		
-		FileResourceReconcileStartedEvent started;
-		eventService.publishEvent(
-				started = new FileResourceReconcileStartedEvent(this, true, resource.getRealm(), resource));
+		if(!fileObject.exists()) {
+			throw new FileNotFoundException(String.format("%s does not exist", resource.getUrl()));
+		}
+		
+		repository.clearFileResource(resource);
 		
 		try {
 		
 		switch(fileObject.getType()) {
-//		case FILE:
-//			reconcileFile(stats, fileObject, resource, null, parentFile, false, null);
-//			break;
 		case FOLDER:
 			reconcileFolder(stats, fileObject, resource, parentFile, false, depth, null);
-			
-			eventService.publishEvent(new FileResourceReconcileCompletedEvent(this, true, resource.getRealm(), started,
-					stats.filesCreated, 
-					stats.filesUpdated, 
-					stats.filesDeleted, 
-					stats.foldersCreated, 
-					stats.foldersUpdated, 
-					stats.foldersDeleted));
 			break;
 		default:
 			// We don't handle others
 		}
 		
 		} catch(IOException ex) {
-			eventService.publishEvent(new FileResourceReconcileCompletedEvent(this, ex, resource, resource.getRealm()));
+			log.error(String.format("Failed to reconcile %s", resource.getName()), ex);
 			throw ex;
 		}
 	}
@@ -457,11 +489,11 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 	}
 
 	@Override
-	public void synchronize(String virtualPath, Principal principal, FileResource... resources) throws FileNotFoundException {
+	public void synchronize(String virtualPath, Principal principal, FileResource... resources) throws IOException {
 		
 		ReconcileStatistics stats = new ReconcileStatistics();
 		for(FileResource resource : resources) {
-			try {
+			
 				if(FileUtils.checkEndsWithSlash(virtualPath).startsWith(FileUtils.checkEndsWithSlash(resource.getVirtualPath()))) {
 					String childPath = FileUtils.stripParentPath(resource.getVirtualPath(), virtualPath);
 					
@@ -523,9 +555,7 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 					
 				}
 
-			} catch (Exception e) {
-				log.error("I/O error during synchronize", e);
-			}
+		
 		}
 		repository.flush();
 	}

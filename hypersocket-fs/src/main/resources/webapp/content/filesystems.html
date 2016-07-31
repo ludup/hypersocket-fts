@@ -213,7 +213,7 @@
 </div>
 <script type="text/javascript">
 
-	function displayScheme(scheme, url) {
+	function displayScheme(scheme, url, create) {
 		if(scheme.remote) {
 			if(getResourceNoDefault(scheme.scheme + '.server.label')!=null) {
 				$("label[for='server']").text(getResource(scheme.scheme + '.server.label'));
@@ -221,8 +221,14 @@
 				$("label[for='server']").text(getResource('mount.server.label'));
 			}
 			$('.remoteDiv').show();
+			
 			if(!scheme.showPort) {
 				$('.portDiv').hide();
+			} else {
+				$('.portDiv').show();
+				if(create) {
+					$('#port').val(scheme.defaultPort);
+				}
 			}
 		} else {
 			$('.remoteDiv').hide();
@@ -570,7 +576,7 @@
 			changed: function(widget) {
 				var scheme = widget.getSelectedObject();
 				
-				displayScheme(scheme,'template/' + (scheme && scheme.scheme ? scheme.scheme : 'file'));
+				displayScheme(scheme,'template/' + (scheme && scheme.scheme ? scheme.scheme : 'file'), true);
 			}
 		});
 		

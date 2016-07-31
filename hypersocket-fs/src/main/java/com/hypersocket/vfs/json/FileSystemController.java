@@ -518,7 +518,7 @@ public class FileSystemController extends ResourceController {
 				}
 
 				@Override
-				public VirtualFile getResource() throws FileNotFoundException, AccessDeniedException {
+				public VirtualFile getResource() throws IOException, AccessDeniedException {
 					return fileService.getFile(virtualPath);
 				}
 			});

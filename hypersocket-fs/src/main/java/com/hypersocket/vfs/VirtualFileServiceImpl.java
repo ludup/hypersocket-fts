@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.hypersocket.auth.PasswordEnabledAuthenticatedServiceImpl;
+import com.hypersocket.config.ConfigurationService;
 import com.hypersocket.events.EventService;
 import com.hypersocket.fs.ContentInputStream;
 import com.hypersocket.fs.ContentOutputStream;
@@ -91,6 +92,9 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	@Autowired
 	VirtualFileSynchronizationService syncService;
 
+	@Autowired
+	ConfigurationService configurationService; 
+	
 	@Override
 	public Collection<VirtualFile> getVirtualFolders() throws AccessDeniedException {
 		
@@ -129,7 +133,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	}
 	
 	@Override
-	public VirtualFile getFile(String virtualPath) throws FileNotFoundException, AccessDeniedException {
+	public VirtualFile getFile(String virtualPath) throws IOException, AccessDeniedException {
 		
 		virtualPath = normalise(virtualPath);
 		
@@ -150,7 +154,12 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		}
 		
 		if(file==null) {
-			syncService.synchronize(virtualPath, getCurrentPrincipal(), resources);
+			try {
+				syncService.synchronize(virtualPath, getCurrentPrincipal(), resources);
+			} catch (IOException e) {
+				log.error("Synchronization failed", e);
+				throw new FileNotFoundException(e.getMessage());
+			}
 			file = virtualRepository.getVirtualFile(virtualPath, getCurrentRealm(), null);
 			if(file==null) {
 				throw new FileNotFoundException(virtualPath);
@@ -165,13 +174,13 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	}
 	
 	@Override
-	public Collection<FileResource> getMountsForPath(String virtualPath) throws FileNotFoundException, AccessDeniedException {
+	public Collection<FileResource> getMountsForPath(String virtualPath) throws IOException, AccessDeniedException {
 		VirtualFile file = getFile(virtualPath);
 		return fileService.getResourcesByVirtualPath(file.getVirtualPath());
 	}
 	
 	@Override
-	public Collection<VirtualFile> getChildren(String virtualPath) throws FileNotFoundException, AccessDeniedException {
+	public Collection<VirtualFile> getChildren(String virtualPath) throws IOException, AccessDeniedException {
 		VirtualFile file = getFile(virtualPath);
 		return getChildren(file);
 	}
@@ -582,7 +591,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	}
 
 	@Override
-	public Collection<VirtualFile> listChildren(String virtualPath, String proto) throws FileNotFoundException, AccessDeniedException {
+	public Collection<VirtualFile> listChildren(String virtualPath, String proto) throws IOException, AccessDeniedException {
 		return getChildren(virtualPath);
 	}
 
@@ -1165,57 +1174,105 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	@Override
 	public void downloadCannotStart(FileResource resource, String childPath, FileObject file, Throwable t,
 			String protocol) {
-		eventService.publishEvent(
+		if(checkEventFilter(file.getName().getBaseName())) {
+			eventService.publishEvent(
 				new DownloadStartedEvent(this, t, getCurrentSession(), childPath, protocol));
+		}
 	}
 
 	@Override
 	public DownloadStartedEvent downloadStarted(FileResource resource, String childPath, FileObject file, InputStream in, String protocol) {
 		DownloadStartedEvent evt = new DownloadStartedEvent(this, getCurrentSession(), resource, childPath, in, protocol);
-		eventService.publishEvent(evt);
+		
+		if(checkEventFilter(file.getName().getBaseName())) {
+			eventService.publishEvent(evt);
+		}
 		return evt;
 	}
 
 	@Override
 	public void downloadComplete(FileResource resource, String childPath, FileObject file, long bytesOut,
 			long timeMillis, String protocol, Session session) {
-		eventService.publishEvent(
+		if(checkEventFilter(file.getName().getBaseName())) {
+			eventService.publishEvent(
 				new DownloadCompleteEvent(this, session, resource, childPath, bytesOut, timeMillis, protocol));
+		}
 	}
 
 	@Override
 	public void downloadFailed(FileResource resource, String childPath, FileObject file, Throwable t, String protocol,
 			Session session) {
-		eventService.publishEvent(new DownloadCompleteEvent(this, t, session, resource, childPath, protocol));
+		if(checkEventFilter(file.getName().getBaseName())) {
+			eventService.publishEvent(new DownloadCompleteEvent(this, t, session, resource, childPath, protocol));
+		}
 	}
 	
 
 	@Override
 	public void uploadCannotStart(String virtualPath, Throwable t, String protocol) {
-		eventService
+		
+		if(checkEventFilter(FileUtils.lastPathElement(virtualPath))) {
+			eventService
 				.publishEvent(new UploadStartedEvent(this, t, getCurrentSession(), virtualPath, protocol));
+		}
 	}
 
 	@Override
 	public UploadStartedEvent uploadStarted(FileResource resource, String childPath, FileObject file, String protocol) {
 		
 		UploadStartedEvent evt = new UploadStartedEvent(this, getCurrentSession(), resource, childPath, file, protocol);
-		eventService.publishEvent(evt);
+		
+		if(checkEventFilter(file.getName().getBaseName())) {
+			eventService.publishEvent(evt);
+		} 
+		
 		return evt;
 	}
 
 	@Override
 	public void uploadComplete(FileResource resource, String childPath, FileObject file, long bytesIn, long timeMillis,
 			String protocol) {
-		eventService.publishEvent(
+		
+		if(checkEventFilter(file.getName().getBaseName())) {
+			eventService.publishEvent(
 				new UploadCompleteEvent(this, getCurrentSession(), resource, childPath, bytesIn, timeMillis, protocol));
+		}
 	}
 
+	private boolean checkEventFilter(String filename) {
+		
+		String[] excludeFilters = configurationService.getValues("fsEvents.excludeFilter");
+		
+		boolean exclude = false;
+		for(String filter : excludeFilters) {
+			log.info("Checking filter " + filter+ " for " + filename);
+			if(filename.endsWith(filter)) {
+				exclude = true;
+				log.info("Simple matched filter " + filter + " for " + filename);
+				break;
+			} else if(filename.matches(filter)) {
+				exclude = true;
+				log.info("Regex matched filter " + filter + " for " + filename);
+				break;
+			} else if(filter.indexOf("*") > 0) {
+				String starts = filter.substring(0, filter.indexOf("*"));
+				if(filename.startsWith(starts)) {
+					log.info("StartsWith matched filter " + filter + " for " + filename);
+					exclude = true;
+					break;
+				}
+			}
+		}
+		
+		return !exclude;
+	}
 	@Override
 	public void uploadFailed(FileResource resource, String childPath, FileObject file, long bytesIn, Throwable t,
 			String protocol) {
-		eventService.publishEvent(
+		if(checkEventFilter(file.getName().getBaseName())) {
+			eventService.publishEvent(
 				new UploadCompleteEvent(this, getCurrentSession(), t, resource, childPath, protocol));
+		}
 	}
 		
 	

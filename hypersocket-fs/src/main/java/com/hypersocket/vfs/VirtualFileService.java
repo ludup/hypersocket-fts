@@ -22,9 +22,9 @@ import com.hypersocket.vfs.json.HttpDownloadProcessor;
 
 public interface VirtualFileService extends AuthenticatedService {
 
-	VirtualFile getFile(String virtualPath) throws FileNotFoundException, AccessDeniedException;
+	VirtualFile getFile(String virtualPath) throws AccessDeniedException, IOException;
 
-	Collection<VirtualFile> getChildren(String virtualPath) throws FileNotFoundException, AccessDeniedException;
+	Collection<VirtualFile> getChildren(String virtualPath) throws AccessDeniedException, IOException;
 
 	Collection<VirtualFile> getChildren(VirtualFile folder) throws AccessDeniedException;
 
@@ -36,7 +36,7 @@ public interface VirtualFileService extends AuthenticatedService {
 
 	FileUpload uploadFile(String virtualPath, InputStream in, UploadProcessor<?> processor, String proto) throws AccessDeniedException, IOException;
 
-	Collection<VirtualFile> listChildren(String virtualPath, String proto) throws FileNotFoundException, AccessDeniedException;
+	Collection<VirtualFile> listChildren(String virtualPath, String proto) throws IOException, AccessDeniedException;
 
 	long getSearchCount(String virtualPath, String searchColumn, String search) throws AccessDeniedException;
 
@@ -82,7 +82,7 @@ public interface VirtualFileService extends AuthenticatedService {
 
 	Collection<FileResource> getNonRootMounts() throws AccessDeniedException;
 
-	Collection<FileResource> getMountsForPath(String virtualPath) throws FileNotFoundException, AccessDeniedException;
+	Collection<FileResource> getMountsForPath(String virtualPath) throws AccessDeniedException, IOException;
 
 	VirtualFile getFileById(Long id) throws AccessDeniedException;
 
