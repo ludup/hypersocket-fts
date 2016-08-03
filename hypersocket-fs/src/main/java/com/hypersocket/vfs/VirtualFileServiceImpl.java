@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.Locale;
 
 import org.apache.commons.io.FileExistsException;
 import org.apache.commons.io.IOUtils;
@@ -230,11 +231,12 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		} else {
 		
 			DeleteFileResolver resolver = new DeleteFileResolver(proto);
-			if(resolver.getFile()==null || !resolver.getFile().exists()) {
+
+			boolean success = resolver.processRequest(file);
+			if(!resolver.isExisted()) {
 				virtualRepository.removeReconciledFile(file);
 				return true;
 			}
-			boolean success = resolver.processRequest(file);
 			if(success) {
 				virtualRepository.removeReconciledFile(file);
 				return true;
@@ -598,7 +600,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	@Override
 	public long getSearchCount(String virtualPath, String searchColumn, String search) throws AccessDeniedException {
 		VirtualFile file = virtualRepository.getVirtualFileByResource(virtualPath, getCurrentRealm(), getCurrentPrincipal(), getPrincipalResources());
-		return virtualRepository.getCount(VirtualFile.class, searchColumn, search, new ParentCriteria(file));
+		return virtualRepository.getCount(VirtualFile.class, searchColumn, search, new ParentCriteria(file), new ConflictCriteria());
 	}
 
 	@Override
@@ -980,7 +982,8 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	class DeleteFileResolver extends FileResolver<Boolean> {
 
 		String protocol;
-
+		boolean existed;
+		
 		DeleteFileResolver(String protocol) {
 			super(true, true);
 			this.protocol = protocol;
@@ -991,7 +994,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 				throws IOException {
 			try {
 				
-				if (file.exists()) {
+				if (existed = file.exists()) {
 					boolean deleted = file.delete();
 
 					if (deleted) {
@@ -1014,6 +1017,10 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		@Override
 		void onFileUnresolved(String path, Exception t) {
 			eventService.publishEvent(new DeleteFileEvent(this, t, getCurrentSession(), path, protocol));
+		}
+		
+		boolean isExisted() {
+			return existed;
 		}
 	};
 	
@@ -1148,12 +1155,14 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	
 	protected FileObject resolveVFSFile(FileResource resource) throws FileSystemException {
 		FileResourceScheme scheme = fileService.getScheme(resource.getScheme());
-		String url = resource.getPrivateUrl(getCurrentPrincipal(), userVariableReplacement);
+		
 		if(scheme.getFileService()!=null) {
+			String url = resource.getPrivateUrl(getCurrentPrincipal(), userVariableReplacement);
 			FileSystemOptions opts = scheme.getFileService().buildFileSystemOptions(resource);
 			return VFS.getManager().resolveFile(
 					url, opts);
 		} else {
+			String url = resource.getPrivateUrl(getCurrentPrincipal(), userVariableReplacement);
 			return VFS.getManager().resolveFile(url);
 		}
 	}
@@ -1193,17 +1202,29 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	@Override
 	public void downloadComplete(FileResource resource, String childPath, FileObject file, long bytesOut,
 			long timeMillis, String protocol, Session session) {
-		if(checkEventFilter(file.getName().getBaseName())) {
-			eventService.publishEvent(
-				new DownloadCompleteEvent(this, session, resource, childPath, bytesOut, timeMillis, protocol));
+		
+		setCurrentSession(session, Locale.getDefault());
+			try {
+			if(checkEventFilter(file.getName().getBaseName())) {
+				eventService.publishEvent(
+					new DownloadCompleteEvent(this, session, resource, childPath, bytesOut, timeMillis, protocol));
+			}
+		} finally {
+			clearPrincipalContext();
 		}
 	}
 
 	@Override
 	public void downloadFailed(FileResource resource, String childPath, FileObject file, Throwable t, String protocol,
 			Session session) {
-		if(checkEventFilter(file.getName().getBaseName())) {
-			eventService.publishEvent(new DownloadCompleteEvent(this, t, session, resource, childPath, protocol));
+		
+		setCurrentSession(session, Locale.getDefault());
+		try {
+			if(checkEventFilter(file.getName().getBaseName())) {
+				eventService.publishEvent(new DownloadCompleteEvent(this, t, session, resource, childPath, protocol));
+			}
+		} finally {
+			clearPrincipalContext();
 		}
 	}
 	

@@ -294,12 +294,6 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 	public Class<?> getPermissionType() {
 		return FileResourcePermission.class;
 	}
-	
-	protected FileSystemOptions buildFilesystemOptions(FileResource resource) {
-		FileResourceScheme scheme = schemes.get(resource.getScheme());
-		return scheme.getFileService().buildFileSystemOptions(resource);
-		
-	}
 
 	@Override
 	protected void fireResourceCreationEvent(FileResource resource) {
