@@ -238,4 +238,8 @@ public class VirtualFile extends AbstractEntity<Long> {
 		return folderMounts;
 	}
 	
+	public boolean isVirtualFolder() {
+		return mount==null;
+	}
+	
 }

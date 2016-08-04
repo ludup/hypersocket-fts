@@ -138,30 +138,40 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		
 		virtualPath = normalise(virtualPath);
 		
-		if(virtualPath.equals("/")) {
-			return getRootFolder();
-		}
-		
 		FileResource[] resources = getPrincipalResources();
-		VirtualFile file = virtualRepository.getVirtualFileByResource(virtualPath, getCurrentRealm(), getCurrentPrincipal(), resources);
+		
+		VirtualFile file;
+		
+		if(virtualPath.equals("/")) {
+			file = getRootFolder();
+		} else {
+			 file = virtualRepository.getVirtualFileByResource(virtualPath, getCurrentRealm(), getCurrentPrincipal(), resources);
+		}
 
+		boolean isVirtualFolder = false;
+		boolean forceSync = false;
 		if(file!=null) {
-			int invalidateCacheMs = fileService.getResourceIntProperty(file.getMount(), "fs.invalidateCacheSeconds") * 1000;
-			if(file.isFolder()) {
+			isVirtualFolder = file.isVirtualFolder();
+			forceSync = isVirtualFolder && hasUserFilesystem(resources);
+			if(!forceSync && file.isFolder()) {
+				int invalidateCacheMs = configurationService.getIntValue("fs.invalidateCacheSeconds") * 1000;
 				if(!file.getSync() || (System.currentTimeMillis() - file.getModifiedDate().getTime()) > invalidateCacheMs) {
 					file = null;
 				}
 			}
 		}
 		
-		if(file==null) {
+		if(file==null || forceSync) {
 			try {
-				syncService.synchronize(virtualPath, getCurrentPrincipal(), resources);
+				syncService.synchronize(virtualPath, getCurrentPrincipal(), !isVirtualFolder, resources);
 			} catch (IOException e) {
-				log.error("Synchronization failed", e);
 				throw new FileNotFoundException(e.getMessage());
 			}
-			file = virtualRepository.getVirtualFile(virtualPath, getCurrentRealm(), null);
+			if(virtualPath.equals("/")) {
+				file = getRootFolder();
+			} else {
+				 file = virtualRepository.getVirtualFileByResource(virtualPath, getCurrentRealm(), getCurrentPrincipal(), resources);
+			}
 			if(file==null) {
 				throw new FileNotFoundException(virtualPath);
 			}
@@ -169,6 +179,14 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		return file;
 	}
 	
+	private boolean hasUserFilesystem(FileResource... resources) {
+		for(FileResource resource : resources) {
+			if(syncService.isUserFilesystem(resource)) {
+				return true;
+			}
+		}
+		return false;
+	}
 	@Override
 	public Principal getOwnerPrincipal(FileResource resource) {
 		return syncService.canSynchronize(resource) ? null : syncService.isUserFilesystem(resource) ? getCurrentPrincipal() : null;
@@ -473,7 +491,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 						virtualRepository.reconcileFolder(displayName, existingFile, resolver.getToFile(), resolver.getToMount(), conflicted, null);
 					}
 				}
-				syncService.synchronize(toPath, getOwnerPrincipal(resolver.getToMount()), resolver.getToMount());
+				syncService.synchronize(toPath, getOwnerPrincipal(resolver.getToMount()), true, resolver.getToMount());
 				break;
 			default:
 				log.error(String.format("File %s is not a file or folder", toPath));

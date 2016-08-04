@@ -25,8 +25,9 @@ public interface VirtualFileSynchronizationService extends AuthenticatedService 
 
 	boolean canSynchronize(FileResource resource);
 
-	void synchronize(String virtualPath, Principal principal, FileResource... fileResources) throws FileNotFoundException, IOException;
-
 	boolean isUserFilesystem(FileResource resource);
+
+	void synchronize(String virtualPath, Principal principal, boolean throwError, FileResource... resources)
+			throws IOException;
 
 }

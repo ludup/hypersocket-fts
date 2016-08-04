@@ -5,12 +5,6 @@
 		<property resourceKey="fs.includeFilter" inputType="multipleTextInput" defaultValue="" weight="0" />
 		<property resourceKey="fs.excludeFilter" inputType="multipleTextInput" defaultValue="" weight="100" />
 	</propertyCategory>
-	<propertyCategory resourceKey="fs.cache"
-		resourceBundle="FileResourceService" weight="9999" store="db">
-		<property resourceKey="fs.invalidateCacheSeconds" inputType="integer"
-		    minValue="30" maxValue="86400" invalidResourceKey="error.between30and86400"
-			defaultValue="900" weight="0" />
-	</propertyCategory>
 	<propertyCategory resourceKey="fs.events"
 		resourceBundle="FileResourceService" weight="9998" store="db" hidden="true">
 		<property resourceKey="fs.generateChangeEvents" inputType="switch"
