@@ -34,6 +34,7 @@ import com.hypersocket.auth.json.UnauthorizedException;
 import com.hypersocket.fs.FileResource;
 import com.hypersocket.fs.FileResourceService;
 import com.hypersocket.fs.FileResourceServiceImpl;
+import com.hypersocket.fs.UploadEventProcessor;
 import com.hypersocket.i18n.I18N;
 import com.hypersocket.json.RequestStatus;
 import com.hypersocket.json.ResourceList;
@@ -518,7 +519,7 @@ public class FileSystemController extends ResourceController {
 				}
 
 				@Override
-				public VirtualFile getResource() throws FileNotFoundException, AccessDeniedException {
+				public VirtualFile getResource() throws IOException, AccessDeniedException {
 					return fileService.getFile(virtualPath);
 				}
 			});

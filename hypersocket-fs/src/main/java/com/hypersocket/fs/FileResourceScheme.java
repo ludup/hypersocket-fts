@@ -10,6 +10,7 @@ public class FileResourceScheme {
 	boolean isRemote;
 	boolean supportsCredentials;
 	boolean showPort;
+	int defaultPort;
 	boolean showPath;
 	boolean readOnly;
 	boolean showHidden;
@@ -24,29 +25,45 @@ public class FileResourceScheme {
 			boolean isRemote, 
 			boolean supportsCredentials, 
 			boolean showPort,
+			int defaultPort,
 			boolean showPath,
 			boolean readOnly,
 			boolean showHidden,
 			boolean showFolders) {
-		this(scheme, isRemote, supportsCredentials, showPort, showPath, readOnly, showHidden, showFolders, null, null);
+		this(scheme, isRemote, supportsCredentials, showPort, defaultPort, showPath, readOnly, showHidden, showFolders, null, null);
 	}
 	
 	public FileResourceScheme(String scheme, 
 			boolean isRemote, 
 			boolean supportsCredentials, 
 			boolean showPort, 
+			int defaultPort,
 			boolean showPath,
 			boolean readOnly,
 			boolean showHidden,
 			boolean showFolders,
 			Class<? extends FileProvider> provider) {
-		this(scheme, isRemote, supportsCredentials, showPort, showPath, readOnly, showHidden, showFolders, provider, null);
+		this(scheme, isRemote, supportsCredentials, showPort, defaultPort, showPath, readOnly, showHidden, showFolders, provider, null);
 	}
 	
 	public FileResourceScheme(String scheme, 
 			boolean isRemote, 
 			boolean supportsCredentials, 
 			boolean showPort, 
+			int defaultPort,
+			boolean showPath,
+			boolean readOnly,
+			boolean showHidden,
+			boolean showFolders,
+			FileService fileService) {
+		this(scheme, isRemote, supportsCredentials, showPort, defaultPort, showPath, readOnly, showHidden, showFolders, null, fileService);
+	}
+	
+	public FileResourceScheme(String scheme, 
+			boolean isRemote, 
+			boolean supportsCredentials, 
+			boolean showPort, 
+			int defaultPort,
 			boolean showPath,
 			boolean readOnly,
 			boolean showHidden,
@@ -56,6 +73,7 @@ public class FileResourceScheme {
 		this.scheme = scheme;
 		this.isRemote = isRemote;
 		this.showPort = showPort;
+		this.defaultPort = defaultPort;
 		this.showPath = showPath;
 		this.readOnly = readOnly;
 		this.showHidden = showHidden;
@@ -139,5 +157,8 @@ public class FileResourceScheme {
 		this.showPath = showPath;
 	}
 
+	public int getDefaultPort() {
+		return defaultPort;
+	}
 	
 }

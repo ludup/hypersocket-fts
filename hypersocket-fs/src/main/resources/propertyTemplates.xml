@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+<propertyTemplates>
+	<propertyCategory resourceKey="category.fsEvents"
+		resourceBundle="FileResourceService" weight="1000" group="files">
+		<property resourceKey="fsEvents.excludeFilter" inputType="multipleTextInput" defaultValue="._]|[.DS_Store" weight="100" />
+	</propertyCategory>
+	<propertyCategory resourceKey="fs.cache"
+		resourceBundle="FileResourceService" weight="9999" store="db">
+		<property resourceKey="fs.invalidateCacheSeconds" inputType="integer"
+		    minValue="30" maxValue="86400" invalidResourceKey="error.between30and86400"
+			defaultValue="900" weight="0" />
+	</propertyCategory>
+</propertyTemplates>

@@ -1,10 +1,9 @@
 <?xml version="1.0" ?>
 <propertyTemplates context="fileResource">
-	<propertyCategory resourceKey="fs.cache"
-		resourceBundle="FileResourceService" weight="9999" store="db">
-		<property resourceKey="fs.invalidateCacheSeconds" inputType="integer"
-		    minValue="30" maxValue="86400" invalidResourceKey="error.between30and86400"
-			defaultValue="900" weight="0" />
+	<propertyCategory resourceKey="fs.filter"
+		resourceBundle="FileResourceService" weight="9998" store="db">
+		<property resourceKey="fs.includeFilter" inputType="multipleTextInput" defaultValue="" weight="0" />
+		<property resourceKey="fs.excludeFilter" inputType="multipleTextInput" defaultValue="" weight="100" />
 	</propertyCategory>
 	<propertyCategory resourceKey="fs.events"
 		resourceBundle="FileResourceService" weight="9998" store="db" hidden="true">

@@ -207,8 +207,8 @@ public class FileResource extends AssignableResource  {
 	}
 
 	public String getLaunchUrl() {
-		return System.getProperty("hypersocket.uiPath", "/hypersocket")
-				+ "/viewfs/" + getName();
+		return System.getProperty("hypersocket.uiPath", "/hypersocket/ui/")
+				+ "#menu=myFilesystems&virtualPath=" + getVirtualPath();
 	}
 
 	public void setDisplayInBrowserResourcesTable(

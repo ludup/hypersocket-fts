@@ -58,7 +58,7 @@ public class FileObjectFile extends AbstractFtpFile {
 		try {
 			factory.getService().getFile(absolutePath);
 			return true;
-		} catch (FileNotFoundException e) {
+		} catch (IOException e) {
 			return false;
 		} catch (AccessDeniedException e) {
 			return false;
@@ -104,7 +104,7 @@ public class FileObjectFile extends AbstractFtpFile {
 			try {
 				parentFile = factory.getService().getFile(FileUtils.stripLastPathElement(absolutePath));
 				return parentFile.getWritable();
-			} catch (FileNotFoundException | AccessDeniedException e1) {
+			} catch (IOException | AccessDeniedException e1) {
 				return false;
 			}
 			

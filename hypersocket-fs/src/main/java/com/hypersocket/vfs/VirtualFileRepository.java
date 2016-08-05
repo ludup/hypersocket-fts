@@ -59,7 +59,9 @@ public interface VirtualFileRepository extends AbstractRepository<Long> {
 
 	void removeFileResource(FileResource resource);
 
-	int removeReconciledFolder(VirtualFile toDelete, boolean topLevel);
-
 	int removeReconciledFiles(VirtualFile folder);
+
+	int removeReconciledFolder(VirtualFile toDelete);
+
+	void clearFileResource(FileResource resource);
 }

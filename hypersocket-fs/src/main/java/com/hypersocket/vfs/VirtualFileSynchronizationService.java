@@ -1,5 +1,6 @@
 package com.hypersocket.vfs;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import org.apache.commons.vfs2.FileObject;
@@ -24,8 +25,9 @@ public interface VirtualFileSynchronizationService extends AuthenticatedService 
 
 	boolean canSynchronize(FileResource resource);
 
-	void synchronize(String virtualPath, Principal principal, FileResource... fileResources);
-
 	boolean isUserFilesystem(FileResource resource);
+
+	void synchronize(String virtualPath, Principal principal, boolean throwError, FileResource... resources)
+			throws IOException;
 
 }

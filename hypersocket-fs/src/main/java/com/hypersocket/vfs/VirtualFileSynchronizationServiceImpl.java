@@ -1,5 +1,6 @@
 package com.hypersocket.vfs;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,7 +31,6 @@ import com.hypersocket.fs.events.FileUpdatedEvent;
 import com.hypersocket.fs.events.FolderCreatedEvent;
 import com.hypersocket.fs.events.FolderDeletedEvent;
 import com.hypersocket.fs.events.FolderUpdatedEvent;
-import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.properties.ResourceUtils;
 import com.hypersocket.realm.Principal;
 import com.hypersocket.utils.FileUtils;
@@ -119,6 +119,12 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 
 				try {
 					String filename = obj.getName().getBaseName();
+					
+					if(!checkResourceFilter(filename, resource)) {
+						continue;
+					}
+					
+					
 					String childDisplayName = filename;
 					boolean reconciled = false;
 					boolean childConflicted = false;
@@ -189,7 +195,7 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 						continue;
 					}
 					if (toDelete.isFolder()) {
-						stats.filesDeleted += repository.removeReconciledFolder(toDelete, true);
+						stats.filesDeleted += repository.removeReconciledFolder(toDelete);
 						stats.foldersDeleted++;
 					} else {
 						repository.removeReconciledFile(toDelete);
@@ -204,6 +210,41 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 			log.error("Failed to reconcile folder", e);
 			stats.errors++;
 		} 
+	}
+	
+	private boolean checkResourceFilter(String filename, FileResource resource) {
+		
+		String[] includeFilters = ResourceUtils.explodeValues(fileService.getResourceProperty(resource,"fs.includeFilter"));
+		String[] excludeFilters = ResourceUtils.explodeValues(fileService.getResourceProperty(resource,"fs.excludeFilter"));
+		
+		boolean included = includeFilters.length==0;
+		
+		if(!included) {
+			for(String include : includeFilters) {
+				if(filename.matches(include)) {
+					included = true;
+					break;
+				}
+				if(filename.endsWith(include)) {
+					included = true;
+					break;
+				}
+			}
+		}
+		
+		if(included && excludeFilters.length > 0) {
+			for(String exclude : excludeFilters) {
+				if(filename.matches(exclude)) {
+					included = false;
+					break;
+				}
+				if(filename.endsWith(exclude)) {
+					included = false;
+					break;
+				}
+			}
+		}
+		return included;
 	}
 
 	private boolean isReconciledFile(FileResource resource, FileObject obj) {
@@ -391,33 +432,24 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 		
 		FileObject fileObject = resourceService.getFileObject(resource);
 		
-		FileResourceReconcileStartedEvent started;
-		eventService.publishEvent(
-				started = new FileResourceReconcileStartedEvent(this, true, resource.getRealm(), resource));
+		if(!fileObject.exists()) {
+			throw new FileNotFoundException(String.format("%s does not exist", resource.getUrl()));
+		}
+		
+		repository.clearFileResource(resource);
 		
 		try {
 		
 		switch(fileObject.getType()) {
-//		case FILE:
-//			reconcileFile(stats, fileObject, resource, null, parentFile, false, null);
-//			break;
 		case FOLDER:
 			reconcileFolder(stats, fileObject, resource, parentFile, false, depth, null);
-			
-			eventService.publishEvent(new FileResourceReconcileCompletedEvent(this, true, resource.getRealm(), started,
-					stats.filesCreated, 
-					stats.filesUpdated, 
-					stats.filesDeleted, 
-					stats.foldersCreated, 
-					stats.foldersUpdated, 
-					stats.foldersDeleted));
 			break;
 		default:
 			// We don't handle others
 		}
 		
 		} catch(IOException ex) {
-			eventService.publishEvent(new FileResourceReconcileCompletedEvent(this, ex, resource, resource.getRealm()));
+			log.error(String.format("Failed to reconcile %s", resource.getName()), ex);
 			throw ex;
 		}
 	}
@@ -457,69 +489,81 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 	}
 
 	@Override
-	public void synchronize(String virtualPath, Principal principal, FileResource... resources) {
+	public void synchronize(String virtualPath, Principal principal, boolean throwError, FileResource... resources) throws IOException {
 		
 		ReconcileStatistics stats = new ReconcileStatistics();
 		for(FileResource resource : resources) {
-			try {
+			
 				if(FileUtils.checkEndsWithSlash(virtualPath).startsWith(FileUtils.checkEndsWithSlash(resource.getVirtualPath()))) {
 					String childPath = FileUtils.stripParentPath(resource.getVirtualPath(), virtualPath);
 					
-					FileObject resourceFile = resourceService.getFileObject(resource);
-					FileObject fileObject = resourceFile;
-					if(StringUtils.isNotBlank(childPath)) {
-						fileObject = resourceFile.resolveFile(childPath);
-						if(!fileObject.exists()) {
-							log.warn(String.format("Cannot synchronize %s/%s because it does not exist", resource.getName(), childPath));
+					try {
+						FileObject resourceFile = resourceService.getFileObject(resource);
+						FileObject fileObject = resourceFile;
+						if(StringUtils.isNotBlank(childPath)) {
+							fileObject = resourceFile.resolveFile(childPath);
+							if(!fileObject.exists()) {
+								log.warn(String.format("Cannot synchronize %s/%s because it does not exist", resource.getName(), childPath));
+								continue;
+							}
+						}
+	
+						if(!fileObject.exists() && throwError) {
+							throw new FileNotFoundException(String.format("%s is not a valid path [%s]", virtualPath, fileObject.getPublicURIString()));
+						} else if(!fileObject.exists()) {
 							continue;
 						}
-					}
-
-					String parentPath = virtualPath; 
-					VirtualFile parentFile;
-					
-					List<String> parentPaths = new ArrayList<String>();
-					do {
-						parentPath = FileUtils.stripLastPathElement(parentPath);
-						parentFile = repository.getVirtualFile(parentPath, getCurrentRealm(), principal);
-						if(parentFile==null) {
-							parentPaths.add(0, parentPath);
+						
+						String parentPath = virtualPath; 
+						VirtualFile parentFile;
+						
+						List<String> parentPaths = new ArrayList<String>();
+						do {
+							parentPath = FileUtils.stripLastPathElement(parentPath);
+							parentFile = repository.getVirtualFile(parentPath, getCurrentRealm(), principal);
+							if(parentFile==null) {
+								parentPaths.add(0, parentPath);
+							}
+						} while(parentFile==null);
+						
+						for(String parent : parentPaths) {
+							String path = FileUtils.stripParentPath(resource.getVirtualPath(), parent);
+							parentFile = reconcileFile(stats, resourceFile.resolveFile(path), resource, null, parentFile, false, principal);
 						}
-					} while(parentFile==null);
-					
-					for(String parent : parentPaths) {
-						String path = FileUtils.stripParentPath(resource.getVirtualPath(), parent);
-						parentFile = reconcileFile(stats, resourceFile.resolveFile(path), resource, null, parentFile, false, principal);
-					}
-
-					VirtualFile file = repository.getVirtualFile(virtualPath, getCurrentRealm(), principal);
-					
-					
-					switch(fileObject.getType()) {
-					case FOLDER:
-						if(file==null) {
-							file = repository.reconcileNewFolder(fileObject.getName().getBaseName(), parentFile, fileObject, resource, false, principal);
+	
+						VirtualFile file = repository.getVirtualFile(virtualPath, getCurrentRealm(), principal);
+						
+						
+						switch(fileObject.getType()) {
+						case FOLDER:
+							if(file==null) {
+								file = repository.reconcileNewFolder(fileObject.getName().getBaseName(), parentFile, fileObject, resource, false, principal);
+							}
+							reconcileFolder(stats, fileObject, resource, file, false, 1, resourceService.getOwnerPrincipal(resource));
+							file.setSync(true);
+							repository.saveFile(file); // Ensure modified date gets updated.
+							break;
+						case FILE:
+							if(file.isFolder()) {
+								parentFile = file;
+								file = repository.getVirtualFile(FileUtils.checkEndsWithSlash(virtualPath) + fileObject.getName().getBaseName(), getCurrentRealm(), principal);
+							}
+							file = reconcileFile(stats, fileObject, resource, file, parentFile, false, resourceService.getOwnerPrincipal(resource));
+							file.setSync(true);
+							repository.saveFile(file); // Ensure modified date gets updated.
+							break;
+						default:
+							if(log.isDebugEnabled()) {
+								log.debug(String.format("Unhandled file type %s for path %s/%s",fileObject.getType().getName(), resource.getUrl(), childPath));
+							}
+							break;
 						}
-						reconcileFolder(stats, fileObject, resource, file, false, 1, resourceService.getOwnerPrincipal(resource));
-						break;
-					case FILE:
-						file = reconcileFile(stats, fileObject, resource, file, parentFile, false, resourceService.getOwnerPrincipal(resource));
-						break;
-					default:
-						if(log.isDebugEnabled()) {
-							log.debug(String.format("Unhandled file type %s for path %s/%s",fileObject.getType().getName(), resource.getUrl(), childPath));
+					} catch(IOException e) {
+						if(throwError) {
+							throw e;
 						}
-						break;
 					}
-					
-					file.setSync(true);
-					repository.saveFile(file); // Ensure modified date gets updated.
-					
 				}
-
-			} catch (Exception e) {
-				log.error("I/O error during synchronize", e);
-			}
 		}
 		repository.flush();
 	}
