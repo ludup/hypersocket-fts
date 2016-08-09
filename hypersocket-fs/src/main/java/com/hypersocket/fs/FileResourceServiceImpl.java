@@ -166,9 +166,6 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 				ConfigurationPermission.UPDATE,
 				null), FileResourceServiceImpl.MENU_FILE_SYSTEMS);
 		
-		menuService.registerExtendableTable(ACTIONS_FILE);
-		menuService.registerExtendableTable(ACTIONS_BULK);
-
 		if (log.isInfoEnabled()) {
 			log.info("VFS reports the following schemes available");
 
