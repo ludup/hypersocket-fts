@@ -6,7 +6,6 @@ import org.apache.commons.lang3.StringUtils;
 import com.hypersocket.fs.FileResource;
 import com.hypersocket.fs.FileResourceServiceImpl;
 import com.hypersocket.properties.ResourceUtils;
-import com.hypersocket.replace.ReplacementUtils;
 import com.hypersocket.resource.AssignableResourceEvent;
 import com.hypersocket.session.Session;
 

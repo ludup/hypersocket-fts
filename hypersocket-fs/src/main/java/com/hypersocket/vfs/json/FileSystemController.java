@@ -1,6 +1,5 @@
 package com.hypersocket.vfs.json;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
@@ -34,7 +33,6 @@ import com.hypersocket.auth.json.UnauthorizedException;
 import com.hypersocket.fs.FileResource;
 import com.hypersocket.fs.FileResourceService;
 import com.hypersocket.fs.FileResourceServiceImpl;
-import com.hypersocket.fs.UploadEventProcessor;
 import com.hypersocket.i18n.I18N;
 import com.hypersocket.json.RequestStatus;
 import com.hypersocket.json.ResourceList;
@@ -481,7 +479,7 @@ public class FileSystemController extends ResourceController {
 	@RequestMapping(value = "fs/search/**", method = RequestMethod.GET, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
-	public BootstrapTableResult search(HttpServletRequest request,
+	public BootstrapTableResult<?> search(HttpServletRequest request,
 			HttpServletResponse response) throws AccessDeniedException,
 			UnauthorizedException, IOException, SessionTimeoutException {
 

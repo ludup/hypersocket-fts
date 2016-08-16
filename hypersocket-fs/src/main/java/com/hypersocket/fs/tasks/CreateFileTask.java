@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.hypersocket.events.SystemEvent;
-import com.hypersocket.fs.FileResource;
 import com.hypersocket.i18n.I18NService;
 import com.hypersocket.properties.ResourceTemplateRepository;
 import com.hypersocket.realm.Realm;
@@ -85,10 +84,6 @@ public class CreateFileTask extends AbstractTaskProvider {
 		String path = processTokenReplacements(repository.getValue(task, "file.path"), event);
 
 		try {
-			int index = path.lastIndexOf("/");
-			String parentPath = path.substring(0, index);
-			String name = path.substring(index + 1, path.length());
-
 			if (task.getResourceKey().equals(ACTION_MKDIR)) {
 				
 				fileService.createFolder(path, PROTOCOL);

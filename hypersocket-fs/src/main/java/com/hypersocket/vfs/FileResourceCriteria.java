@@ -1,7 +1,6 @@
 package com.hypersocket.vfs;
 
 import org.hibernate.Criteria;
-import org.hibernate.criterion.Junction;
 import org.hibernate.criterion.Restrictions;
 
 import com.hypersocket.fs.FileResource;

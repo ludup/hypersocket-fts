@@ -72,12 +72,11 @@ public class FTPInterfaceResourceController extends ResourceController {
 		}
 	}
 	
-	@SuppressWarnings("rawtypes")
 	@AuthenticationRequired
 	@RequestMapping(value = "ftpInterfaces/table", method = RequestMethod.GET, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
-	public BootstrapTableResult tableResources(
+	public BootstrapTableResult<?> tableResources(
 			final HttpServletRequest request, HttpServletResponse response)
 			throws AccessDeniedException, UnauthorizedException,
 			SessionTimeoutException {

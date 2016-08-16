@@ -16,9 +16,9 @@ import com.hypersocket.ftp.interfaces.FTPInterfaceResourceRepository;
 import com.hypersocket.ftp.interfaces.FTPProtocol;
 import com.hypersocket.realm.RealmRepository;
 
-public class ftp_0_DOT_0_DOT_1 implements Runnable {
+public class ftp_1_DOT_3_DOT_0 implements Runnable {
 
-	static Logger log = LoggerFactory.getLogger(ftp_0_DOT_0_DOT_1.class);
+	static Logger log = LoggerFactory.getLogger(ftp_1_DOT_3_DOT_0.class);
 	
 	@Autowired
 	FTPInterfaceResourceRepository ftpInterfaceResourceRepository; 
@@ -41,7 +41,6 @@ public class ftp_0_DOT_0_DOT_1 implements Runnable {
 		log.info("Adding default ftp and ftps interfaces");
 		
 		FTPInterfaceResource ftp = new FTPInterfaceResource();
-		ftp.setCreatedDate(now);
 		ftp.setDeleted(false);
 		ftp.setFtpIdleTimeout(500);
 		ftp.setFtpInterfaces("127.0.0.1");
@@ -50,14 +49,13 @@ public class ftp_0_DOT_0_DOT_1 implements Runnable {
 		ftp.setFtpProtocol(FTPProtocol.FTP);
 		ftp.setHidden(false);
 		ftp.setName("Default FTP");
-		ftp.setRealm(realmRepository.getDefaultRealm());
+		ftp.setRealm(realmRepository.getRealmByName("System"));
 		
 		ftpInterfaceResourceRepository.saveResource(ftp, new HashMap<String, String>());
 		
 		CertificateResource certificate = certificateResourceRepository.getResourceByName(CertificateResourceServiceImpl.DEFAULT_CERTIFICATE_NAME, realmRepository.getDefaultRealm());
 		
 		FTPInterfaceResource ftps = new FTPInterfaceResource();
-		ftps.setCreatedDate(now);
 		ftps.setDeleted(false);
 		ftps.setFtpIdleTimeout(500);
 		ftps.setFtpInterfaces("127.0.0.1");
@@ -66,7 +64,7 @@ public class ftp_0_DOT_0_DOT_1 implements Runnable {
 		ftps.setFtpProtocol(FTPProtocol.FTPS);
 		ftps.setHidden(false);
 		ftps.setName("Default FTPS");
-		ftps.setRealm(realmRepository.getDefaultRealm());
+		ftps.setRealm(realmRepository.getRealmByName("System"));
 		ftps.setFtpCertificate(certificate);
 		
 		ftpInterfaceResourceRepository.saveResource(ftps, new HashMap<String, String>());

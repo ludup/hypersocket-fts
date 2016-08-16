@@ -1,28 +1,10 @@
 package com.hypersocket.ftp;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.ftpserver.FtpServer;
-import org.apache.ftpserver.FtpServerFactory;
-import org.apache.ftpserver.ftplet.DefaultFtplet;
-import org.apache.ftpserver.ftplet.FtpException;
-import org.apache.ftpserver.ftplet.FtpSession;
-import org.apache.ftpserver.ftplet.FtpletResult;
-import org.apache.ftpserver.impl.DefaultDataConnectionConfiguration;
-import org.apache.ftpserver.impl.PassivePorts;
-import org.apache.ftpserver.ipfilter.IpFilter;
-import org.apache.ftpserver.listener.ListenerFactory;
-import org.apache.ftpserver.ssl.SslConfiguration;
-import org.apache.ftpserver.ssl.SslConfigurationFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +15,6 @@ import com.hypersocket.auth.AuthenticationModuleType;
 import com.hypersocket.auth.AuthenticationSchemeRepository;
 import com.hypersocket.auth.UsernameAndPasswordAuthenticator;
 import com.hypersocket.certificates.CertificateResourceService;
-import com.hypersocket.config.ConfigurationChangedEvent;
 import com.hypersocket.config.ConfigurationService;
 import com.hypersocket.config.SystemConfigurationService;
 import com.hypersocket.events.SystemEvent;
@@ -43,13 +24,9 @@ import com.hypersocket.realm.Realm;
 import com.hypersocket.realm.RealmAdapter;
 import com.hypersocket.realm.RealmRepository;
 import com.hypersocket.realm.RealmService;
-import com.hypersocket.server.events.ServerStartedEvent;
-import com.hypersocket.server.events.ServerStoppingEvent;
-import com.hypersocket.service.ManageableService;
 import com.hypersocket.service.ServiceManagementService;
 import com.hypersocket.session.SessionService;
 import com.hypersocket.session.json.SessionUtils;
-import com.mysql.jdbc.StringUtils;
 
 @Service
 public class FTPServiceImpl implements FTPService,

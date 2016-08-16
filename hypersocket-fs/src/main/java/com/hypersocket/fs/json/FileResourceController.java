@@ -135,7 +135,7 @@ public class FileResourceController extends ResourceController {
 	@RequestMapping(value = "mounts/table", method = RequestMethod.GET, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
-	public BootstrapTableResult tableMounts(final HttpServletRequest request,
+	public BootstrapTableResult<?> tableMounts(final HttpServletRequest request,
 			HttpServletResponse response) throws AccessDeniedException,
 			UnauthorizedException, SessionTimeoutException {
 
@@ -223,7 +223,7 @@ public class FileResourceController extends ResourceController {
 	@RequestMapping(value = "mounts/personal", method = RequestMethod.GET, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
-	public BootstrapTableResult personalMounts(
+	public BootstrapTableResult<?> personalMounts(
 			final HttpServletRequest request, HttpServletResponse response)
 			throws AccessDeniedException, UnauthorizedException,
 			SessionTimeoutException {
@@ -340,7 +340,6 @@ public class FileResourceController extends ResourceController {
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
 	@AuthenticationRequired
 	@RequestMapping(value = "mounts/mount/{id}", method = RequestMethod.DELETE, produces = { "application/json" })
 	@ResponseBody
