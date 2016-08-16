@@ -61,7 +61,7 @@ public class FTPUserManager implements UserManager {
 											+ ":" + auth.getPassword())
 											.getBytes("UTF-8")), "UTF-8"));
 			AuthenticationState state = authenticationService
-					.createAuthenticationState(FTPServiceImpl.AUTHENTICATION_SCHEME_RESOURCE_KEY,
+					.createAuthenticationState(FTPService.AUTHENTICATION_SCHEME_RESOURCE_KEY,
 							auth.getUserMetadata()
 							.getInetAddress().getHostAddress(), environment,
 							Locale.getDefault());

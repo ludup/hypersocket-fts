@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 
 import com.hypersocket.auth.AuthenticationService;
 import com.hypersocket.config.ConfigurationService;
-import com.hypersocket.fs.FileResourceService;
 import com.hypersocket.i18n.I18NService;
 import com.hypersocket.permissions.PermissionService;
 import com.hypersocket.realm.RealmService;
