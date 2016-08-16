@@ -137,7 +137,7 @@ public class FileResource extends AssignableResource  {
 	}
 
 	public String getUrl() {
-		return getUrl(true, null, null);
+		return getUrl(true, null, null, username, password);
 	}
 	
 	public void setLogo(String logo) {
@@ -156,30 +156,40 @@ public class FileResource extends AssignableResource  {
 	@XmlTransient
 	public String getPrivateUrl(Principal principal,
 			UserVariableReplacement replacementService) {
-		return getUrl(false, principal, replacementService);
+		return getUrl(false, principal, replacementService, username, password);
+	}
+	
+	@JsonIgnore
+	@XmlTransient
+	public String getPrivateUrl(Principal principal,
+			UserVariableReplacement replacementService,
+			String overrideUsername,
+			String overridePassword) {
+		return getUrl(false, principal, replacementService, overrideUsername, overridePassword);
 	}
 
 	private String getUrl(boolean friendly, Principal principal,
-			UserVariableReplacement replacementService) {
+			UserVariableReplacement replacementService, String overrideUsername,
+			String overridePassword) {
 		try {
 			StringBuffer buf = new StringBuffer();
 			buf.append(scheme);
 			buf.append("://");
 
-			if (StringUtils.isNotBlank(username)) {
+			if (StringUtils.isNotBlank(overrideUsername)) {
 				if (friendly) {
-					buf.append(username);
+					buf.append(overrideUsername);
 				} else {
 					buf.append(URLEncoder.encode(replacementService
-							.replaceVariables(principal, username), "UTF-8"));
+							.replaceVariables(principal, overrideUsername), "UTF-8"));
 				}
-				if (StringUtils.isNotBlank(password)) {
+				if (StringUtils.isNotBlank(overridePassword)) {
 					buf.append(":");
 					if (friendly) {
 						buf.append("***");
 					} else {
 						buf.append(URLEncoder.encode(replacementService
-								.replaceVariables(principal, password), "UTF-8"));
+								.replaceVariables(principal, overridePassword), "UTF-8"));
 					}
 				}
 				buf.append("@");

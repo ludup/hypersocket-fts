@@ -52,7 +52,11 @@ public interface VirtualFileService extends AuthenticatedService {
 
 	InputStream downloadFile(String realPath, long position, String proto) throws IOException, AccessDeniedException;
 
+	InputStream downloadFile(String realPath, long position, String proto, Principal overridePrincipal, String overrideUsername, String overridePassword) throws IOException, AccessDeniedException;
+	
 	FileObject getFileObject(String path) throws IOException, AccessDeniedException;
+	
+	FileObject getFileObject(String path, Principal overridePrincipal, String overrideUsername, String overridePassword) throws IOException, AccessDeniedException;
 	
 	OutputStream uploadFile(String realPath, long position, String proto) throws IOException, AccessDeniedException;
 
@@ -95,5 +99,7 @@ public interface VirtualFileService extends AuthenticatedService {
 
 	VirtualFile createFolder(String virtualPath, String proto, boolean disableEvent)
 			throws IOException, AccessDeniedException;
+
+	VirtualFile getFile(String virtualPath, boolean noSync) throws IOException, AccessDeniedException;
 
 }
