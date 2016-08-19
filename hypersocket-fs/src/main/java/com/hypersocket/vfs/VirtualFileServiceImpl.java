@@ -1216,7 +1216,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		}
 	}
 	
-	protected FileObject resolveVFSFile(FileResource resource, Principal principal, String overrideUsername, String overridePassword) throws FileSystemException {
+	protected FileObject resolveVFSFile(FileResource resource, Principal principal, String overrideUsername, String overridePassword) throws IOException {
 		FileResourceScheme scheme = fileService.getScheme(resource.getScheme());
 		
 		if(scheme.getFileService()!=null) {
@@ -1230,11 +1230,11 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		}
 	}
 	
-	protected FileObject resolveVFSFile(FileResource resource) throws FileSystemException {
+	protected FileObject resolveVFSFile(FileResource resource) throws IOException {
 		return resolveVFSFile(resource, getCurrentPrincipal(), resource.getUsername(), resource.getPassword());
 	}
 	
-	protected FileSystemOptions buildFilesystemOptions(FileResource resource) {
+	protected FileSystemOptions buildFilesystemOptions(FileResource resource) throws IOException {
 		FileResourceScheme scheme = fileService.getScheme(resource.getScheme());
 		return scheme.getFileService().buildFileSystemOptions(resource);	
 	}
