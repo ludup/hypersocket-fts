@@ -532,8 +532,7 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 						}
 	
 						VirtualFile file = repository.getVirtualFile(virtualPath, getCurrentRealm(), principal);
-						
-						
+
 						switch(fileObject.getType()) {
 						case FOLDER:
 							if(file==null) {
@@ -544,6 +543,9 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 							repository.saveFile(file); // Ensure modified date gets updated.
 							break;
 						case FILE:
+							if(file==null) {
+								file = repository.reconcileFile(fileObject.getName().getBaseName(), fileObject, resource, parentFile, principal);
+							}
 							if(file.isFolder()) {
 								parentFile = file;
 								file = repository.getVirtualFile(FileUtils.checkEndsWithSlash(virtualPath) + fileObject.getName().getBaseName(), getCurrentRealm(), principal);

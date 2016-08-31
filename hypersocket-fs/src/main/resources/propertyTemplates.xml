@@ -2,7 +2,7 @@
 <propertyTemplates>
 	<propertyCategory resourceKey="category.fsEvents"
 		resourceBundle="FileResourceService" weight="1000" group="files">
-		<property resourceKey="fsEvents.excludeFilter" inputType="multipleTextInput" defaultValue="._]|[.DS_Store" weight="100" />
+		<property resourceKey="fsEvents.excludeFilter" inputType="multipleTextInput" defaultValue="._*]|[.DS_Store" weight="100" />
 	</propertyCategory>
 	<propertyCategory resourceKey="fs.cache"
 		resourceBundle="FileResourceService" weight="9999" store="db">
