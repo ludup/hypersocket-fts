@@ -51,6 +51,8 @@ import com.hypersocket.resource.AbstractAssignableResourceRepository;
 import com.hypersocket.resource.AbstractAssignableResourceServiceImpl;
 import com.hypersocket.resource.ResourceChangeException;
 import com.hypersocket.resource.ResourceCreationException;
+import com.hypersocket.resource.ResourceGroup;
+import com.hypersocket.resource.ResourceGroupService;
 import com.hypersocket.resource.ResourceNotFoundException;
 import com.hypersocket.resource.TransactionAdapter;
 import com.hypersocket.server.HypersocketServer;
@@ -58,6 +60,7 @@ import com.hypersocket.ui.IndexPageFilter;
 import com.hypersocket.ui.UserInterfaceContentHandler;
 import com.hypersocket.upload.FileUploadService;
 import com.hypersocket.vfs.VirtualFileSynchronizationService;
+import com.sshtools.icongenerator.AwesomeIcon;
 
 @Service
 public class FileResourceServiceImpl extends AbstractAssignableResourceServiceImpl<FileResource>
@@ -111,6 +114,8 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 	@Autowired
 	VirtualFileSynchronizationService syncService; 
 	
+	@Autowired
+	ResourceGroupService resourceGroupService;
 
 	Map<String, FileResourceScheme> schemes = new HashMap<String, FileResourceScheme>();
 
@@ -203,6 +208,8 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 		indexPage.addScript("${uiPath}/js/jstree.js");
 		indexPage.addStyleSheet("${uiPath}/css/themes/default/style.min.css");
 		indexPage.addStyleSheet("${uiPath}/css/fs.css");
+		
+		resourceGroupService.registerResourceGroup(new ResourceGroup("FILE", RESOURCE_BUNDLE, AwesomeIcon.ICON_FILE.toString()));
 		
 		if (log.isDebugEnabled()) {
 			log.debug("FileResourceService constructed");
