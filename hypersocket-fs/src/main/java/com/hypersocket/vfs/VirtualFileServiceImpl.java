@@ -592,7 +592,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 								existingFile, existingFile.getParent(), getOwnerPrincipal(resource));
 					} else {
 						virtualRepository.reconcileFile(displayName, store.getFileObject(), resource, 
-								VirtualFileServiceImpl.this.getFile(FileUtils.stripLastPathElement(virtualPath)), getOwnerPrincipal(resource));
+								VirtualFileServiceImpl.this.getFile(FileUtils.stripLastPathElement(virtualPath), true), getOwnerPrincipal(resource));
 					}
 
 					return upload;
