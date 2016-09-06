@@ -137,6 +137,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	public VirtualFile getFile(String virtualPath) throws IOException, AccessDeniedException {
 		return getFile(virtualPath, false);
 	}
+	
 	@Override
 	public VirtualFile getFile(String virtualPath, boolean noSync) throws IOException, AccessDeniedException {
 		
@@ -591,7 +592,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 								existingFile, existingFile.getParent(), getOwnerPrincipal(resource));
 					} else {
 						virtualRepository.reconcileFile(displayName, store.getFileObject(), resource, 
-								VirtualFileServiceImpl.this.getFile(FileUtils.stripLastPathElement(virtualPath)), getOwnerPrincipal(resource));
+								VirtualFileServiceImpl.this.getFile(FileUtils.stripLastPathElement(virtualPath), true), getOwnerPrincipal(resource));
 					}
 
 					return upload;
