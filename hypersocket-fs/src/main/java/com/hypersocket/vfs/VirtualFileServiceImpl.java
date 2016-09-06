@@ -946,6 +946,10 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 
 			try {
 
+				if(!toFile.getParent().exists()) {
+					toFile.getParent().createFolder();
+				}
+				
 				toFile.copyFrom(fromFile, new FileSelector() {
 
 					@Override
@@ -996,6 +1000,11 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 				FileResource toResource, String toChildPath, FileObject toFile) throws IOException {
 
 			try {
+				
+				if(!toFile.getParent().exists()) {
+					toFile.getParent().createFolder();
+				}
+				
 				fromFile.moveTo(toFile);
 
 				eventService.publishEvent(new RenameEvent(this, getCurrentSession(), 
