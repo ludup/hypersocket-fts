@@ -414,7 +414,7 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 			throw new ResourceChangeException(e);
 		}
 		
-		updateResource(resource, properties, new TransactionAdapter<FileResource>() {
+		updateResource(resource, null, properties, new TransactionAdapter<FileResource>() {
 
 			@Override
 			public void afterOperation(FileResource resource, Map<String, String> properties) {
