@@ -1131,7 +1131,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 
 				switch(fromFile.getType()) {
 				case FILE: 
-					if(toFile.getType()!=FileType.FILE) {
+					if(toFile.exists() && toFile.getType()==FileType.FOLDER) {
 						String filename = FileUtils.lastPathElement(fromPath);
 						toFile = toFile.resolveFile(filename);
 						if(StringUtils.isBlank(toChildPath)) {
