@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,7 @@ import com.hypersocket.json.ResourceStatus;
 import com.hypersocket.server.HypersocketServer;
 import com.hypersocket.server.handlers.HttpRequestHandler;
 import com.hypersocket.server.handlers.HttpResponseProcessor;
+import com.hypersocket.session.Session;
 import com.hypersocket.session.SessionService;
 import com.hypersocket.session.json.SessionTimeoutException;
 import com.hypersocket.session.json.SessionUtils;
@@ -100,12 +102,17 @@ public class UploadHttpHandler extends HttpRequestHandler {
 			    FileItemStream item = iter.next();
 			    String name = item.getName();
 			    String partDestination = virtualPath + FileUtils.lastPathElement(name);
-			    InputStream stream = item.openStream();
-			    uploads.add(fileService.uploadFile(
-						FileUtils.checkEndsWithNoSlash(partDestination), 
-						stream, 
-						null, 
-						FileSystemController.HTTP_PROTOCOL));
+			    InputStream stream = new SessionStickyInputStream(item.openStream(), 
+			    		sessionService.getCurrentSession());
+			    try {
+				    uploads.add(fileService.uploadFile(
+							FileUtils.checkEndsWithNoSlash(partDestination), 
+							stream, 
+							null, 
+							FileSystemController.HTTP_PROTOCOL));
+			    } finally {
+			    	stream.close();
+			    }
 			}
 			
 			
@@ -131,6 +138,46 @@ public class UploadHttpHandler extends HttpRequestHandler {
 		response.setContentType("application/json; charset=UTF-8");
 		response.setContentLength(contentBytes.length);;
 		response.getOutputStream().write(contentBytes);
+	}
+	
+	class SessionStickyInputStream extends InputStream {
+		
+		InputStream in;
+		Session session;
+		long lastTouch = System.currentTimeMillis();
+		
+		SessionStickyInputStream(InputStream in, Session session) {
+			this.in = in;
+			this.session = session;
+		}
+		
+		@Override
+		public int read() throws IOException {
+			touchSession();
+			return in.read();
+		}
+		
+		@Override
+		public int read(byte[] buf, int off, int len) throws IOException {
+			touchSession();
+			return in.read(buf, off, len);
+		}
+		
+		@Override
+		public void close() {
+			IOUtils.closeQuietly(in);
+		}
+		
+		private void touchSession() {
+			if((System.currentTimeMillis() - lastTouch) >  30000) {
+				try {
+					sessionUtils.touchSession(session);
+				} catch (SessionTimeoutException e) {
+				}
+				lastTouch = System.currentTimeMillis();
+			}
+		}
+		
 	}
 
 }
