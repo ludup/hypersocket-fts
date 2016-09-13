@@ -199,13 +199,8 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 		eventService.registerEvent(CreateFileTaskResult.class, CreateFileTask.RESOURCE_BUNDLE);
 		eventService.registerEvent(DeleteFolderTaskResult.class, CreateFileTask.RESOURCE_BUNDLE);
 
-		registerScheme(new FileResourceScheme("file", false, false, false, -1, true, false, true, true ));
-//		registerScheme(new FileResourceScheme("ftp", true, true, true, true, false, true, true));
-//		registerScheme(new FileResourceScheme("ftps", true, true, true, true, false, true, true));
-//		registerScheme(new FileResourceScheme("http", true, true, true, true, true, false, false));
-//		registerScheme(new FileResourceScheme("https", true, true, true, true, true, false, false));
-		registerScheme(new FileResourceScheme("tmp", false, false, false, -1, false, false, true, false));
-//		registerScheme(new FileResourceScheme("smb", true, true, false, true, false, true, true));
+		registerScheme(new FileResourceScheme("file", false, false, false, false, -1, true, false, true, true ));
+		registerScheme(new FileResourceScheme("tmp", true, false, false, false, -1, false, false, true, false));
 
 		indexPage.addScript("${uiPath}/js/jstree.js");
 		indexPage.addStyleSheet("${uiPath}/css/themes/default/style.min.css");

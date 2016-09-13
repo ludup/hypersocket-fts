@@ -66,6 +66,8 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 		eventService.registerEvent(FolderUpdatedEvent.class, FileResourceServiceImpl.RESOURCE_BUNDLE);
 		eventService.registerEvent(FolderDeletedEvent.class, FileResourceServiceImpl.RESOURCE_BUNDLE);		
 		
+		repository.forceSync();
+		
 	}
 	@Override
 	public void reconcileFolder(ReconcileStatistics stats,
@@ -393,6 +395,11 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 		}
 	}
 
+	@Override
+	public void clean(FileResource resource) {
+		repository.clearFileResource(resource);
+	}
+	
 	public void removeFileResource(FileResource resource) {
 		repository.removeFileResource(resource);
 	}

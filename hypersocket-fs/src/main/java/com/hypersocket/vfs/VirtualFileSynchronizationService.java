@@ -30,4 +30,6 @@ public interface VirtualFileSynchronizationService extends AuthenticatedService 
 	void synchronize(String virtualPath, Principal principal, boolean throwError, FileResource... resources)
 			throws IOException;
 
+	void clean(FileResource resource);
+
 }

@@ -1229,15 +1229,24 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	protected FileObject resolveVFSFile(FileResource resource, Principal principal, String overrideUsername, String overridePassword) throws IOException {
 		FileResourceScheme scheme = fileService.getScheme(resource.getScheme());
 		
+		FileObject obj;
 		if(scheme.getFileService()!=null) {
 			String url = resource.getPrivateUrl(principal, userVariableReplacement, overrideUsername, overridePassword);
 			FileSystemOptions opts = scheme.getFileService().buildFileSystemOptions(resource);
-			return VFS.getManager().resolveFile(
-					url, opts);
+			obj = VFS.getManager().resolveFile(url, opts);
 		} else {
 			String url = resource.getPrivateUrl(principal, userVariableReplacement, overrideUsername, overridePassword);
-			return VFS.getManager().resolveFile(url);
+			obj = VFS.getManager().resolveFile(url);
 		}
+		
+		if(scheme.isCreateRoot()) {
+			if(!obj.exists()) {
+				obj.createFolder();
+				syncService.clean(resource);
+			} 
+		}
+		
+		return obj;
 	}
 	
 	protected FileObject resolveVFSFile(FileResource resource) throws IOException {
