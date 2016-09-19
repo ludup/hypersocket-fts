@@ -64,4 +64,6 @@ public interface VirtualFileRepository extends AbstractRepository<Long> {
 	int removeReconciledFolder(VirtualFile toDelete);
 
 	void clearFileResource(FileResource resource);
+
+	void forceSync();
 }

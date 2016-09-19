@@ -366,7 +366,14 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 		update.setEntity("mount", resource);
 		update.executeUpdate();
 		
+	}
+	
+	@Override
+	@Transactional
+	public void forceSync() {
 		
+		Query update = createQuery("update VirtualFile set sync = false where mount is null", true);
+		update.executeUpdate();
 	}
 
 	@Override

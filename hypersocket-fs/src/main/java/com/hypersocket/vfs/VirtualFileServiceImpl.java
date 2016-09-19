@@ -946,6 +946,10 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 
 			try {
 
+				if(!toFile.getParent().exists()) {
+					toFile.getParent().createFolder();
+				}
+				
 				toFile.copyFrom(fromFile, new FileSelector() {
 
 					@Override
@@ -996,6 +1000,11 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 				FileResource toResource, String toChildPath, FileObject toFile) throws IOException {
 
 			try {
+				
+				if(!toFile.getParent().exists()) {
+					toFile.getParent().createFolder();
+				}
+				
 				fromFile.moveTo(toFile);
 
 				eventService.publishEvent(new RenameEvent(this, getCurrentSession(), 
@@ -1122,7 +1131,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 
 				switch(fromFile.getType()) {
 				case FILE: 
-					if(toFile.getType()!=FileType.FILE) {
+					if(toFile.exists() && toFile.getType()==FileType.FOLDER) {
 						String filename = FileUtils.lastPathElement(fromPath);
 						toFile = toFile.resolveFile(filename);
 						if(StringUtils.isBlank(toChildPath)) {
@@ -1220,15 +1229,24 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	protected FileObject resolveVFSFile(FileResource resource, Principal principal, String overrideUsername, String overridePassword) throws IOException {
 		FileResourceScheme scheme = fileService.getScheme(resource.getScheme());
 		
+		FileObject obj;
 		if(scheme.getFileService()!=null) {
 			String url = resource.getPrivateUrl(principal, userVariableReplacement, overrideUsername, overridePassword);
 			FileSystemOptions opts = scheme.getFileService().buildFileSystemOptions(resource);
-			return VFS.getManager().resolveFile(
-					url, opts);
+			obj = VFS.getManager().resolveFile(url, opts);
 		} else {
 			String url = resource.getPrivateUrl(principal, userVariableReplacement, overrideUsername, overridePassword);
-			return VFS.getManager().resolveFile(url);
+			obj = VFS.getManager().resolveFile(url);
 		}
+		
+		if(scheme.isCreateRoot()) {
+			if(!obj.exists()) {
+				obj.createFolder();
+				syncService.clean(resource);
+			} 
+		}
+		
+		return obj;
 	}
 	
 	protected FileObject resolveVFSFile(FileResource resource) throws IOException {
