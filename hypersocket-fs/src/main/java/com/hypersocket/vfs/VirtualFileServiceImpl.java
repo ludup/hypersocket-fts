@@ -1441,6 +1441,11 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 
 			return bytesIn;
 		}
+
+		@Override
+		public InputStream getInputStream(FileUpload fileByUuid) throws IOException {
+			throw new UnsupportedOperationException();
+		}
 	}
 
 	@Override
