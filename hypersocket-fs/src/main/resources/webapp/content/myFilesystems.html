@@ -94,9 +94,9 @@
 			$(document).on('show.bs.dropdown', '#dropdown_' + index, function () {
 				var dropdown = $(this);
 				var resource = row;
-				debugger;
+				
 				$.each(additionalActions, function(x, act) {
-					debugger;
+					
 					if(act.enabled) {
 						if(act.displayFunction && act.displayFunction != '') {
 							var display = window[act.displayFunction].apply(null, [resource]);
