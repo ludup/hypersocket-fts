@@ -10,6 +10,7 @@ import java.util.Locale;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.FtpServerFactory;
 import org.apache.ftpserver.ftplet.DefaultFtplet;
 import org.apache.ftpserver.ftplet.FtpException;
@@ -23,23 +24,98 @@ import org.apache.ftpserver.ssl.SslConfiguration;
 import org.apache.ftpserver.ssl.SslConfigurationFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.hypersocket.certificates.CertificateResource;
+import com.hypersocket.certificates.CertificateResourceService;
+import com.hypersocket.ftp.FTPFileSystemFactory;
 import com.hypersocket.ftp.FTPSessionUser;
+import com.hypersocket.ftp.FTPUserManager;
+import com.hypersocket.ftp.HypersocketListenerFactory;
+import com.hypersocket.i18n.I18NService;
+import com.hypersocket.ip.IPRestrictionService;
 import com.hypersocket.properties.ResourceUtils;
 import com.hypersocket.service.ManageableService;
+import com.hypersocket.service.ServiceManagementService;
+import com.hypersocket.session.SessionService;
 import com.mysql.jdbc.StringUtils;
 
 @Service
-public class FTPResourceService extends AbstractFTPResourceService implements ManageableService{
+public class FTPResourceService implements ManageableService{
 	
 	static Logger log = LoggerFactory.getLogger(FTPResourceService.class);
 	
 
+	boolean running = false;
+	FtpServer ftpServer;
+	Throwable lastError = null;
+	
+	@Autowired 
+	FTPInterfaceResourceService ftpInterfaceResourceService;
+	
+	@Autowired
+	IPRestrictionService ipRestrictionService; 
+	
+	@Autowired
+	FTPUserManager userManager;
+	
+	@Autowired
+	FTPFileSystemFactory filesystemFactory;
+	
+	@Autowired
+	ServiceManagementService serviceManagementService; 
+	
+	@Autowired
+	SessionService sessionService;
+	
+	@Autowired
+	I18NService i18nService;
+	
+	@Autowired
+	CertificateResourceService certificateService;
+	
 	@PostConstruct
 	protected void postConstruct() {
-		super.postConstruct();
+		serviceManagementService.registerService(this);
+	}
+	
+	@Override
+	public void stop() {
+		try {
+			if(ftpServer!=null) {
+				ftpServer.stop();
+			}
+			running = false;
+		} catch (Exception e) {
+			log.error("Failed to stop FTP service", e);
+		}
+	}
+	
+
+	@Override
+	public String getResourceKey() {
+		return "ftp.service";
+	}
+
+	@Override
+	public String getResourceBundle() {
+		return FTPInterfaceResourceServiceImpl.RESOURCE_BUNDLE;
+	}
+
+	@Override
+	public boolean isRunning() {
+		return true;
+	}
+	
+	@Override
+	public boolean isError() {
+		return lastError != null;
+	}
+	
+	@Override
+	public String getErrorText() {
+		return lastError == null ? "" : lastError.getMessage();
 	}
 	
 	@Override
@@ -113,7 +189,7 @@ public class FTPResourceService extends AbstractFTPResourceService implements Ma
 		if (interfaces != null) {
 			for (String intface : interfaces) {
 				ListenerFactory factory = createListener(ftpInterfaceResource, intface, getSslConfiguration(ftpInterfaceResource));
-				serverFactory.addListener(interfaceName(intface, ftpInterfaceResource.ftpPort), factory.createListener());
+				serverFactory.addListener(interfaceName(intface, ftpInterfaceResource.ftpPort), ((HypersocketListenerFactory)factory).createListener(ftpInterfaceResource));
 			}
 		} 
 		return interfaces;
@@ -153,7 +229,7 @@ public class FTPResourceService extends AbstractFTPResourceService implements Ma
 			log.info(String.format("Starting FTP server on interface %s:%d:%s ",intface, ftpInterfaceResource.ftpPort, ftpInterfaceResource.ftpProtocol.name()));
 		}
 
-		ListenerFactory factory = new ListenerFactory();
+		ListenerFactory factory = new HypersocketListenerFactory();
 
 		int idleTime = ftpInterfaceResource.ftpIdleTimeout;
 		// set the port of the listener
@@ -186,6 +262,10 @@ public class FTPResourceService extends AbstractFTPResourceService implements Ma
 			}
 		});
 		return factory;
+	}
+	
+	public static String interfaceName(String ip, int port){
+		return String.format("%s:%d", ip, port);
 	}
 
 }
