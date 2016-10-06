@@ -51,6 +51,7 @@ import com.hypersocket.resource.AbstractAssignableResourceRepository;
 import com.hypersocket.resource.AbstractAssignableResourceServiceImpl;
 import com.hypersocket.resource.ResourceChangeException;
 import com.hypersocket.resource.ResourceCreationException;
+import com.hypersocket.resource.ResourceException;
 import com.hypersocket.resource.ResourceNotFoundException;
 import com.hypersocket.resource.TransactionAdapter;
 import com.hypersocket.server.HypersocketServer;
@@ -357,7 +358,7 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 	}
 	
 	@Override
-	public void createFileResource(FileResource resource, Map<String, String> properties) throws ResourceCreationException, AccessDeniedException {
+	public void createFileResource(FileResource resource, Map<String, String> properties) throws AccessDeniedException, ResourceException {
 		createResource(resource, properties, new TransactionAdapter<FileResource>() {
 
 			@Override
@@ -402,7 +403,7 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 	}
 	
 	@Override
-	public void updateFileResource(FileResource resource, Map<String, String> properties) throws ResourceChangeException, AccessDeniedException {
+	public void updateFileResource(FileResource resource, Map<String, String> properties) throws AccessDeniedException, ResourceException {
 		
 		try {
 			FileResource original = getResourceById(resource.getId());
@@ -435,7 +436,7 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	public void deleteResource(FileResource resource) throws ResourceChangeException, AccessDeniedException {
+	public void deleteResource(FileResource resource) throws AccessDeniedException, ResourceException {
 		
 		super.deleteResource(resource, new TransactionAdapter<FileResource>() {
 

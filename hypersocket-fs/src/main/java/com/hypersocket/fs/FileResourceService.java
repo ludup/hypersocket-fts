@@ -9,6 +9,7 @@ import com.hypersocket.properties.PropertyCategory;
 import com.hypersocket.resource.AbstractAssignableResourceService;
 import com.hypersocket.resource.ResourceChangeException;
 import com.hypersocket.resource.ResourceCreationException;
+import com.hypersocket.resource.ResourceException;
 
 public interface FileResourceService extends
 		AbstractAssignableResourceService<FileResource> {
@@ -21,9 +22,9 @@ public interface FileResourceService extends
 
 	Collection<PropertyCategory> getPropertyTemplates(String scheme) throws AccessDeniedException;
 
-	void createFileResource(FileResource r, Map<String, String> properties) throws ResourceCreationException, AccessDeniedException;
+	void createFileResource(FileResource r, Map<String, String> properties) throws AccessDeniedException, ResourceException;
 
-	void updateFileResource(FileResource r, Map<String, String> properties) throws ResourceChangeException, AccessDeniedException;
+	void updateFileResource(FileResource r, Map<String, String> properties) throws ResourceException, AccessDeniedException;
 
 	FileResourceScheme getScheme(String scheme);
 
@@ -31,7 +32,7 @@ public interface FileResourceService extends
 
 	Collection<FileResource> getNonRootResources() throws AccessDeniedException;
 
-	void deleteResource(FileResource resource) throws ResourceChangeException, AccessDeniedException;
+	void deleteResource(FileResource resource) throws ResourceException, AccessDeniedException;
 
 	void resetRebuildReconcileStatus(FileResource resource);
 

@@ -11,7 +11,7 @@ import com.hypersocket.fs.FileResource;
 import com.hypersocket.fs.FileResourceRepository;
 import com.hypersocket.realm.Realm;
 import com.hypersocket.realm.RealmRepository;
-import com.hypersocket.resource.ResourceChangeException;
+import com.hypersocket.resource.ResourceException;
 import com.hypersocket.vfs.VirtualFile;
 import com.hypersocket.vfs.VirtualFileRepository;
 
@@ -51,7 +51,7 @@ public class fs_1_DOT_2_DOT_0 implements Runnable {
 				try {
 					resource.setVirtualPath("/" + resource.getName() + "/");
 					repository.saveResource(resource, new HashMap<String,String>());
-				} catch (ResourceChangeException e) {
+				} catch (ResourceException e) {
 					log.error(String.format("Could not upgrade file resource %s. Resource requires virtual path value", resource.getName()), e);
 				}
 			}

@@ -29,7 +29,7 @@ import com.hypersocket.repository.AbstractEntity;
 public class VirtualFile extends AbstractEntity<Long> {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.TABLE)
+	@GeneratedValue(strategy=GenerationType.TABLE)
 	@Column(name="id")
 	Long id;
 
