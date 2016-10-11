@@ -119,6 +119,7 @@
 				});
 			});
 		}
+		debugger;
 		if(row.mount && row.writable) {
 			actionHtml += '<a class="delete tableAction btn btn-danger btn-action"><i class="fa fa-trash fa-fw"></i></a>';
 			actionHtml += '<a class="edit tableAction btn btn-primary btn-action"><i class="fa fa-edit fa-fw"></i></a>';
@@ -456,10 +457,10 @@
 										onLoadSuccess : function(data) {
 											
 											if(data.resource.writable) {
-												$('#dragAndDrop').widget().enable();
+												$('#dragAndDrop').show();
 												$('#newFolderButton').prop('disabled', false);
 											} else {
-												$('#dragAndDrop').widget().disable();
+												$('#dragAndDrop').hide();
 												$('#newFolderButton').prop('disabled', true);
 											}
 											rebindEditable();

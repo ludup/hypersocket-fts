@@ -29,7 +29,7 @@ public interface VirtualFileRepository extends AbstractRepository<Long> {
 
 	VirtualFile reconcileNewFolder(String displayName, VirtualFile parent, FileObject fileObject, FileResource resource, boolean conflicted, Principal principal) throws FileSystemException;
 
-	VirtualFile reconcileMount(String displayName, FileResource resource, FileObject fileObject, VirtualFile virtualFile, Principal principal) throws FileSystemException;
+//	VirtualFile reconcileMount(String displayName, FileResource resource, FileObject fileObject, VirtualFile virtualFile, Principal principal) throws FileSystemException;
 
 	Collection<VirtualFile> getVirtualFiles(VirtualFile parent, Realm realm, Principal principal, FileResource... resources);
 

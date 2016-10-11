@@ -16,6 +16,7 @@ public class FileResourceScheme {
 	boolean showHidden;
 	boolean showFolders;
 	boolean createRoot;
+	boolean userFilesystem;
 	FileService fileService;
 	Class<? extends FileProvider> provider;
 	
@@ -169,6 +170,14 @@ public class FileResourceScheme {
 
 	public int getDefaultPort() {
 		return defaultPort;
+	}
+
+	public boolean isUserFilesystem() {
+		return userFilesystem;
+	}
+
+	public void setUserFilesystem(boolean userFilesystem) {
+		this.userFilesystem = userFilesystem;
 	}
 	
 }

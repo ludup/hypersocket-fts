@@ -150,7 +150,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		if(virtualPath.equals("/")) {
 			file = getRootFolder();
 		} else {
-			 file = virtualRepository.getVirtualFileByResource(virtualPath, getCurrentRealm(), getCurrentPrincipal(), resources);
+			 file = virtualRepository.getVirtualFile(virtualPath, getCurrentRealm(), getCurrentPrincipal());
 		}
 
 		boolean isVirtualFolder = false;
@@ -175,12 +175,21 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			if(virtualPath.equals("/")) {
 				file = getRootFolder();
 			} else {
-				 file = virtualRepository.getVirtualFileByResource(virtualPath, getCurrentRealm(), getCurrentPrincipal(), resources);
+				if(isVirtualFolder) {
+					file = virtualRepository.getVirtualFile(virtualPath, getCurrentRealm(), getCurrentPrincipal());
+				} else {
+					file = virtualRepository.getVirtualFileByResource(virtualPath, getCurrentRealm(), getCurrentPrincipal(), resources);
+				}
 			}
-			if(file==null) {
-				throw new FileNotFoundException(virtualPath);
-			}
+			
+		} else if(!isVirtualFolder) {
+			file = virtualRepository.getVirtualFileByResource(virtualPath, getCurrentRealm(), getCurrentPrincipal(), resources);
 		}
+		
+		if(file==null) {
+			throw new FileNotFoundException(virtualPath);
+		}
+		
 		return file;
 	}
 	
