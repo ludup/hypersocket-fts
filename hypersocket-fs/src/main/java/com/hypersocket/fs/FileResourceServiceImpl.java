@@ -340,7 +340,9 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 		
 		FileResourceScheme fileScheme = schemes.get(scheme);
 		if(fileScheme.getFileService()!=null) {
-			results.addAll(fileScheme.getFileService().getRepository().getPropertyCategories(null));
+			if(fileScheme.getFileService().getRepository()!=null) {
+				results.addAll(fileScheme.getFileService().getRepository().getPropertyCategories(null));
+			}
 		}
 		results.addAll(getRepository().getPropertyCategories(null));
 		return results;
@@ -353,7 +355,7 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 		
 		List<PropertyCategory> results = new ArrayList<PropertyCategory>();
 		FileResourceScheme fileScheme = schemes.get(resource.getScheme());
-		if(fileScheme.getFileService()!=null) {
+		if(fileScheme.getFileService()!=null && fileScheme.getFileService().getRepository()!=null) {
 			results.addAll(fileScheme.getFileService().getRepository().getPropertyCategories(resource));
 		}
 		
@@ -370,7 +372,9 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 				
 				FileResourceScheme scheme = schemes.get(resource.getScheme());
 				if(scheme.getFileService()!=null) {
-					scheme.getFileService().getRepository().setValues(resource, properties);
+					if(scheme.getFileService().getRepository()!=null) {
+						scheme.getFileService().getRepository().setValues(resource, properties);
+					}
 				}
 				
 				doInitialReconcile(resource, scheme);
@@ -422,7 +426,7 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 			public void afterOperation(FileResource resource, Map<String, String> properties) {
 				
 				FileResourceScheme scheme = schemes.get(resource.getScheme());
-				if(scheme.getFileService()!=null) {
+				if(scheme.getFileService()!=null && scheme.getFileService().getRepository()!=null) {
 					scheme.getFileService().getRepository().setValues(resource, properties);
 				}
 				

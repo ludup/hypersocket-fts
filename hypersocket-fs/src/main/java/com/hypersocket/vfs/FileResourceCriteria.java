@@ -27,16 +27,11 @@ public class FileResourceCriteria implements CriteriaConfiguration {
 		criteria.createAlias("folderMounts", "folderMount", Criteria.LEFT_JOIN);
 		
 		if(resource!=null) {
-			criteria.add(Restrictions.or(Restrictions.eq("mount", resource), Restrictions.or(Restrictions.isNull("mount"), 
-					Restrictions.and(Restrictions.isNull("mount"), 
-							Restrictions.eq("folderMount.id", resource.getId())))));
+			criteria.add(Restrictions.or(Restrictions.eq("mount", resource), Restrictions.eq("folderMount.id", resource.getId())));
 		} else if(resources!=null && resources.length > 0) {
-			criteria.add(Restrictions.or(Restrictions.in("mount", resources), Restrictions.or(Restrictions.isNull("mount"), 
-					Restrictions.and(Restrictions.isNull("mount"), 
-							Restrictions.in("folderMount.id", HibernateUtils.getResourceIds(resources))))));
-		} else {
-			criteria.add(Restrictions.isNull("mount"));
-		}
+			criteria.add(Restrictions.or(Restrictions.in("mount", resources), 
+					Restrictions.in("folderMount.id", HibernateUtils.getResourceIds(resources))));
+		} 
 	}
 
 }

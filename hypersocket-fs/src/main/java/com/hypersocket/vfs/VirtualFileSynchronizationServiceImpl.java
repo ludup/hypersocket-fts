@@ -23,6 +23,7 @@ import com.hypersocket.auth.AbstractAuthenticatedServiceImpl;
 import com.hypersocket.auth.InvalidAuthenticationContext;
 import com.hypersocket.events.EventService;
 import com.hypersocket.fs.FileResource;
+import com.hypersocket.fs.FileResourceScheme;
 import com.hypersocket.fs.FileResourceService;
 import com.hypersocket.fs.FileResourceServiceImpl;
 import com.hypersocket.fs.events.FileCreatedEvent;
@@ -420,6 +421,8 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 		
 		VirtualFile parentFile = repository.getVirtualFile(resource.getVirtualPath(), getCurrentRealm(), principal);
 
+		repository.reconcileParents(resource, principal);
+		
 		Hibernate.initialize(parentFile);
 		
 		if(!parentFile.getFolderMounts().contains(resource)) {
@@ -478,6 +481,11 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 	@Override
 	public boolean isUserFilesystem(FileResource resource) {
 		
+		FileResourceScheme scheme = fileService.getScheme(resource.getScheme());
+		if(scheme.isUserFilesystem()) {
+			return true;
+		}
+		
 		if(StringUtils.isNotBlank(resource.getUsername()) && StringUtils.isNotBlank(resource.getPassword())) {
 			/**
 			 * We have filled in credentials, but are they variables?
@@ -502,6 +510,9 @@ public class VirtualFileSynchronizationServiceImpl extends AbstractAuthenticated
 		for(FileResource resource : resources) {
 			
 				if(FileUtils.checkEndsWithSlash(virtualPath).startsWith(FileUtils.checkEndsWithSlash(resource.getVirtualPath()))) {
+					
+					repository.reconcileParent(resource, principal);
+					
 					String childPath = FileUtils.stripParentPath(resource.getVirtualPath(), virtualPath);
 					
 					try {
