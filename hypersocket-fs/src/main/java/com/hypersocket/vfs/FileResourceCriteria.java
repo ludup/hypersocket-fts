@@ -31,9 +31,7 @@ public class FileResourceCriteria implements CriteriaConfiguration {
 		} else if(resources!=null && resources.length > 0) {
 			criteria.add(Restrictions.or(Restrictions.in("mount", resources), 
 					Restrictions.in("folderMount.id", HibernateUtils.getResourceIds(resources))));
-		} else {
-			criteria.add(Restrictions.isNull("mount"));
-		}
+		} 
 	}
 
 }

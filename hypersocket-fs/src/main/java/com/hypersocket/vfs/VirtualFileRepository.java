@@ -31,8 +31,6 @@ public interface VirtualFileRepository extends AbstractRepository<Long> {
 
 //	VirtualFile reconcileMount(String displayName, FileResource resource, FileObject fileObject, VirtualFile virtualFile, Principal principal) throws FileSystemException;
 
-	Collection<VirtualFile> getVirtualFiles(VirtualFile parent, Realm realm, Principal principal, FileResource... resources);
-
 	VirtualFile getVirtualFileByResource(String virtualPath, Realm realm, Principal principal, FileResource... resources);
 
 	Collection<VirtualFile> getReconciledFiles(VirtualFile parent, Realm realm, Principal principal);
@@ -66,4 +64,9 @@ public interface VirtualFileRepository extends AbstractRepository<Long> {
 	void clearFileResource(FileResource resource);
 
 	void forceSync();
+
+	Collection<VirtualFile> getVirtualFiles(VirtualFile parent, Realm realm, Principal principal);
+
+	Collection<VirtualFile> getVirtualFilesByResource(VirtualFile parent, Realm realm, Principal principal,
+			FileResource... resources);
 }

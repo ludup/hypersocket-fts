@@ -1,13 +1,13 @@
 package com.hypersocket.vfs;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.apache.commons.vfs2.FileType;
 import org.hibernate.Criteria;
 import org.hibernate.Hibernate;
 import org.hibernate.Query;
@@ -35,13 +35,25 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 	
 	@Override
 	@Transactional(readOnly=true)
-	public Collection<VirtualFile> getVirtualFiles(VirtualFile parent, Realm realm, Principal principal, FileResource... resources) {
+	public Collection<VirtualFile> getVirtualFilesByResource(VirtualFile parent, Realm realm, Principal principal, FileResource... resources) {
+		if(resources.length==0) {
+			return Collections.<VirtualFile>emptyList();
+		}
+		return list("parent", parent, VirtualFile.class, new RealmCriteria(realm), new PrincipalCriteria(principal), new FileResourceCriteria(resources), new ConflictCriteria());
+	}
+	
+	@Override
+	@Transactional(readOnly=true)
+	public Collection<VirtualFile> getVirtualFiles(VirtualFile parent, Realm realm, Principal principal) {
 		return list("parent", parent, VirtualFile.class, new RealmCriteria(realm), new PrincipalCriteria(principal), new ConflictCriteria());
 	}
 
 	@Override
 	@Transactional(readOnly=true)
 	public VirtualFile getVirtualFileByResource(String virtualPath, Realm realm, Principal principal, FileResource... resources) {
+		if(resources.length==0) {
+			return null;
+		}
 		return get(VirtualFile.class, new VirtualPathCriteria(virtualPath), new RealmCriteria(realm), new FileResourceCriteria(resources), new PrincipalCriteria(principal), new ConflictCriteria());
 	}
 	
@@ -304,6 +316,9 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 	@Override
 	@Transactional(readOnly=true)
 	public Collection<VirtualFile> search(String searchColumn, String search, int start, int length, ColumnSort[] sort, final VirtualFile parent, Realm realm, Principal principal, final FileResource... resources) {
+		if(resources.length==0) {
+			return Collections.<VirtualFile>emptyList();
+		}
 		return super.search(VirtualFile.class, searchColumn, search, start, length, sort, new ParentCriteria(parent), new FileResourceCriteria(resources), new PrincipalCriteria(principal), new RealmCriteria(realm), new ConflictCriteria());
 	}
 

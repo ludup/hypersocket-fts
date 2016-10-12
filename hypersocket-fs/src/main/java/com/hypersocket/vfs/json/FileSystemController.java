@@ -1,5 +1,6 @@
 package com.hypersocket.vfs.json;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
@@ -361,11 +362,10 @@ public class FileSystemController extends ResourceController {
 	
 	@AuthenticationRequired
 	@RequestMapping(value = "fs/download/**", method = RequestMethod.GET, produces = { "application/json" })
-	@ResponseStatus(value = HttpStatus.OK)
 	public void downloadFile(HttpServletRequest request,
 			HttpServletResponse response,
 			@RequestParam(required=false) Boolean forceDownload) throws AccessDeniedException,
-			UnauthorizedException, SessionTimeoutException {
+			UnauthorizedException, SessionTimeoutException, IOException {
 
 		setupAuthenticatedContext(sessionUtils.getSession(request),
 				sessionUtils.getLocale(request));
@@ -384,14 +384,16 @@ public class FileSystemController extends ResourceController {
 							sessionUtils.getActiveSession(request)), 
 							HTTP_PROTOCOL);
 
-		} catch (Exception e) {
-			if(log.isInfoEnabled()) {
-				log.error("Failed to download file", e);
+			response.setStatus(HttpStatus.OK.value());
+			
+		} catch(FileSystemException ex) {  
+			if(ex.getCause() instanceof FileNotFoundException) {
+				response.sendError(HttpStatus.NOT_FOUND.value());
+				return;
 			}
-			try {
-				response.sendError(HttpStatus.INTERNAL_SERVER_ERROR.value());
-			} catch (IOException e1) {
-			}
+			throw ex;
+		} catch(FileNotFoundException ex) {  
+			response.sendError(HttpStatus.NOT_FOUND.value());
 		} finally {
 			clearAuthenticatedContext();
 		}
