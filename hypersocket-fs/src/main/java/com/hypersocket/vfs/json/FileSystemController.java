@@ -481,7 +481,7 @@ public class FileSystemController extends ResourceController {
 	@RequestMapping(value = "fs/search/**", method = RequestMethod.GET, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
-	public BootstrapTableResult search(HttpServletRequest request,
+	public BootstrapTableResult<?> search(HttpServletRequest request,
 			HttpServletResponse response) throws AccessDeniedException,
 			UnauthorizedException, IOException, SessionTimeoutException {
 
@@ -493,7 +493,7 @@ public class FileSystemController extends ResourceController {
 					FileUtils.stripParentPath(server.getApiPath() + "/fs/search", 
 							URLDecoder.decode(request.getRequestURI(), "UTF-8")));
 			
-			return processDataTablesRequest(request, new BootstrapTableResourceProcessor<VirtualFile>() {
+			return processDataTablesRequest(request, new BootstrapTableResourceProcessor<VirtualFileWrapper>() {
 				
 				@Override
 				public Long getTotalCount(String searchColumn, String searchPattern)
@@ -519,8 +519,8 @@ public class FileSystemController extends ResourceController {
 				}
 
 				@Override
-				public VirtualFile getResource() throws IOException, AccessDeniedException {
-					return fileService.getFile(virtualPath);
+				public VirtualFileWrapper getResource() throws IOException, AccessDeniedException {
+					return new VirtualFileWrapper(fileService.getFile(virtualPath), fileService.isRootWritable(getCurrentPrincipal()));
 				}
 			});
 
