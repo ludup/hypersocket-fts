@@ -150,7 +150,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		if(virtualPath.equals("/")) {
 			file = getRootFolder();
 		} else {
-			 file = virtualRepository.getVirtualFileByResource(virtualPath, getCurrentRealm(), getCurrentPrincipal(), resources);
+			 file = virtualRepository.getVirtualFile(virtualPath, getCurrentRealm(), getCurrentPrincipal());
 		}
 
 		boolean isVirtualFolder = false;
@@ -175,12 +175,21 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			if(virtualPath.equals("/")) {
 				file = getRootFolder();
 			} else {
-				 file = virtualRepository.getVirtualFileByResource(virtualPath, getCurrentRealm(), getCurrentPrincipal(), resources);
+				if(isVirtualFolder) {
+					file = virtualRepository.getVirtualFile(virtualPath, getCurrentRealm(), getCurrentPrincipal());
+				} else {
+					file = virtualRepository.getVirtualFileByResource(virtualPath, getCurrentRealm(), getCurrentPrincipal(), resources);
+				}
 			}
-			if(file==null) {
-				throw new FileNotFoundException(virtualPath);
-			}
+			
+		} else if(!isVirtualFolder) {
+			file = virtualRepository.getVirtualFileByResource(virtualPath, getCurrentRealm(), getCurrentPrincipal(), resources);
 		}
+		
+		if(file==null) {
+			throw new FileNotFoundException(virtualPath);
+		}
+		
 		return file;
 	}
 	
@@ -211,7 +220,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	
 	@Override
 	public Collection<VirtualFile> getChildren(VirtualFile folder) throws AccessDeniedException {
-		return virtualRepository.getVirtualFiles(folder, getCurrentRealm(), getCurrentPrincipal(), getPrincipalResources());
+		return virtualRepository.getVirtualFilesByResource(folder, getCurrentRealm(), getCurrentPrincipal(), getPrincipalResources());
 	}
 
 	@Override
@@ -535,7 +544,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 
 			void checkFile(FileObject file) throws IOException {
 				if(file.getType()!=FileType.FILE) {
-					throw new IOException("Download must be a file!");
+					throw new FileNotFoundException("Download must be a file!");
 				}
 			}
 			

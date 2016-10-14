@@ -119,6 +119,7 @@
 				});
 			});
 		}
+		debugger;
 		if(row.mount && row.writable) {
 			actionHtml += '<a class="delete tableAction btn btn-danger btn-action"><i class="fa fa-trash fa-fw"></i></a>';
 			actionHtml += '<a class="edit tableAction btn btn-primary btn-action"><i class="fa fa-edit fa-fw"></i></a>';
@@ -265,6 +266,26 @@
 
 		});
 		
+		
+		var canDelete = false;
+		var selectAll = true;
+		$.each($('#table').bootstrapTable('getData'), function(idx, obj) {
+			if(!obj.writable) {
+				$('#table tr[data-index="' + idx + '"] td input').hide();
+				selectAll = false;
+			} else {
+				canDelete = true;
+			}
+		});
+		
+		if(!selectAll) {
+			$('input[name="btSelectAll"]').hide();
+		}
+		
+		if(!canDelete) {
+			$('#multipleDelete').prop('disabled', true);
+		}
+		
 		$('.open').off('click');
 		$('.open').on('click', function() {
 			mountPath = $(this).data('path');
@@ -377,6 +398,7 @@
 														
 														var row = $(document).data('deleteRow');
 													
+														
 														$.each(row, function(idx, row) {
 															getJSON(createApiUrl('delete', row),
 																	null,
@@ -412,6 +434,7 @@
 										sortOrder: 'asc',
 										showRefresh : true,
 										showToggle : true,
+										checkboxHeader: false,
 										uniqueId: 'id',
 										sidePagination : 'server',
 										onPostHeader: function() {
@@ -457,12 +480,12 @@
 											}
 										},
 										onLoadSuccess : function(data) {
-											
+											debugger;
 											if(data.resource.writable) {
-												$('#dragAndDrop').widget().enable();
+												$('#dragAndDrop').show();
 												$('#newFolderButton').prop('disabled', false);
 											} else {
-												$('#dragAndDrop').widget().disable();
+												$('#dragAndDrop').hide();
 												$('#newFolderButton').prop('disabled', true);
 											}
 											rebindEditable();
