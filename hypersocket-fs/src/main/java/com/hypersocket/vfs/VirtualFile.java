@@ -11,6 +11,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
+import javax.persistence.Lob;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -48,7 +49,8 @@ public class VirtualFile extends AbstractEntity<Long> {
 	@Column(name="last_modified")
 	Long lastModified;
 	
-	@Column(name="virtual_path", length=8000)
+	@Column(name="virtual_path")
+	@Lob
 	String virtualPath;
 	
 	@Column(name="filename", length=256)
