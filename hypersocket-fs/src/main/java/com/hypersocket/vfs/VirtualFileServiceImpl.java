@@ -1613,5 +1613,16 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		file.setWritable(mount!=null);
 		virtualRepository.saveFile(file);
 	}
+
+	@Override
+	public boolean isRootWritable(Principal currentPrincipal) throws FileNotFoundException, AccessDeniedException {
+		
+		VirtualFile root = getRootFolder();
+		if(root.getDefaultMount()==null) {
+			return false;
+		}
+		Collection<FileResource> resources = fileService.getPersonalResources();
+		return resources.contains(root.getDefaultMount());
+	}
 	
 }

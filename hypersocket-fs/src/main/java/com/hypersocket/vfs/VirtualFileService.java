@@ -102,4 +102,6 @@ public interface VirtualFileService extends AuthenticatedService {
 
 	VirtualFile getFile(String virtualPath, boolean noSync) throws IOException, AccessDeniedException;
 
+	boolean isRootWritable(Principal currentPrincipal) throws FileNotFoundException, AccessDeniedException;
+
 }

@@ -191,10 +191,10 @@
 					+ row.displayName + '</span>';
 
 		} else {
-			outputHtml += '<a class="open" href="#" data-path="' + row.virtualPath + '"><i class="fileIcon fa fa-folder-open"></i></a><span class="fileLabel' 
+			outputHtml += '<a class="open" href="#" data-path="' + row.virtualPath + '"><i class="fileIcon fa fa-folder-open"></i><span class="fileLabel' 
 					+ (row.conflicted ? ' conflicted' : '') + '" data-original="' 
 					+ row.filename + '" data-unique="' + row.id + '">'
-					+ row.displayName + '</span>';
+					+ row.displayName + '</span></a>';
 		}
 
 		return outputHtml;
@@ -440,7 +440,7 @@
 										onPostHeader: function() {
 											
 											if($('#multipleDelete').length==0) {
-												$('.fixed-table-toolbar').find('.btn-group').first().prepend('<button id="multipleDelete" class="btn btn-default" type="button" name="multipleDelete" title="Delete"><i class="fa fa-trash"></i></button>');
+												$('.fixed-table-toolbar').find('.btn-group').first().prepend('<button id="multipleDelete" class="btn btn-default" type="button" name="multipleDelete" title="Delete" disabled="disabled"><i class="fa fa-trash"></i></button>');
 												
 												$('#multipleDelete').click(
 														function(e) {
@@ -463,7 +463,7 @@
 											}
 											
 											if($('#newFolderButton').length==0) {
-												$('.fixed-table-toolbar').find('.btn-group').first().prepend('<button id="newFolderButton" class="btn btn-default" type="button" name="newFolder" title="New Folder"><i class="fa fa-folder-open"></i></button>');
+												$('.fixed-table-toolbar').find('.btn-group').first().prepend('<button id="newFolderButton" class="btn btn-default" type="button" name="newFolder" title="New Folder" disabled="disabled"><i class="fa fa-folder-open"></i></button>');
 	
 												$('#newFolderButton').click(
 														function(e) {
@@ -481,12 +481,20 @@
 										},
 										onLoadSuccess : function(data) {
 											debugger;
-											if(data.resource.writable) {
+											var writable = false
+											if(data.resource.file.virtualPath === '/') {
+												writable = data.resource.rootWritable;
+											} else {
+												writable = data.resource.file.writable;
+											}
+											if(writable) {
 												$('#dragAndDrop').show();
 												$('#newFolderButton').prop('disabled', false);
+												$('#multipleDelete').prop('disabled', false);
 											} else {
 												$('#dragAndDrop').hide();
 												$('#newFolderButton').prop('disabled', true);
+												$('#multipleDelete').prop('disabled', true);
 											}
 											rebindEditable();
 											
