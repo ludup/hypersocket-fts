@@ -57,7 +57,7 @@ import com.hypersocket.realm.Realm;
 import com.hypersocket.realm.UserVariableReplacement;
 import com.hypersocket.resource.ResourceChangeException;
 import com.hypersocket.resource.ResourceCreationException;
-import com.hypersocket.scheduler.SchedulerService;
+import com.hypersocket.scheduler.ClusteredSchedulerService;
 import com.hypersocket.session.Session;
 import com.hypersocket.tables.ColumnSort;
 import com.hypersocket.upload.FileStore;
@@ -73,7 +73,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	static Logger log = LoggerFactory.getLogger(VirtualFileServiceImpl.class);
 	
 	@Autowired
-	SchedulerService schedulerService; 
+	ClusteredSchedulerService schedulerService; 
 	
 	@Autowired
 	FileResourceService fileService; 
