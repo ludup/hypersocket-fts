@@ -94,9 +94,9 @@
 			$(document).on('show.bs.dropdown', '#dropdown_' + index, function () {
 				var dropdown = $(this);
 				var resource = row;
-				debugger;
+				
 				$.each(additionalActions, function(x, act) {
-					debugger;
+					
 					if(act.enabled) {
 						if(act.displayFunction && act.displayFunction != '') {
 							var display = window[act.displayFunction].apply(null, [resource]);
@@ -119,7 +119,7 @@
 				});
 			});
 		}
-		debugger;
+		
 		if(row.mount && row.writable) {
 			actionHtml += '<a class="delete tableAction btn btn-danger btn-action"><i class="fa fa-trash fa-fw"></i></a>';
 			actionHtml += '<a class="edit tableAction btn btn-primary btn-action"><i class="fa fa-edit fa-fw"></i></a>';
@@ -477,7 +477,7 @@
 											}
 										},
 										onLoadSuccess : function(data) {
-											debugger;
+											
 											var writable = false
 											if(data.resource.file.virtualPath === '/') {
 												writable = data.resource.rootWritable;
