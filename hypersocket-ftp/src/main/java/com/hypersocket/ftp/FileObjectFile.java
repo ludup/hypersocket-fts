@@ -68,7 +68,7 @@ public class FileObjectFile extends AbstractFtpFile {
 		try {
 			checkFile();
 		} catch (IOException e) {
-			throw new IllegalStateException(e);
+			throw new IllegalStateException(e.getMessage(), e);
 		}
 		return file.getLastModified();
 	}
@@ -89,7 +89,7 @@ public class FileObjectFile extends AbstractFtpFile {
 		try {
 			checkFile();
 		} catch (IOException e) {
-			throw new IllegalStateException(e);
+			throw new IllegalStateException(e.getMessage(), e);
 		}
 		return file.getWritable();
 	}

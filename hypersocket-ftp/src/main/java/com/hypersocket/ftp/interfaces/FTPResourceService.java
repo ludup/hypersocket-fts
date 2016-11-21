@@ -220,7 +220,7 @@ public class FTPResourceService implements ManageableService{
 			
 			return ssl.createSslConfiguration();
 		}catch(Exception e){
-			throw new IllegalStateException(e);
+			throw new IllegalStateException(e.getMessage(), e);
 		}
 	}
 

@@ -40,7 +40,7 @@ public abstract class AbstractFtpFile implements FtpFile {
 				file = factory.getService().getFile(absolutePath);
 			}
 		} catch(AccessDeniedException e) {
-			throw new IllegalStateException(e);
+			throw new IllegalStateException(e.getMessage(), e);
 		}
 	}
 	
@@ -143,7 +143,7 @@ public abstract class AbstractFtpFile implements FtpFile {
 			checkFile();
 			return file.isFolder() || file.isMount();
 		} catch (IOException e) {
-			throw new IllegalStateException(e);
+			throw new IllegalStateException(e.getMessage(), e);
 		}
 		
 	}
@@ -154,7 +154,7 @@ public abstract class AbstractFtpFile implements FtpFile {
 			checkFile();
 			return file.isFile();
 		} catch (IOException e) {
-			throw new IllegalStateException(e);
+			throw new IllegalStateException(e.getMessage(), e);
 		}
 	}
 
@@ -164,7 +164,7 @@ public abstract class AbstractFtpFile implements FtpFile {
 			checkFile();
 			return file.isHidden();
 		} catch (IOException e) {
-			throw new IllegalStateException(e);
+			throw new IllegalStateException(e.getMessage(), e);
 		}
 	}
 
@@ -174,7 +174,7 @@ public abstract class AbstractFtpFile implements FtpFile {
 			checkFile();
 			return file.getSize();
 		} catch (IOException e) {
-			throw new IllegalStateException(e);
+			throw new IllegalStateException(e.getMessage(), e);
 		}
 	}
 

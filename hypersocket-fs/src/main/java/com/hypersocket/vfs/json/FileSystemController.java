@@ -509,7 +509,7 @@ public class FileSystemController extends ResourceController {
 						Collection<?> results = fileService.searchFiles(virtualPath, "filename", searchPattern, start, length, sorting, HTTP_PROTOCOL);
 						return results;
 					} catch (IOException e) {
-						throw new IllegalStateException(e);
+						throw new IllegalStateException(e.getMessage(), e);
 					}
 				}
 				
