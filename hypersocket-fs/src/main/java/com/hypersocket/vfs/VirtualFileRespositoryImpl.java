@@ -390,7 +390,17 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 	@Transactional
 	public void clearFileResource(FileResource resource) {
 		
-		Query update = createQuery("delete from VirtualFile where mount = :mount", true);
+		
+		Query update = createQuery("update VirtualFile set defaultMount = null where defaultMount = :mount", true);
+		update.setEntity("mount", resource);
+		update.executeUpdate();
+		
+		update = createQuery("update VirtualFile set parent = :parent where mount = :mount", true);
+		update.setParameter("parent", null);
+		update.setEntity("mount", resource);
+		update.executeUpdate();
+		
+		update = createQuery("delete from VirtualFile where mount = :mount", true);
 		update.setEntity("mount", resource);
 		update.executeUpdate();
 		
