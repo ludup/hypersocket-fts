@@ -170,8 +170,13 @@ public class FTPServiceImpl implements FTPService,
 				
 				} else if(event instanceof ConfigurationChangedEvent) {
 					
-					if(event.getAttribute(ConfigurationChangedEvent.ATTR_CONFIG_RESOURCE_KEY).equals("ftp.enabled")) {
-						boolean enabled = Boolean.parseBoolean(event.getAttribute(ConfigurationChangedEvent.ATTR_NEW_VALUE).toString());
+					
+					if(event.getAttribute(ConfigurationChangedEvent.ATTR_CONFIG_RESOURCE_KEY).startsWith("ftp.")) {
+						boolean enabled = systemConfigurationService.getBooleanValue("ftp.enabled");
+						
+						if(ftpService.isRunning()) {
+							stopFTP();
+						}
 						
 						if(enabled) {
 							startFTP();
@@ -180,8 +185,12 @@ public class FTPServiceImpl implements FTPService,
 						}
 					}
 					
-					if(event.getAttribute(ConfigurationChangedEvent.ATTR_CONFIG_RESOURCE_KEY).equals("ftps.enabled")) {
-						boolean enabled = Boolean.parseBoolean(event.getAttribute(ConfigurationChangedEvent.ATTR_NEW_VALUE).toString());
+					if(event.getAttribute(ConfigurationChangedEvent.ATTR_CONFIG_RESOURCE_KEY).startsWith("ftps.")) {
+						boolean enabled = systemConfigurationService.getBooleanValue("ftps.enabled");
+						
+						if(ftpsService.isRunning()) {
+							stopFTPS();
+						}
 						
 						if(enabled) {
 							try {
@@ -296,15 +305,36 @@ public class FTPServiceImpl implements FTPService,
 				factory.setIdleTimeout(systemConfigurationService
 						.getIntValue("ftp.idleTimeout"));
 
+				int idleTime = systemConfigurationService
+						.getIntValue("ftp.idleTimeout");
+				// set the port of the listener
+				factory.setPort(systemConfigurationService.getIntValue("ftp.port"));
+				factory.setIdleTimeout(idleTime);
+				factory.setServerAddress("::");
+				
+				String passivePorts = systemConfigurationService.getValue("ftp.passivePorts");
+				
+				String passiveExternalAddress = systemConfigurationService.getValue("ftp.passiveExternalInterface");
+				
+				PassivePorts ports = new PassivePorts(passivePorts, true);
+				
+				factory.setDataConnectionConfiguration(new DefaultDataConnectionConfiguration(
+						idleTime, null, false, false, null, 0, "::", ports, passiveExternalAddress, false));
+				
+				factory.setIpFilter(new IpFilter() {
+					
+					@Override
+					public boolean accept(InetAddress address) {
+						return !ipRestrictionService.isBlockedAddress(address);
+					}
+				});
 				serverFactory.addListener("default", factory.createListener());
 			}
 
 			// start the server
 			serverFactory.setUserManager(userManager);
 			serverFactory.setFileSystem(filesystemFactory);
-			
-			
-			
+
 			serverFactory.getFtplets().put("default", new DefaultFtplet() {
 
 				@Override
