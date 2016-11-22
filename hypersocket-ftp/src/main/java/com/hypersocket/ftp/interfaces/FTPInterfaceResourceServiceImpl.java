@@ -47,6 +47,8 @@ import com.hypersocket.resource.AbstractResourceRepository;
 import com.hypersocket.resource.AbstractResourceServiceImpl;
 import com.hypersocket.resource.ResourceChangeException;
 import com.hypersocket.resource.ResourceCreationException;
+import com.hypersocket.resource.ResourceException;
+import com.hypersocket.resource.TransactionAdapter;
 import com.hypersocket.server.events.ServerStartedEvent;
 import com.hypersocket.server.events.ServerStoppingEvent;
 import com.hypersocket.server.interfaces.InterfaceRegistrationService;
@@ -235,41 +237,37 @@ public class FTPInterfaceResourceServiceImpl extends
 
 		resource.setName(name);
 		
-		checkFTPSHasCertificate(properties);
 		
-		checkPassivePortRange(properties.get("ftpPassivePorts"));
-		
-		Set<String> fromSource = null;
-		if(resource.getFtpInterfaces() != null){
-			fromSource = new HashSet<>(Arrays.asList(ResourceUtils.explodeValues(resource.ftpInterfaces)));
-		}else{
-			fromSource = new HashSet<>();
-		}
-		
-		
-		DefaultFtpServer ftpServer = (DefaultFtpServer) ftpResourceService.ftpServer;
-		String[] interfaces = ResourceUtils.explodeValues(properties.get("ftpInterfaces"));
-		if(interfaces != null && ftpServer != null){
-			for (String intface : interfaces) {
-				if(fromSource.contains(intface)){
-					continue;
+		updateResource(resource, properties, new TransactionAdapter<FTPInterfaceResource>() {
+
+			@Override
+			public void beforeOperation(FTPInterfaceResource resource, Map<String, String> properties)
+					throws ResourceException {
+				
+				Set<String> fromSource = null;
+				if(resource.getInterfaces() != null){
+					fromSource = new HashSet<>(Arrays.asList(ResourceUtils.explodeValues(resource.getInterfaces())));
+				}else{
+					fromSource = new HashSet<>();
 				}
-				Listener existingListener = ftpServer.getListener(FTPResourceService.interfaceName(intface, Integer.parseInt(properties.get("ftpPort"))));
-				if(existingListener != null){
-					throw new IllegalStateException(I18N.getResource(getCurrentLocale(), FTPInterfaceResourceServiceImpl.RESOURCE_BUNDLE, "ftp.interface.already.registered", intface, properties.get("ftpPort")));
+				
+				
+				DefaultFtpServer ftpServer = (DefaultFtpServer) ftpResourceService.ftpServer;
+				String[] interfaces = ResourceUtils.explodeValues(properties.get("ftpInterfaces"));
+				if(interfaces != null && ftpServer != null){
+					for (String intface : interfaces) {
+						if(fromSource.contains(intface)){
+							continue;
+						}
+						Listener existingListener = ftpServer.getListener(FTPResourceService.interfaceName(intface, Integer.parseInt(properties.get("ftpPort"))));
+						if(existingListener != null){
+							throw new ResourceException(FTPInterfaceResourceServiceImpl.RESOURCE_BUNDLE, "ftp.interface.already.registered", intface, properties.get("ftpPort"));
+						}
+					}
 				}
 			}
-		}
 			
-
-		/**
-		 * Set any additional fields on your resource here before calling
-		 * updateResource.
-		 * 
-		 * Remember to fill in the fire*Event methods to ensure events are fired
-		 * for all operations.
-		 */
-		updateResource(resource, properties);
+		});
 
 		return resource;
 	}
@@ -283,29 +281,37 @@ public class FTPInterfaceResourceServiceImpl extends
 		resource.setName(name);
 		resource.setRealm(realm);
 
-		checkFTPSHasCertificate(properties);
-		
-		checkPassivePortRange(properties.get("ftpPassivePorts"));
-		
-		DefaultFtpServer ftpServer = (DefaultFtpServer) ftpResourceService.ftpServer;
-		String[] interfaces = ResourceUtils.explodeValues(properties.get("ftpInterfaces"));
-		if(interfaces != null && ftpServer != null){
-			for (String intface : interfaces) {
-				Listener existingListener = ftpServer.getListener(FTPResourceService.interfaceName(intface, Integer.parseInt(properties.get("ftpPort"))));
-				if(existingListener != null){
-					throw new IllegalStateException(I18N.getResource(getCurrentLocale(), FTPInterfaceResourceServiceImpl.RESOURCE_BUNDLE, "ftp.interface.already.registered", intface, properties.get("ftpPort")));
+		createResource(resource, properties, new TransactionAdapter<FTPInterfaceResource>() {
+
+			@Override
+			public void beforeOperation(FTPInterfaceResource resource, Map<String, String> properties)
+					throws ResourceException {
+				
+				checkFTPSHasCertificate(resource);
+				
+				checkPassivePortRange(resource.getFtpPassivePorts());
+				
+				DefaultFtpServer ftpServer = (DefaultFtpServer) ftpResourceService.ftpServer;
+				
+				String[] interfaces;
+				
+				if(resource.getAllInterfaces()) {
+					interfaces = new String[] { "::" };
+				} else {
+					interfaces = ResourceUtils.explodeValues(resource.getInterfaces());
+				}
+				
+				if(interfaces != null && ftpServer != null){
+					for (String intface : interfaces) {
+						Listener existingListener = ftpServer.getListener(FTPResourceService.interfaceName(resource.getUUID(), Integer.parseInt(properties.get("ftpPort"))));
+						if(existingListener != null){
+							throw new IllegalStateException(I18N.getResource(getCurrentLocale(), FTPInterfaceResourceServiceImpl.RESOURCE_BUNDLE, "ftp.interface.already.registered", intface, properties.get("ftpPort")));
+						}
+					}
 				}
 			}
-		}
 			
-		/**
-		 * Set any additional fields on your resource here before calling
-		 * createResource.
-		 * 
-		 * Remember to fill in the fire*Event methods to ensure events are fired
-		 * for all operations.
-		 */
-		createResource(resource, properties);
+		});
 
 		return resource;
 	}
@@ -330,50 +336,60 @@ public class FTPInterfaceResourceServiceImpl extends
 
 	@Override
 	public void onApplicationEvent(final SystemEvent event) {
-		sessionService.executeInSystemContext(new Runnable() {
-			
-			@Override
-			public void run() {
-				if (event instanceof ServerStartedEvent) {
-					ftpResourceService.start();
-				}else if (event instanceof ServerStoppingEvent) {
-					ftpResourceService.stop();
-				}else if(event instanceof FTPInterfaceResourceCreatedEvent){
-					FTPInterfaceResource ftpInterfaceResource = (FTPInterfaceResource) ((FTPInterfaceResourceCreatedEvent) event).getResource();
-					createInterfaces(ftpInterfaceResource);
-				}else if(event instanceof FTPInterfaceResourceUpdatedEvent){
-					FTPInterfaceResource ftpInterfaceResource = (FTPInterfaceResource) ((FTPInterfaceResourceUpdatedEvent) event).getResource();
-					FTPInterfaceResource ftpInterfaceResourceOnCreation = getOnCreationFTPInterfaceResourceFromFtpListeners(ftpInterfaceResource);
-					deleteInterfaces(ftpInterfaceResourceOnCreation);
-					createInterfaces(ftpInterfaceResource);
-				}else if(event instanceof FTPInterfaceResourceDeletedEvent){
-					FTPInterfaceResource ftpInterfaceResource = (FTPInterfaceResource) ((FTPInterfaceResourceDeletedEvent) event).getResource();
-					deleteInterfaces(ftpInterfaceResource);
+		
+		if(event.isSuccess()) {
+			sessionService.executeInSystemContext(new Runnable() {
+				
+				@Override
+				public void run() {
+					if (event instanceof ServerStartedEvent) {
+						ftpResourceService.start();
+					}else if (event instanceof ServerStoppingEvent) {
+						ftpResourceService.stop();
+					}else if(event instanceof FTPInterfaceResourceCreatedEvent){
+						FTPInterfaceResource ftpInterfaceResource = (FTPInterfaceResource) ((FTPInterfaceResourceCreatedEvent) event).getResource();
+						createInterfaces(ftpInterfaceResource);
+					}else if(event instanceof FTPInterfaceResourceUpdatedEvent){
+						FTPInterfaceResource ftpInterfaceResource = (FTPInterfaceResource) ((FTPInterfaceResourceUpdatedEvent) event).getResource();
+						FTPInterfaceResource ftpInterfaceResourceOnCreation = getOnCreationFTPInterfaceResourceFromFtpListeners(ftpInterfaceResource);
+						deleteInterfaces(ftpInterfaceResourceOnCreation);
+						createInterfaces(ftpInterfaceResource);
+					}else if(event instanceof FTPInterfaceResourceDeletedEvent){
+						FTPInterfaceResource ftpInterfaceResource = (FTPInterfaceResource) ((FTPInterfaceResourceDeletedEvent) event).getResource();
+						deleteInterfaces(ftpInterfaceResource);
+					}
 				}
-			}
-		});
+			});
+		}
 	}
 	
 	private void createInterfaces(FTPInterfaceResource ftpResourceToStoreInListener){
 		if(!ftpResourceService.running){
 			ftpResourceService.start();
-		}
+		} else {
 		
-		//add to existing
-		DefaultFtpServer ftpServer = (DefaultFtpServer) ftpResourceService.ftpServer;
-		DefaultFtpServerContext ftpServerContext = (DefaultFtpServerContext) ftpServer.getServerContext();
-		
-		String[] interfaces = ResourceUtils.explodeValues(ftpResourceToStoreInListener.ftpInterfaces);
-		if (interfaces != null && interfaces.length > 0) {
-			for (String intface : interfaces) {
-				Listener existingListener = ftpServer.getListener(FTPResourceService.interfaceName(intface, ftpResourceToStoreInListener.ftpPort));
-				if(existingListener != null){
-					continue;
+			//add to existing
+			DefaultFtpServer ftpServer = (DefaultFtpServer) ftpResourceService.ftpServer;
+			DefaultFtpServerContext ftpServerContext = (DefaultFtpServerContext) ftpServer.getServerContext();
+			
+			String[] interfaces;
+			if(ftpResourceToStoreInListener.getAllInterfaces()) {
+				interfaces = new String[] { "::" };
+			} else {
+				interfaces= ResourceUtils.explodeValues(ftpResourceToStoreInListener.getInterfaces());
+			}
+			if (interfaces != null && interfaces.length > 0) {
+				for (String intface : interfaces) {
+					Listener existingListener = ftpServer.getListener(FTPResourceService.interfaceName(
+							intface, ftpResourceToStoreInListener.getPort()));
+					if(existingListener != null){
+						continue;
+					}
+					ListenerFactory factory = ftpResourceService.createListener(ftpResourceToStoreInListener, intface, ftpResourceService.getSslConfiguration(ftpResourceToStoreInListener));
+					Listener listener = ((HypersocketListenerFactory) factory).createListener(ftpResourceToStoreInListener);
+					listener.start(ftpServerContext);
+					ftpServerContext.addListener(FTPResourceService.interfaceName(intface, ftpResourceToStoreInListener.getPort()), listener);
 				}
-				ListenerFactory factory = ftpResourceService.createListener(ftpResourceToStoreInListener, intface, ftpResourceService.getSslConfiguration(ftpResourceToStoreInListener));
-				Listener listener = ((HypersocketListenerFactory) factory).createListener(ftpResourceToStoreInListener);
-				listener.start(ftpServerContext);
-				ftpServerContext.addListener(FTPResourceService.interfaceName(intface, ftpResourceToStoreInListener.ftpPort), listener);
 			}
 		}
 	}
@@ -384,10 +400,15 @@ public class FTPInterfaceResourceServiceImpl extends
 			DefaultFtpServer ftpServer = (DefaultFtpServer) ftpResourceService.ftpServer;
 			DefaultFtpServerContext ftpServerContext = (DefaultFtpServerContext) ftpServer.getServerContext();
 			
-			String[] interfaces = ResourceUtils.explodeValues(ftpInterfaceResource.ftpInterfaces);
+			String[] interfaces;
+			if(ftpInterfaceResource.getAllInterfaces()) {
+				interfaces = new String[] { "::" }; 
+			} else {
+				interfaces = ResourceUtils.explodeValues(ftpInterfaceResource.getInterfaces());
+			}
 			if (interfaces != null && interfaces.length > 0) {
 				for (String intface : interfaces) {
-					String interfaceName = FTPResourceService.interfaceName(intface, ftpInterfaceResource.ftpPort);
+					String interfaceName = FTPResourceService.interfaceName(intface, ftpInterfaceResource.getPort());
 					log.info(String.format("Stopping ftp instance %s:%s", interfaceName, ftpInterfaceResource.ftpProtocol.name()));
 					if(ftpServerContext.getListener(interfaceName) != null){
 						ftpServerContext.getListener(interfaceName).stop();
@@ -398,8 +419,8 @@ public class FTPInterfaceResourceServiceImpl extends
 		}	
 	}
 	
-	private void checkFTPSHasCertificate(Map<String, String> properties) {
-		if(FTPProtocol.FTPS.name().equals(properties.get("ftpProtocol")) && StringUtils.isEmpty(properties.get("ftpCertificate"))){
+	private void checkFTPSHasCertificate(FTPInterfaceResource resource) {
+		if(FTPProtocol.FTPS.equals(resource.getFtpProtocol()) && resource.getFtpCertificate()==null){
 			throw new IllegalStateException(I18N.getResource(getCurrentLocale(), FTPInterfaceResourceServiceImpl.RESOURCE_BUNDLE, "ftps.certificate.missing", new Object[0]));
 		}
 	}

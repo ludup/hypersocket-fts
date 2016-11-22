@@ -7,18 +7,13 @@ import javax.persistence.Table;
 
 import com.hypersocket.certificates.CertificateResource;
 import com.hypersocket.resource.RealmResource;
+import com.hypersocket.server.interfaces.InterfaceResource;
 
 @Entity
-@Table(name="ftpInterface_resource")
-public class FTPInterfaceResource extends RealmResource {
+@Table(name="ftp_interfaces")
+public class FTPInterfaceResource extends InterfaceResource {
 
 	private static final long serialVersionUID = -7196348246139661166L;
-
-	@Column(name="interfaces", length=1024)
-	String ftpInterfaces;
-	
-	@Column(name="port")
-	Integer ftpPort;
 	
 	@Column(name="protocol")
 	FTPProtocol ftpProtocol;
@@ -34,22 +29,6 @@ public class FTPInterfaceResource extends RealmResource {
 	
 	@OneToOne
 	CertificateResource ftpCertificate;
-
-	public String getFtpInterfaces() {
-		return ftpInterfaces;
-	}
-
-	public void setFtpInterfaces(String ftpInterfaces) {
-		this.ftpInterfaces = ftpInterfaces;
-	}
-
-	public Integer getFtpPort() {
-		return ftpPort;
-	}
-
-	public void setFtpPort(Integer ftpPort) {
-		this.ftpPort = ftpPort;
-	}
 
 	public FTPProtocol getFtpProtocol() {
 		return ftpProtocol;

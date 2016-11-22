@@ -37,13 +37,7 @@
 <script type="text/javascript">
 	$(document).ready(function() {
 				$('#contentFTPInterfaces').localize();
-				
-				$('#ftpInterfaceProperties').propertyPage({
-					url : 'ftpInterfaces/template',
-					showButtons : false,
-					useTemplates : true,
-					canUpdate : currentMenu.canUpdate
-				});
+			
 
 				$('#contentFTPInterfaces').ajaxResourcePage(
 						{
@@ -84,6 +78,7 @@
 									$('#ftpInterfaceProperties').propertyPage({ 
 										url : 'ftpInterfaces/template/', 
 										showButtons : false, 
+										i18nNamespace: 'ftp',
 										canUpdate : currentMenu.canUpdate, 
 										useTemplates : true 
 									});
@@ -111,6 +106,7 @@
 								$('#ftpInterfaceProperties').propertyPage(
 										{ url : 'ftpInterfaces/properties/' + resource.id, 
 											showButtons : false, 
+											i18nNamespace: 'ftp',
 											canUpdate : currentMenu.canUpdate && !readOnly
 								});
 							

@@ -184,12 +184,16 @@ public class FTPResourceService implements ManageableService{
 	}
 
 	public String[] createFtpListeners(FtpServerFactory serverFactory, FTPInterfaceResource ftpInterfaceResource) {
-		String[] interfaces = ResourceUtils.explodeValues(ftpInterfaceResource.ftpInterfaces);
-		
+		String[] interfaces;
+		if(ftpInterfaceResource.getAllInterfaces()) {
+			interfaces = new String[] { "::" };
+		} else {
+			interfaces = ResourceUtils.explodeValues(ftpInterfaceResource.getInterfaces());
+		}
 		if (interfaces != null) {
 			for (String intface : interfaces) {
 				ListenerFactory factory = createListener(ftpInterfaceResource, intface, getSslConfiguration(ftpInterfaceResource));
-				serverFactory.addListener(interfaceName(intface, ftpInterfaceResource.ftpPort), ((HypersocketListenerFactory)factory).createListener(ftpInterfaceResource));
+				serverFactory.addListener(interfaceName(intface, ftpInterfaceResource.getPort()), ((HypersocketListenerFactory)factory).createListener(ftpInterfaceResource));
 			}
 		} 
 		return interfaces;
@@ -226,14 +230,14 @@ public class FTPResourceService implements ManageableService{
 
 	public ListenerFactory createListener(FTPInterfaceResource ftpInterfaceResource, String intface, SslConfiguration sslConfig) {
 		if (log.isInfoEnabled()) {
-			log.info(String.format("Starting FTP server on interface %s:%d:%s ",intface, ftpInterfaceResource.ftpPort, ftpInterfaceResource.ftpProtocol.name()));
+			log.info(String.format("Starting FTP server on interface %s:%d:%s ",intface, ftpInterfaceResource.getPort(), ftpInterfaceResource.ftpProtocol.name()));
 		}
 
 		ListenerFactory factory = new HypersocketListenerFactory();
 
 		int idleTime = ftpInterfaceResource.ftpIdleTimeout;
 		// set the port of the listener
-		factory.setPort(ftpInterfaceResource.ftpPort);
+		factory.setPort(ftpInterfaceResource.getPort());
 		factory.setIdleTimeout(idleTime);
 		factory.setServerAddress(intface);
 		
@@ -252,7 +256,7 @@ public class FTPResourceService implements ManageableService{
 		PassivePorts ports = new PassivePorts(passivePorts, true);
 		
 		factory.setDataConnectionConfiguration(new DefaultDataConnectionConfiguration(
-				idleTime, sslConfig, false, false, null, ftpInterfaceResource.ftpPort, intface, ports, passiveExternalAddress, sslConfig != null));
+				idleTime, sslConfig, false, false, null, ftpInterfaceResource.getPort(), intface, ports, passiveExternalAddress, sslConfig != null));
 		
 		factory.setIpFilter(new IpFilter() {
 			

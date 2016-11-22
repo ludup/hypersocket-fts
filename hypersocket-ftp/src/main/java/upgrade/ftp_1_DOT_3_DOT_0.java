@@ -39,15 +39,14 @@ public class ftp_1_DOT_3_DOT_0 implements Runnable {
 	public void run() {
 	
 		try {
-			Date now = new Date();
 			log.info("Adding default ftp and ftps interfaces");
 			
 			FTPInterfaceResource ftp = new FTPInterfaceResource();
 			ftp.setDeleted(false);
 			ftp.setFtpIdleTimeout(500);
-			ftp.setFtpInterfaces("127.0.0.1");
-			ftp.setFtpPassivePorts("60000-61000");
-			ftp.setFtpPort(9021);
+			ftp.setAllInterfaces(Boolean.TRUE);
+			ftp.setFtpPassivePorts("60000-60999");
+			ftp.setPort(9021);
 			ftp.setFtpProtocol(FTPProtocol.FTP);
 			ftp.setHidden(false);
 			ftp.setName("Default FTP");
@@ -60,9 +59,9 @@ public class ftp_1_DOT_3_DOT_0 implements Runnable {
 			FTPInterfaceResource ftps = new FTPInterfaceResource();
 			ftps.setDeleted(false);
 			ftps.setFtpIdleTimeout(500);
-			ftps.setFtpInterfaces("127.0.0.1");
-			ftps.setFtpPassivePorts("60000-61000");
-			ftps.setFtpPort(9022);
+			ftp.setAllInterfaces(Boolean.TRUE);
+			ftps.setFtpPassivePorts("61000-61999");
+			ftps.setPort(9022);
 			ftps.setFtpProtocol(FTPProtocol.FTPS);
 			ftps.setHidden(false);
 			ftps.setName("Default FTPS");
