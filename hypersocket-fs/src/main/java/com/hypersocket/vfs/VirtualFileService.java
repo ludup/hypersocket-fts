@@ -26,7 +26,7 @@ public interface VirtualFileService extends AuthenticatedService {
 
 	Collection<VirtualFile> getChildren(String virtualPath) throws AccessDeniedException, IOException;
 
-	Collection<VirtualFile> getChildren(VirtualFile folder) throws AccessDeniedException;
+	Collection<VirtualFile> getChildren(VirtualFile folder) throws AccessDeniedException, IOException;
 
 	Boolean deleteFile(String virtualPath, String proto) throws IOException, AccessDeniedException;
 
@@ -91,8 +91,6 @@ public interface VirtualFileService extends AuthenticatedService {
 	VirtualFile getFileById(Long id) throws AccessDeniedException;
 
 	void setDefaultMount(VirtualFile file, FileResource mount) throws AccessDeniedException, ResourceChangeException;
-
-	Principal getOwnerPrincipal(FileResource resource);
 
 	OutputStream uploadFile(String virtualPath, long position, String proto, UploadEventProcessor uploadProcessor)
 			throws IOException, AccessDeniedException;

@@ -63,7 +63,7 @@ public class VirtualFile extends AbstractEntity<Long> {
 	@OneToOne
 	FileResource mount;
 	
-	@ManyToMany(fetch=FetchType.LAZY)
+	@ManyToMany(fetch=FetchType.EAGER)
 	@Fetch(FetchMode.SELECT)
 	@JoinTable(name = "virtual_fs_mounts", joinColumns={@JoinColumn(name="resource_id")}, 
 			inverseJoinColumns={@JoinColumn(name="mount_id")})

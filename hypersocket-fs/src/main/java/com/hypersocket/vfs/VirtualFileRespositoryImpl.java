@@ -69,42 +69,6 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 		return list("parent", parent, VirtualFile.class, new PrincipalCriteria(principal), new ConflictCriteria());
 	}
 	
-//	@Override
-//	@Transactional
-//	public VirtualFile reconcileMount(String displayName, FileResource resource, 
-//			FileObject fileObject, VirtualFile virtualFile, Principal principal) throws FileSystemException {
-//		
-//		String filename;
-//		VirtualFile parent = null;
-//		
-//		if(virtualFile==null) {
-//			virtualFile = new VirtualFile();
-//		}
-//		
-//		if(resource.getVirtualPath().equals("/") && fileObject.getType()!=FileType.FILE) {
-//			return getRootFolder(resource.getRealm());
-//		} else {
-//			filename = FileUtils.lastPathElement(resource.getVirtualPath());
-//			parent = reconcileParent(resource, principal);
-//			
-//			return buildFile(virtualFile,
-//					filename,
-//					displayName,
-//					resource.getVirtualPath(), 
-//					fileObject.getType()==FileType.FILE ? VirtualFileType.MOUNTED_FILE : VirtualFileType.MOUNTED_FOLDER, 
-//					!resource.isReadOnly() && fileObject.isWriteable(), 
-//					fileObject.getType()==FileType.FILE ? fileObject.getContent().getSize() : 0L, 
-//					fileObject.getType().hasAttributes() ? fileObject.getContent().getLastModifiedTime() : 0L, 
-//					parent,
-//					resource,
-//					!displayName.equals(filename),
-//					resource.getRealm(),
-//					principal);
-//		}
-//		
-//		
-//	}
-	
 	@Override
 	@Transactional
 	public VirtualFile reconcileNewFolder(String displayName, VirtualFile parent, FileObject fileObject, 
@@ -266,7 +230,6 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 				size, 
 				writable,
 				conflicted));
-		save(file);
 		
 		return file;
 	}
@@ -313,49 +276,42 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 				principal);
 	}
 	
-	@Override
-	@Transactional(readOnly=true)
-	public Collection<VirtualFile> search(String searchColumn, String search, int start, int length, ColumnSort[] sort, final VirtualFile parent, Realm realm, Principal principal, final FileResource... resources) {
-		if(resources.length==0) {
-			return Collections.<VirtualFile>emptyList();
-		}
-		return super.search(VirtualFile.class, searchColumn, search, start, length, sort, new ParentCriteria(parent), new FileResourceCriteria(resources), new PrincipalCriteria(principal), new RealmCriteria(realm), new ConflictCriteria());
-	}
-
-	@Override
-	@Transactional
-	public int removeReconciledFolder(VirtualFile toDelete) {
-		
-		int filesToDelete = 0;
-		boolean hasFiles =  false;
-		for(VirtualFile child :  list("parent", toDelete, VirtualFile.class, new ConflictCriteria())) {
-			if(child.isFolder()) {
-				filesToDelete += removeReconciledFolder(child);
-				continue;
-			}
-			hasFiles = true;
-		}
-		
-		if(hasFiles) {
-			filesToDelete += removeReconciledFiles(toDelete);
-		}
-		
-		
-		Query update = createQuery("delete from VirtualFile where id = :id", true);
-		update.setParameter("id", toDelete.getId());
-		filesToDelete += update.executeUpdate();
-		return filesToDelete;
-	}
 	
-	@Override
-	@Transactional
-	public int removeReconciledFiles(VirtualFile folder) {
-		
-		Query update = createQuery("delete from VirtualFile where parent = :parent", true);
-		update.setEntity("parent", folder);
-		int updates = update.executeUpdate();
-		return updates;
-	}
+
+//	@Override
+//	@Transactional
+//	public int removeReconciledFolder(VirtualFile toDelete) {
+//		
+//		int filesToDelete = 0;
+//		boolean hasFiles =  false;
+//		for(VirtualFile child :  list("parent", toDelete, VirtualFile.class, new ConflictCriteria())) {
+//			if(child.isFolder()) {
+//				filesToDelete += removeReconciledFolder(child);
+//				continue;
+//			}
+//			hasFiles = true;
+//		}
+//		
+//		if(hasFiles) {
+//			filesToDelete += removeReconciledFiles(toDelete);
+//		}
+//		
+//		
+//		Query update = createQuery("delete from VirtualFile where id = :id", true);
+//		update.setParameter("id", toDelete.getId());
+//		filesToDelete += update.executeUpdate();
+//		return filesToDelete;
+//	}
+	
+//	@Override
+//	@Transactional
+//	public int removeReconciledFiles(VirtualFile folder) {
+//		
+//		Query update = createQuery("delete from VirtualFile where parent = :parent", true);
+//		update.setEntity("parent", folder);
+//		int updates = update.executeUpdate();
+//		return updates;
+//	}
 	
 	@Override
 	@Transactional
@@ -405,14 +361,6 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 		update.executeUpdate();
 		
 	}
-	
-	@Override
-	@Transactional
-	public void forceSync() {
-		
-		Query update = createQuery("update VirtualFile set sync = false where mount is null", true);
-		update.executeUpdate();
-	}
 
 	@Override
 	@Transactional(readOnly=true)
@@ -461,5 +409,11 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 	@Transactional
 	public void saveFile(VirtualFile file) {
 		save(file);
+	}
+
+	@Override
+	public Collection<VirtualFile> search(String searchColumn, String search, int start, int length, ColumnSort[] sort,
+			VirtualFile parent, Realm realm, Principal principal, FileResource... resources) {
+		return super.search(VirtualFile.class, searchColumn, search, start, length, sort);
 	}
 }

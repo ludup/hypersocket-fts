@@ -6,7 +6,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 
 import org.apache.commons.io.FileExistsException;
@@ -53,6 +56,7 @@ import com.hypersocket.fs.events.VirtualFolderCreatedEvent;
 import com.hypersocket.fs.events.VirtualFolderDeletedEvent;
 import com.hypersocket.fs.events.VirtualFolderUpdatedEvent;
 import com.hypersocket.permissions.AccessDeniedException;
+import com.hypersocket.properties.ResourceUtils;
 import com.hypersocket.realm.Principal;
 import com.hypersocket.realm.Realm;
 import com.hypersocket.realm.UserVariableReplacement;
@@ -91,8 +95,8 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	@Autowired
 	FileUploadService uploadService;
 
-	@Autowired
-	VirtualFileSynchronizationService syncService;
+//	@Autowired
+//	VirtualFileSynchronizationService syncService;
 
 	@Autowired
 	ConfigurationService configurationService; 
@@ -154,57 +158,47 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			 file = virtualRepository.getVirtualFile(virtualPath, getCurrentRealm(), getCurrentPrincipal());
 		}
 
-		boolean isVirtualFolder = false;
-		boolean forceSync = false;
-		if(file!=null && !noSync) {
-			isVirtualFolder = file.isVirtualFolder();
-			forceSync = isVirtualFolder && hasUserFilesystem(resources);
-			if(!forceSync && file.isFolder()) {
-				int invalidateCacheMs = configurationService.getIntValue("fs.invalidateCacheSeconds") * 1000;
-				if(!file.getSync() || (System.currentTimeMillis() - file.getModifiedDate().getTime()) > invalidateCacheMs) {
-					file = null;
-				}
+		if(file==null) {
+
+			VirtualFile parentFile = getFile(FileUtils.stripLastPathElement(virtualPath));
+			if(parentFile==null) {
+				throw new FileNotFoundException(virtualPath);
 			}
-		}
-		
-		if(file==null || forceSync) {
-			try {
-				syncService.synchronize(virtualPath, getCurrentPrincipal(), !isVirtualFolder, resources);
-			} catch (IOException e) {
-				throw new FileNotFoundException(e.getMessage());
-			}
-			if(virtualPath.equals("/")) {
-				file = getRootFolder();
-			} else {
-				if(isVirtualFolder) {
-					file = virtualRepository.getVirtualFile(virtualPath, getCurrentRealm(), getCurrentPrincipal());
-				} else {
-					file = virtualRepository.getVirtualFileByResource(virtualPath, getCurrentRealm(), getCurrentPrincipal(), resources);
-				}
-			}
+			// Lookup file from resources
+			for(FileResource resource : resources) {
 			
-		} else if(!isVirtualFolder) {
-			file = virtualRepository.getVirtualFileByResource(virtualPath, getCurrentRealm(), getCurrentPrincipal(), resources);
-		}
+				if(FileUtils.checkEndsWithSlash(virtualPath).startsWith(FileUtils.checkEndsWithSlash(resource.getVirtualPath()))) {
+					
+					String childPath = FileUtils.stripParentPath(resource.getVirtualPath(), virtualPath);
+				
+					FileObject resourceFile = getFileObject(resource);
+					FileObject fileObject = resourceFile;
+					if(StringUtils.isNotBlank(childPath)) {
+						fileObject = resourceFile.resolveFile(childPath);
+						if(!fileObject.exists()) {
+							continue;
+						}
+					}
+					
+					switch(fileObject.getType()) {
+					case FOLDER:
+						return virtualRepository.reconcileNewFolder(fileObject.getName().getBaseName(), parentFile, fileObject, resource, false, null);
+					case FILE:
+						return virtualRepository.reconcileFile(fileObject.getName().getBaseName(), fileObject, resource, parentFile, null);
+					default:
+						// Not supported
+					}
+					
+						
+				}
+			}
+		} 
 		
 		if(file==null) {
 			throw new FileNotFoundException(virtualPath);
 		}
 		
 		return file;
-	}
-	
-	private boolean hasUserFilesystem(FileResource... resources) {
-		for(FileResource resource : resources) {
-			if(syncService.isUserFilesystem(resource)) {
-				return true;
-			}
-		}
-		return false;
-	}
-	@Override
-	public Principal getOwnerPrincipal(FileResource resource) {
-		return syncService.canSynchronize(resource) ? null : syncService.isUserFilesystem(resource) ? getCurrentPrincipal() : null;
 	}
 	
 	@Override
@@ -220,8 +214,65 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	}
 	
 	@Override
-	public Collection<VirtualFile> getChildren(VirtualFile folder) throws AccessDeniedException {
-		return virtualRepository.getVirtualFilesByResource(folder, getCurrentRealm(), getCurrentPrincipal(), getPrincipalResources());
+	public Collection<VirtualFile> getChildren(VirtualFile parentFile) throws AccessDeniedException, IOException {
+		
+		List<VirtualFile> results = new ArrayList<VirtualFile>();
+		
+		results.addAll(virtualRepository.getVirtualFilesByResource(parentFile, getCurrentRealm(), null, getPrincipalResources()));
+		
+		if(parentFile.getMount()==null && parentFile.getFolderMounts().isEmpty()) {
+			return results;
+		}
+		List<FileResource> resources = new ArrayList<FileResource>();
+		if(parentFile.getMount()!=null) {
+			resources.add(parentFile.getMount());
+		} else {
+			resources.addAll(parentFile.getFolderMounts());
+		}
+		
+		for(FileResource resource : resources) {
+
+			String childPath = FileUtils.stripParentPath(resource.getVirtualPath(), parentFile.getVirtualPath());
+		
+			FileObject resourceFile = getFileObject(resource);
+			FileObject fileObject = resourceFile;
+			if(StringUtils.isNotBlank(childPath)) {
+				fileObject = resourceFile.resolveFile(childPath);
+				if(!fileObject.exists()) {
+					throw new FileNotFoundException(parentFile.getVirtualPath());
+				}
+			}
+	
+			if(!fileObject.exists()) {
+				throw new FileNotFoundException(parentFile.getVirtualPath());
+			}
+			
+			switch(fileObject.getType()) {
+			case FOLDER:
+				for(FileObject child : fileObject.getChildren()) {
+					switch(child.getType()) {
+					case FOLDER:
+						if(isReconciledFolder(resource, child)) {
+							results.add(virtualRepository.reconcileNewFolder(child.getName().getBaseName(), parentFile,
+									child, resource, false, null));
+						}
+						break;
+					case FILE:
+						if(isReconciledFile(resource, child)) {
+							results.add(virtualRepository.reconcileFile(child.getName().getBaseName(), child, resource, parentFile, null));
+						}
+						break;
+					default:
+						// Unsupported file type
+					}
+				}
+				break;
+			default:
+				// What do we do here?
+			}
+		}
+		
+		return results;
 	}
 
 	@Override
@@ -248,7 +299,6 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			}
 			
 			try {
-				virtualRepository.removeReconciledFolder(file);
 				eventService.publishEvent(new VirtualFolderDeletedEvent(this, 
 						getCurrentSession(), 
 						file.getVirtualPath()));
@@ -458,13 +508,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			if(existingFile!=null) {
 				displayName = String.format("%s (%s)", displayName, resolver.getToMount().getName());
 			}
-			if(fromFile.isFolder()) {
-				return virtualRepository.reconcileFolder(displayName, fromFile, resolver.getToFile(), resolver.getToMount(), existingFile!=null, getOwnerPrincipal(resolver.getToMount()));
-			} else {
-				
-				virtualRepository.removeReconciledFile(fromFile);	
-				return virtualRepository.reconcileFile(displayName, resolver.getToFile(), resolver.getToMount(), parent, getOwnerPrincipal(resolver.getToMount()));
-			}
+			return virtualRepository.reconcileFile(displayName, resolver.getToFile(), resolver.getToMount(), parent, getOwnerPrincipal(resolver.getToMount()));
 		}
 	}
 	
@@ -474,48 +518,9 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		fromPath = normalise(fromPath);
 		toPath = normalise(toPath);
 
-		VirtualFile toParent = getFile(FileUtils.stripLastPathElement(toPath));
-		
 		CopyFileResolver resolver = new CopyFileResolver(proto);
-		boolean success = resolver.processRequest(fromPath, toPath);
+		return resolver.processRequest(fromPath, toPath);
 
-		boolean isTargetRootOfMount = FileUtils.checkEndsWithNoSlash(resolver.getToMount().getVirtualPath()).equals(FileUtils.checkEndsWithNoSlash(toPath));
-		VirtualFile existingFile = virtualRepository.getVirtualFile(toPath, getCurrentRealm(), getCurrentPrincipal());
-		
-		String displayName = FileUtils.lastPathElement(toPath);
-		boolean conflicted = false;
-		if(existingFile!=null && !existingFile.getMount().equals(resolver.getToMount())) {
-			displayName = String.format("%s (%s)", displayName, resolver.getToMount().getName());
-			conflicted = true;
-		}
-		if(success) {
-			switch(resolver.getToFile().getType()) {
-			case FILE:
-				if(existingFile==null) {
-					virtualRepository.reconcileFile(displayName, resolver.getToFile(), resolver.getToMount(), toParent, getOwnerPrincipal(resolver.getToMount()));
-				} else {
-					virtualRepository.reconcileFile(displayName, resolver.getToFile(), resolver.getToMount(), existingFile, toParent, getOwnerPrincipal(resolver.getToMount()));
-				}
-				break;
-			case FOLDER:
-				if(!isTargetRootOfMount) {
-					if(existingFile==null) {
-						virtualRepository.reconcileNewFolder(displayName, toParent, resolver.getToFile(), resolver.getToMount(), conflicted, null);
-					} else {
-						
-						virtualRepository.reconcileFolder(displayName, existingFile, resolver.getToFile(), resolver.getToMount(), conflicted, null);
-					}
-				}
-				syncService.synchronize(toPath, getOwnerPrincipal(resolver.getToMount()), true, resolver.getToMount());
-				break;
-			default:
-				log.error(String.format("File %s is not a file or folder", toPath));
-				return false;
-			}
-		
-			return true;
-		}
-		return false;
 	}
 	
 	protected FileResource[] getPrincipalResources() throws AccessDeniedException {
@@ -590,21 +595,6 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 						processor.processUpload(resource, resolveVFSFile(parentFile.getMount()), childPath, file);
 					}
 					
-					VirtualFile existingFile = virtualRepository.getVirtualFile(store.getVirtualPath(), getCurrentRealm(), getOwnerPrincipal(resource));
-					
-					String displayName = FileUtils.lastPathElement(store.getVirtualPath());
-					if(existingFile!=null && !existingFile.getMount().equals(resource)) {
-						displayName = String.format("%s (%s)", displayName, parentFile.getMount().getName());
-					} 
-					
-					if(existingFile!=null) {
-						virtualRepository.reconcileFile(displayName, store.getFileObject(), resource, 
-								existingFile, existingFile.getParent(), getOwnerPrincipal(resource));
-					} else {
-						virtualRepository.reconcileFile(displayName, store.getFileObject(), resource, 
-								VirtualFileServiceImpl.this.getFile(FileUtils.stripLastPathElement(virtualPath), true), getOwnerPrincipal(resource));
-					}
-
 					return upload;
 
 				} catch (ResourceCreationException e) {
@@ -637,7 +627,6 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	}
 
 	@Override
-	@Transactional
 	public Collection<VirtualFile> searchFiles(String virtualPath, 
 			String searchColumn,
 			String search, 
@@ -647,11 +636,77 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			String proto) throws AccessDeniedException, IOException {
 		
 		FileResource[] resources = getPrincipalResources();
-		VirtualFile searchPath = getFile(virtualPath);
-		return virtualRepository.search(searchColumn, search, offset, limit, sort, searchPath, getCurrentRealm(), getCurrentPrincipal(), resources);
-
+		if(resources.length==0) {
+			return Collections.<VirtualFile>emptyList();
+		}
+		
+		List<VirtualFile> results = new ArrayList<VirtualFile>();
+		
+		VirtualFile parentFile = virtualRepository.getVirtualFile(virtualPath, getCurrentRealm(), null);
+		if(parentFile != null) {
+			results.addAll(virtualRepository.getVirtualFilesByResource(parentFile, getCurrentRealm(), null, resources));
+		} else {
+			parentFile = getFile(virtualPath);
+		}
+		
+		results.addAll(getChildren(parentFile));
+				
+		return results;
+	}
+	
+	private boolean checkResourceFilter(String filename, FileResource resource) {
+		
+		String[] includeFilters = ResourceUtils.explodeValues(fileService.getResourceProperty(resource,"fs.includeFilter"));
+		String[] excludeFilters = ResourceUtils.explodeValues(fileService.getResourceProperty(resource,"fs.excludeFilter"));
+		
+		boolean included = includeFilters.length==0;
+		
+		if(!included) {
+			for(String include : includeFilters) {
+				if(filename.matches(include)) {
+					included = true;
+					break;
+				}
+				if(filename.endsWith(include)) {
+					included = true;
+					break;
+				}
+			}
+		}
+		
+		if(included && excludeFilters.length > 0) {
+			for(String exclude : excludeFilters) {
+				if(filename.matches(exclude)) {
+					included = false;
+					break;
+				}
+				if(filename.endsWith(exclude)) {
+					included = false;
+					break;
+				}
+			}
+		}
+		return included;
 	}
 
+	private boolean isReconciledFile(FileResource resource, FileObject obj) {
+		try {
+			if (obj.isHidden() || obj.getName().getBaseName().startsWith(".")) {
+				return resource.isShowHidden();
+			}
+			return true;
+		} catch (FileSystemException e) {
+			return true;
+		}
+	}
+
+	private boolean isReconciledFolder(FileResource resource, FileObject obj) {
+		if (!resource.isShowFolders()) {
+			return false;
+		}
+		// Check for hidden folder
+		return isReconciledFile(resource, obj);
+	}
 	
 	abstract class FileResolver<T> {
 
@@ -1253,7 +1308,6 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		if(scheme.isCreateRoot()) {
 			if(!obj.exists()) {
 				obj.createFolder();
-				syncService.clean(resource);
 			} 
 		}
 		
@@ -1562,6 +1616,10 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 
 	}
 
+	public Principal getOwnerPrincipal(FileResource resource) {
+		return null;
+	}
+	
 	@Override
 	public FileObject getFileObject(FileResource resource) throws IOException {
 		return resolveVFSFile(resource);
