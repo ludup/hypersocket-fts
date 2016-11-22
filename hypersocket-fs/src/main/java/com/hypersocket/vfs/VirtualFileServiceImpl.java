@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.hypersocket.auth.PasswordEnabledAuthenticatedServiceImpl;
 import com.hypersocket.config.ConfigurationService;
@@ -636,6 +637,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	}
 
 	@Override
+	@Transactional
 	public Collection<VirtualFile> searchFiles(String virtualPath, 
 			String searchColumn,
 			String search, 
