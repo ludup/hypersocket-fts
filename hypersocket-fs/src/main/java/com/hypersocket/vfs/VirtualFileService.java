@@ -56,8 +56,6 @@ public interface VirtualFileService extends AuthenticatedService {
 	
 	FileObject getFileObject(String path) throws IOException, AccessDeniedException;
 	
-	FileObject getFileObject(String path, Principal overridePrincipal, String overrideUsername, String overridePassword) throws IOException, AccessDeniedException;
-	
 	OutputStream uploadFile(String realPath, long position, String proto) throws IOException, AccessDeniedException;
 
 	FileObject getFileObject(FileResource resource) throws IOException;
@@ -99,5 +97,13 @@ public interface VirtualFileService extends AuthenticatedService {
 			throws IOException, AccessDeniedException;
 
 	boolean isRootWritable(Principal currentPrincipal) throws AccessDeniedException, IOException;
+
+	void detachMount(FileResource resource);
+
+	void attachMount(VirtualFile mountedFile, FileResource resource);
+
+	void clearCredentials();
+
+	void setupCredentials(Principal principal, String username, String password);
 
 }

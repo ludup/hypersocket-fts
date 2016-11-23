@@ -130,7 +130,7 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 		VirtualFile rootFile = get("filename", "__ROOT__", VirtualFile.class, new RealmCriteria(realm));
 		if(rootFile==null) {
 			rootFile = buildFile(new VirtualFile(),
-					"/",
+					"__ROOT__",
 					"/",
 					VirtualFileType.ROOT,
 					false,
@@ -139,6 +139,7 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 					false,
 					realm,
 					null);
+			saveFile(rootFile);
 		}
 		return rootFile;
 	}
@@ -150,21 +151,26 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 			Realm realm, FileObject fileObject) throws IOException {
 		
 		FileContent content = fileObject==null ? null : fileObject.getContent();
-		file.setRealm(realm);
-		file.setFilename(fileObject==null ? displayName :fileObject.getName().getBaseName());
-		file.setDisplayName(displayName);
-		file.setVirtualPath(virtualPath);
-		file.setType(type);
-		file.setWritable(writable);
-		file.setSize(fileObject!=null && fileObject.getType() == FileType.FILE ? content.getSize() : 0L);
-		file.setLastModified(content==null ? 
-				  file.getLastModified() == null ? System.currentTimeMillis() : file.getLastModified() 
-				: content.getLastModifiedTime());
-		file.setParent(parent);
-		file.setMount(resource);
-		file.setConflicted(conflicted);	
-		file.setFileObject(fileObject);
-		
+		try {
+			file.setRealm(realm);
+			file.setFilename(fileObject==null ? displayName :fileObject.getName().getBaseName());
+			file.setDisplayName(displayName);
+			file.setVirtualPath(virtualPath);
+			file.setType(type);
+			file.setWritable(writable);
+			file.setSize(fileObject!=null && fileObject.getType() == FileType.FILE ? content.getSize() : 0L);
+			file.setLastModified(content==null ? 
+					  file.getLastModified() == null ? System.currentTimeMillis() : file.getLastModified() 
+					: content.getLastModifiedTime());
+			file.setParent(parent);
+			file.setMount(resource);
+			file.setConflicted(conflicted);	
+			file.setFileObject(fileObject);
+		} finally {
+			if(content!=null) {
+				content.close();
+			}	
+		}
 		return file;
 	}
 
@@ -249,7 +255,6 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 		VirtualFile mountPoint = getVirtualFile(resource.getVirtualPath(), resource.getRealm(), null);
 		
 		do {
-			Hibernate.initialize(mountPoint);
 			mountPoint.getFolderMounts().remove(resource);
 			save(mountPoint);
 			mountPoint = mountPoint.getParent();
@@ -342,5 +347,15 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 	public Collection<VirtualFile> search(String searchColumn, String search, int start, int length, ColumnSort[] sort,
 			VirtualFile parent, Realm realm, Principal principal, FileResource... resources) {
 		return super.search(VirtualFile.class, searchColumn, search, start, length, sort);
+	}
+
+	@Override
+	public void addFileResource(VirtualFile mountedFile, FileResource resource) {
+
+		do {
+			mountedFile.getFolderMounts().add(resource);
+			save(mountedFile);
+			mountedFile = mountedFile.getParent();
+		} while(mountedFile!=null);
 	}
 }

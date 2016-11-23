@@ -66,4 +66,6 @@ public interface VirtualFileRepository extends AbstractRepository<Long> {
 
 	Collection<VirtualFile> getVirtualFilesByResource(VirtualFile parent, Realm realm, Principal principal,
 			FileResource... resources);
+
+	void addFileResource(VirtualFile mountedFile, FileResource resource);
 }

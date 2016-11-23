@@ -110,14 +110,33 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	CacheManager cacheManager;
 	Cache fileCache;
 	
+	ThreadLocal<Principal> overridePrincipal = new ThreadLocal<Principal>();
+	ThreadLocal<String> overrideUsername = new ThreadLocal<String>();
+	ThreadLocal<String> overridePassword = new ThreadLocal<String>();
+	
 	enum CACHE {
 		CHILDREN
 	}
+	
 	@PostConstruct
 	private void postConstruct() {
 		cacheManager = CacheManager.newInstance();
 		fileCache = new Cache("virtualFileCache", 5000, false, false, 60 * 5, 60 * 5);
 		cacheManager.addCache(fileCache);
+	}
+	
+	@Override
+	public void setupCredentials(Principal principal, String username, String password) {
+		overridePrincipal.set(principal);
+		overrideUsername.set(username);
+		overridePassword.set(password);
+	}
+	
+	@Override
+	public void clearCredentials() {
+		overridePrincipal.remove();
+		overrideUsername.remove();
+		overridePassword.remove();
 	}
 	
 	@Override
@@ -272,6 +291,10 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		
 		for(FileResource resource : resources) {
 
+			if(!parentFile.getVirtualPath().startsWith(resource.getVirtualPath())) {
+				continue;
+			}
+			
 			String childPath = FileUtils.stripParentPath(resource.getVirtualPath(), parentFile.getVirtualPath());
 		
 			FileObject resourceFile = getFileObject(resource);
@@ -862,7 +885,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 				if(overridePassword==null) {
 					overridePassword = resource.getPassword();
 				}
-				file = resolveVFSFile(resource, overridePrincipal, overrideUsername, overridePassword);
+				file = resolveVFSFile(resource);
 				file = file.resolveFile(childPath);
 
 				checkFile(file);
@@ -1326,28 +1349,6 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		abstract void onFilesUnresolved(String fromPath, String toPath, IOException t);
 	}
 	
-	public FileObject getFileObject(String virtualPath, Principal overridePrincipal, String overrideUsername, String overridePassword) throws IOException, AccessDeniedException {
-		
-		virtualPath = normalise(virtualPath);
-		
-		VirtualFile file;
-		try {
-			file = getFile(virtualPath);
-			String childPath = FileUtils.stripParentPath(file.getMount().getVirtualPath(), virtualPath);
-			return resolveVFSFile(file.getMount(),overridePrincipal, overrideUsername, overridePassword).resolveFile(childPath);
-		} catch (FileNotFoundException e) {
-			String parent = FileUtils.stripLastPathElement(virtualPath);
-			VirtualFile parentFile = getFile(parent);
-			if(parentFile.getMount()==null && parentFile.getDefaultMount()==null) {
-				throw new AccessDeniedException();
-			}
-			FileResource resource = parentFile.getMount()!=null ? parentFile.getMount() : parentFile.getDefaultMount();
-			FileObject parentObject = resolveVFSFile(resource, overridePrincipal, overrideUsername, overridePassword);
-			String childPath =  FileUtils.stripParentPath(resource.getVirtualPath(), virtualPath);
-			return parentObject.resolveFile(childPath);
-		}
-	}
-	
 	public FileObject getFileObject(String virtualPath) throws IOException, AccessDeniedException {
 
 		virtualPath = normalise(virtualPath);
@@ -1373,16 +1374,34 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		}
 	}
 	
-	protected FileObject resolveVFSFile(FileResource resource, Principal principal, String overrideUsername, String overridePassword) throws IOException {
+	private String getUsername(FileResource resource) {
+		String username = overrideUsername.get();
+		if(StringUtils.isBlank(username)) {
+			username = resource.getUsername();
+		}
+		return username;
+	}
+	
+	private String getPassword(FileResource resource) {
+		String password = overridePassword.get();
+		if(StringUtils.isBlank(password)) {
+			password = resource.getPassword();
+		}
+		return password;
+	}
+	
+	protected FileObject resolveVFSFile(FileResource resource) throws IOException {
 		FileResourceScheme scheme = fileService.getScheme(resource.getScheme());
 		
 		FileObject obj;
 		if(scheme.getFileService()!=null) {
-			String url = resource.getPrivateUrl(principal, userVariableReplacement, overrideUsername, overridePassword);
+			String url = resource.getPrivateUrl(getCurrentPrincipal(), 
+					userVariableReplacement, getUsername(resource), getPassword(resource));
 			FileSystemOptions opts = scheme.getFileService().buildFileSystemOptions(resource);
 			obj = VFS.getManager().resolveFile(url, opts);
 		} else {
-			String url = resource.getPrivateUrl(principal, userVariableReplacement, overrideUsername, overridePassword);
+			String url = resource.getPrivateUrl(getCurrentPrincipal(), userVariableReplacement, 
+					getUsername(resource), getPassword(resource));
 			obj = VFS.getManager().resolveFile(url);
 		}
 		
@@ -1393,10 +1412,6 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		}
 		
 		return obj;
-	}
-	
-	protected FileObject resolveVFSFile(FileResource resource) throws IOException {
-		return resolveVFSFile(resource, getCurrentPrincipal(), resource.getUsername(), resource.getPassword());
 	}
 	
 	protected FileSystemOptions buildFilesystemOptions(FileResource resource) throws IOException {
@@ -1769,4 +1784,13 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		return resources.contains(root.getDefaultMount());
 	}
 	
+	@Override 
+	public void detachMount(FileResource resource) {		
+		virtualRepository.removeFileResource(resource);
+	}
+	
+	@Override 
+	public void attachMount(VirtualFile mountedFile, FileResource resource) {
+		virtualRepository.addFileResource(mountedFile, resource);
+	}
 }

@@ -373,6 +373,7 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 				
 				try {
 					VirtualFile mountedFile = virtualFileService.getFile(resource.getVirtualPath());
+					virtualFileService.attachMount(mountedFile, resource);
 					if(mountedFile.getDefaultMount()==null && !resource.isReadOnly()) {
 						virtualFileService.setDefaultMount(mountedFile, resource);
 					}
@@ -426,6 +427,12 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 	@SuppressWarnings("unchecked")
 	@Override
 	public void deleteResource(FileResource resource) throws ResourceChangeException, AccessDeniedException {
+		
+		try {
+			virtualFileService.detachMount(resource);
+		} catch (Throwable e) {
+			throw new ResourceChangeException(RESOURCE_BUNDLE, "error.virtualFileError");
+		}
 		
 		super.deleteResource(resource);
 	}
