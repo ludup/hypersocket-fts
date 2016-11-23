@@ -57,7 +57,8 @@ import com.hypersocket.server.HypersocketServer;
 import com.hypersocket.ui.IndexPageFilter;
 import com.hypersocket.ui.UserInterfaceContentHandler;
 import com.hypersocket.upload.FileUploadService;
-import com.hypersocket.vfs.VirtualFileSynchronizationService;
+import com.hypersocket.vfs.VirtualFile;
+import com.hypersocket.vfs.VirtualFileService;
 
 @Service
 public class FileResourceServiceImpl extends AbstractAssignableResourceServiceImpl<FileResource>
@@ -107,9 +108,9 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 	
 	@Autowired
 	BrowserLaunchableService browserLaunchableService;
-	
+
 	@Autowired
-	VirtualFileSynchronizationService syncService; 
+	VirtualFileService virtualFileService; 
 	
 
 	Map<String, FileResourceScheme> schemes = new HashMap<String, FileResourceScheme>();
@@ -370,35 +371,18 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 					}
 				}
 				
-				doInitialReconcile(resource, scheme);
+				try {
+					VirtualFile mountedFile = virtualFileService.getFile(resource.getVirtualPath());
+					virtualFileService.attachMount(mountedFile, resource);
+					if(mountedFile.getDefaultMount()==null && !resource.isReadOnly()) {
+						virtualFileService.setDefaultMount(mountedFile, resource);
+					}
+				} catch (Throwable e) {
+					throw new IllegalStateException(new ResourceCreationException(RESOURCE_BUNDLE, "error.virtualFileError"));
+				}
+
 			}
 		});
-	}
-
-	private void doInitialReconcile(FileResource resource, FileResourceScheme scheme) {
-		
-		try {
-			boolean makeDefault = !resource.isReadOnly();
-			if(makeDefault) {
-				Collection<FileResource> resources = getResourcesByVirtualPath(resource.getVirtualPath());
-				for(FileResource r : resources) {
-					if(!r.equals(resource)) {
-						if(!r.isReadOnly()) {
-							makeDefault = false;
-							break;
-						}
-					}
-				}
-			}
-			
-			syncService.reconcileTopFolder(resource, resourceRepository.getIntValue(resource, "fs.initialReconcileDepth"), makeDefault, null);
-				
-		} catch (AccessDeniedException e) {
-			throw new IllegalStateException(e.getMessage(), e);
-		} catch (IOException e) {
-			throw new IllegalStateException(e.getMessage(), e);
-		}
-		
 	}
 	
 	@Override
@@ -423,7 +407,14 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 					scheme.getFileService().getRepository().setValues(resource, properties);
 				}
 				
-				doInitialReconcile(resource, scheme);
+				try {
+					VirtualFile mountedFile = virtualFileService.getFile(resource.getVirtualPath());
+					if(mountedFile.getDefaultMount()==null && !resource.isReadOnly()) {
+						virtualFileService.setDefaultMount(mountedFile, resource);
+					}
+				} catch (Throwable e) {
+					throw new IllegalStateException(new ResourceCreationException(RESOURCE_BUNDLE, "error.virtualFileError"));
+				}
 			}
 		});
 	}
@@ -437,14 +428,13 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 	@Override
 	public void deleteResource(FileResource resource) throws AccessDeniedException, ResourceException {
 		
-		super.deleteResource(resource, new TransactionAdapter<FileResource>() {
-
-			@Override
-			public void beforeOperation(FileResource resource, Map<String, String> properties) {
-				syncService.removeFileResource(resource);
-			}
-			
-		});
+		try {
+			virtualFileService.detachMount(resource);
+		} catch (Throwable e) {
+			throw new ResourceChangeException(RESOURCE_BUNDLE, "error.virtualFileError");
+		}
+		
+		super.deleteResource(resource);
 	}
 
 	@Override

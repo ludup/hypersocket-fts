@@ -1,13 +1,12 @@
 package com.hypersocket.vfs;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
+import org.apache.commons.vfs2.FileContent;
 import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileType;
 import org.hibernate.Criteria;
 import org.hibernate.Hibernate;
 import org.hibernate.Query;
@@ -69,205 +68,109 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 		return list("parent", parent, VirtualFile.class, new PrincipalCriteria(principal), new ConflictCriteria());
 	}
 	
-//	@Override
-//	@Transactional
-//	public VirtualFile reconcileMount(String displayName, FileResource resource, 
-//			FileObject fileObject, VirtualFile virtualFile, Principal principal) throws FileSystemException {
-//		
-//		String filename;
-//		VirtualFile parent = null;
-//		
-//		if(virtualFile==null) {
-//			virtualFile = new VirtualFile();
-//		}
-//		
-//		if(resource.getVirtualPath().equals("/") && fileObject.getType()!=FileType.FILE) {
-//			return getRootFolder(resource.getRealm());
-//		} else {
-//			filename = FileUtils.lastPathElement(resource.getVirtualPath());
-//			parent = reconcileParent(resource, principal);
-//			
-//			return buildFile(virtualFile,
-//					filename,
-//					displayName,
-//					resource.getVirtualPath(), 
-//					fileObject.getType()==FileType.FILE ? VirtualFileType.MOUNTED_FILE : VirtualFileType.MOUNTED_FOLDER, 
-//					!resource.isReadOnly() && fileObject.isWriteable(), 
-//					fileObject.getType()==FileType.FILE ? fileObject.getContent().getSize() : 0L, 
-//					fileObject.getType().hasAttributes() ? fileObject.getContent().getLastModifiedTime() : 0L, 
-//					parent,
-//					resource,
-//					!displayName.equals(filename),
-//					resource.getRealm(),
-//					principal);
-//		}
-//		
-//		
-//	}
-	
 	@Override
 	@Transactional
 	public VirtualFile reconcileNewFolder(String displayName, VirtualFile parent, FileObject fileObject, 
-			FileResource resource, boolean conflicted, Principal principal) throws FileSystemException {
+			FileResource resource, boolean conflicted, Principal principal) throws IOException {
 		
 		String filename = fileObject.getName().getBaseName();
 		
 		return buildFile(new VirtualFile(),
-					filename,
 					displayName,
 					FileUtils.checkEndsWithSlash(parent.getVirtualPath() + filename) , 
 					VirtualFileType.FOLDER, 
 					!resource.isReadOnly(), 
-					0L, 
-					fileObject.getType().hasAttributes() ? fileObject.getContent().getLastModifiedTime() : 0L, 
 					parent,
 					resource,
 					conflicted,
 					parent.getRealm(),
-					principal);
+					fileObject);
 	}
 	
 	@Override
 	@Transactional
-	public VirtualFile createVirtualFolder(String displayName, VirtualFile parent) {
+	public VirtualFile createVirtualFolder(String displayName, VirtualFile parent) throws IOException {
 		
-		return buildFile(new VirtualFile(),
+		VirtualFile folder = buildFile(new VirtualFile(),
 				displayName,
-					displayName,
 					FileUtils.checkEndsWithSlash(parent.getVirtualPath() + displayName) , 
 					VirtualFileType.FOLDER, 
 					false, 
-					0L, 
-					System.currentTimeMillis(), 
 					parent,
 					null,
 					false,
 					parent.getRealm(),
 					null);
+		save(folder);
+		return folder;
 	}
 	
 	@Override
 	@Transactional
 	public VirtualFile reconcileFolder(String displayName, VirtualFile folder, FileObject fileObject, 
-			FileResource resource, boolean conflicted, Principal principal) throws FileSystemException {
+			FileResource resource, boolean conflicted, Principal principal) throws IOException {
 		
 		String filename = fileObject.getName().getBaseName();
 		
 		return buildFile(folder,
-					filename,
 					displayName,
 					FileUtils.checkEndsWithSlash(folder.getParent().getVirtualPath() + filename) , 
 					VirtualFileType.FOLDER, 
 					!resource.isReadOnly(), 
-					0L, 
-					fileObject.getContent().getLastModifiedTime(), 
 					folder.getParent(),
 					resource,
 					conflicted,
 					folder.getRealm(),
-					principal);
+					fileObject);
 	}
 	
 	@Override
 	@Transactional
-	public VirtualFile reconcileParent(FileResource resource, Principal principal) {
-		Map<String,VirtualFile> parents = reconcileParents(resource, principal);
-		return parents.get(FileUtils.checkEndsWithSlash(
-				FileUtils.stripLastPathElement(resource.getVirtualPath())));
-	}
-	
-	@Override
-	@Transactional
-	public VirtualFile getRootFolder(Realm realm) {
+	public VirtualFile getRootFolder(Realm realm) throws IOException {
 		VirtualFile rootFile = get("filename", "__ROOT__", VirtualFile.class, new RealmCriteria(realm));
 		if(rootFile==null) {
 			rootFile = buildFile(new VirtualFile(),
 					"__ROOT__",
 					"/",
-					"/",
 					VirtualFileType.ROOT,
 					false,
-					0L,
-					System.currentTimeMillis(),
 					null,
 					null,
 					false,
 					realm,
 					null);
+			saveFile(rootFile);
 		}
 		return rootFile;
 	}
 	
-	@Override
-	@Transactional
-	public Map<String, VirtualFile> reconcileParents(FileResource resource, Principal principal) {
-		Map<String,VirtualFile> parents = new HashMap<String,VirtualFile>();
-		
-		VirtualFile rootFile = getRootFolder(resource.getRealm());
-		parents.put("/", rootFile);
-		VirtualFile currentParent = rootFile;
-		
-		List<String> parentPaths = FileUtils.generatePaths(FileUtils.stripLastPathElement(resource.getVirtualPath()));
-		for(String path : parentPaths) {
-			path = FileUtils.checkEndsWithSlash(path);
-			VirtualFile parent = get("virtualPath", path, VirtualFile.class);
-			if(parent==null) {
-				parent = buildFile(
-						new VirtualFile(),
-						FileUtils.stripPath(path),
-						FileUtils.stripPath(path),
-						path,
-						VirtualFileType.FOLDER,
-						false,
-						0L,
-						System.currentTimeMillis(),
-						currentParent,
-						null,
-						false,
-						resource.getRealm(),
-						principal);
-			} else {
-				Hibernate.initialize(parent);
-				if(!parent.getFolderMounts().contains(resource)) {
-					parent.getFolderMounts().add(resource);
-					saveFile(parent);
-				}
-			}
-			currentParent = parent;
-			parents.put(path, parent);
-		}
-		
-		return parents;
-	}
-	
-	VirtualFile buildFile(VirtualFile file, String filename, String displayName, String virtualPath, 
+	VirtualFile buildFile(VirtualFile file, String displayName, String virtualPath, 
 			VirtualFileType type, boolean writable,
-			Long size, Long lastModified, VirtualFile parent, 
+			VirtualFile parent, 
 			FileResource resource, boolean conflicted,
-			Realm realm, Principal principal) {
+			Realm realm, FileObject fileObject) throws IOException {
 		
-		file.setRealm(realm);
-		file.setFilename(filename);
-		file.setDisplayName(displayName);
-		file.setVirtualPath(virtualPath);
-		file.setType(type);
-		file.setWritable(writable);
-		file.setSize(size);
-		file.setLastModified(lastModified);
-		file.setParent(parent);
-		file.setMount(resource);
-		file.setConflicted(conflicted);
-		
-		file.setPrincipal(principal);
-		file.setHash(VirtualFileUtils.generateHash(filename, 
-				virtualPath, 
-				type.ordinal(), 
-				lastModified, 
-				size, 
-				writable,
-				conflicted));
-		save(file);
-		
+		FileContent content = fileObject==null ? null : fileObject.getContent();
+		try {
+			file.setRealm(realm);
+			file.setFilename(fileObject==null ? displayName :fileObject.getName().getBaseName());
+			file.setDisplayName(displayName);
+			file.setVirtualPath(virtualPath);
+			file.setType(type);
+			file.setWritable(writable);
+			file.setSize(fileObject!=null && fileObject.getType() == FileType.FILE ? content.getSize() : 0L);
+			file.setLastModified(content==null ? 
+					  file.getLastModified() == null ? System.currentTimeMillis() : file.getLastModified() 
+					: content.getLastModifiedTime());
+			file.setParent(parent);
+			file.setMount(resource);
+			file.setConflicted(conflicted);	
+			file.setFileObject(fileObject);
+		} finally {
+			if(content!=null) {
+				content.close();
+			}	
+		}
 		return file;
 	}
 
@@ -279,83 +182,70 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 
 	@Override
 	@Transactional
-	public VirtualFile reconcileFile(String displayName, FileObject obj, FileResource resource, VirtualFile parent, Principal principal) throws FileSystemException {
+	public VirtualFile reconcileFile(String displayName, FileObject obj, FileResource resource, VirtualFile parent, Principal principal) throws IOException {
 		return buildFile(new VirtualFile(), 
-				obj.getName().getBaseName(), 
 				displayName,
 				FileUtils.checkEndsWithSlash(parent.getVirtualPath()) + obj.getName().getBaseName(), 
 				VirtualFileType.FILE, 
 				!resource.isReadOnly() && obj.isWriteable(), 
-				obj.getContent().getSize(), 
-				obj.getContent().getLastModifiedTime(), 
 				parent, 
 				resource,
 				!displayName.equals(obj.getName().getBaseName()),
 				resource.getRealm(),
-				principal);
+				obj);
 	}
 	
 	@Override
 	@Transactional
-	public VirtualFile reconcileFile(String displayName, FileObject obj, FileResource resource, VirtualFile virtual, VirtualFile parent, Principal principal) throws FileSystemException {
+	public VirtualFile reconcileFile(String displayName, FileObject obj, FileResource resource, VirtualFile virtual, VirtualFile parent, Principal principal) throws IOException {
 		return buildFile(virtual, 
-				obj.getName().getBaseName(),
 				displayName,
 				FileUtils.checkEndsWithSlash(parent.getVirtualPath()) + obj.getName().getBaseName(), 
 				VirtualFileType.FILE, 
 				!resource.isReadOnly() && obj.isWriteable(), 
-				obj.getContent().getSize(), 
-				obj.getContent().getLastModifiedTime(), 
 				parent, 
 				resource,
 				!displayName.equals(obj.getName().getBaseName()),
 				resource.getRealm(),
-				principal);
+				obj);
 	}
 	
-	@Override
-	@Transactional(readOnly=true)
-	public Collection<VirtualFile> search(String searchColumn, String search, int start, int length, ColumnSort[] sort, final VirtualFile parent, Realm realm, Principal principal, final FileResource... resources) {
-		if(resources.length==0) {
-			return Collections.<VirtualFile>emptyList();
-		}
-		return super.search(VirtualFile.class, searchColumn, search, start, length, sort, new ParentCriteria(parent), new FileResourceCriteria(resources), new PrincipalCriteria(principal), new RealmCriteria(realm), new ConflictCriteria());
-	}
+	
 
-	@Override
-	@Transactional
-	public int removeReconciledFolder(VirtualFile toDelete) {
-		
-		int filesToDelete = 0;
-		boolean hasFiles =  false;
-		for(VirtualFile child :  list("parent", toDelete, VirtualFile.class, new ConflictCriteria())) {
-			if(child.isFolder()) {
-				filesToDelete += removeReconciledFolder(child);
-				continue;
-			}
-			hasFiles = true;
-		}
-		
-		if(hasFiles) {
-			filesToDelete += removeReconciledFiles(toDelete);
-		}
-		
-		
-		Query update = createQuery("delete from VirtualFile where id = :id", true);
-		update.setParameter("id", toDelete.getId());
-		filesToDelete += update.executeUpdate();
-		return filesToDelete;
-	}
+//	@Override
+//	@Transactional
+//	public int removeReconciledFolder(VirtualFile toDelete) {
+//		
+//		int filesToDelete = 0;
+//		boolean hasFiles =  false;
+//		for(VirtualFile child :  list("parent", toDelete, VirtualFile.class, new ConflictCriteria())) {
+//			if(child.isFolder()) {
+//				filesToDelete += removeReconciledFolder(child);
+//				continue;
+//			}
+//			hasFiles = true;
+//		}
+//		
+//		if(hasFiles) {
+//			filesToDelete += removeReconciledFiles(toDelete);
+//		}
+//		
+//		
+//		Query update = createQuery("delete from VirtualFile where id = :id", true);
+//		update.setParameter("id", toDelete.getId());
+//		filesToDelete += update.executeUpdate();
+//		return filesToDelete;
+//	}
 	
-	@Override
-	@Transactional
-	public int removeReconciledFiles(VirtualFile folder) {
-		
-		Query update = createQuery("delete from VirtualFile where parent = :parent", true);
-		update.setEntity("parent", folder);
-		int updates = update.executeUpdate();
-		return updates;
-	}
+//	@Override
+//	@Transactional
+//	public int removeReconciledFiles(VirtualFile folder) {
+//		
+//		Query update = createQuery("delete from VirtualFile where parent = :parent", true);
+//		update.setEntity("parent", folder);
+//		int updates = update.executeUpdate();
+//		return updates;
+//	}
 	
 	@Override
 	@Transactional
@@ -365,7 +255,6 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 		VirtualFile mountPoint = getVirtualFile(resource.getVirtualPath(), resource.getRealm(), null);
 		
 		do {
-			Hibernate.initialize(mountPoint);
 			mountPoint.getFolderMounts().remove(resource);
 			save(mountPoint);
 			mountPoint = mountPoint.getParent();
@@ -405,14 +294,6 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 		update.executeUpdate();
 		
 	}
-	
-	@Override
-	@Transactional
-	public void forceSync() {
-		
-		Query update = createQuery("update VirtualFile set sync = false where mount is null", true);
-		update.executeUpdate();
-	}
 
 	@Override
 	@Transactional(readOnly=true)
@@ -433,22 +314,21 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 
 	@Override
 	@Transactional
-	public VirtualFile renameVirtualFolder(VirtualFile fromFolder, String toFolder) {
-		
+	public VirtualFile renameVirtualFolder(VirtualFile fromFolder, String toFolder) throws IOException {
+
 		String newName = FileUtils.lastPathElement(toFolder);
-		return buildFile(fromFolder,
-					newName,
+		VirtualFile folder = buildFile(fromFolder,
 					newName,
 					FileUtils.checkEndsWithSlash(toFolder) , 
 					VirtualFileType.FOLDER, 
 					true, 
-					0L, 
-					System.currentTimeMillis(), 
 					fromFolder.getParent(),
 					null,
 					false,
 					fromFolder.getRealm(),
-					fromFolder.getPrincipal());
+					null);
+		save(folder);
+		return folder;
 	}
 
 	@Override
@@ -461,5 +341,21 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 	@Transactional
 	public void saveFile(VirtualFile file) {
 		save(file);
+	}
+
+	@Override
+	public Collection<VirtualFile> search(String searchColumn, String search, int start, int length, ColumnSort[] sort,
+			VirtualFile parent, Realm realm, Principal principal, FileResource... resources) {
+		return super.search(VirtualFile.class, searchColumn, search, start, length, sort);
+	}
+
+	@Override
+	public void addFileResource(VirtualFile mountedFile, FileResource resource) {
+
+		do {
+			mountedFile.getFolderMounts().add(resource);
+			save(mountedFile);
+			mountedFile = mountedFile.getParent();
+		} while(mountedFile!=null);
 	}
 }

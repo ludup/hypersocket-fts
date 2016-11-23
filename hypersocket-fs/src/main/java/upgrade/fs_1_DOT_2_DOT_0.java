@@ -1,5 +1,6 @@
 package upgrade;
 
+import java.io.IOException;
 import java.util.HashMap;
 
 import org.apache.commons.lang3.StringUtils;
@@ -35,7 +36,10 @@ public class fs_1_DOT_2_DOT_0 implements Runnable {
 		 * Ensure we have a root folder.
 		 */
 		for(Realm realm : realmRepository.allRealms()) {
-			virtualRepository.getRootFolder(realm);
+			try {
+				virtualRepository.getRootFolder(realm);
+			} catch (IOException e) {
+			}
 		}
 		
 		/**
@@ -44,14 +48,15 @@ public class fs_1_DOT_2_DOT_0 implements Runnable {
 		for(FileResource resource : repository.allResources()) {
 			
 			if(StringUtils.isBlank(resource.getVirtualPath())) {
-				VirtualFile vFolder = virtualRepository.createVirtualFolder(resource.getName(), 
-						virtualRepository.getRootFolder(resource.getRealm()));
-				vFolder.setDefaultMount(resource);				
-				virtualRepository.saveFile(vFolder);
 				try {
+					VirtualFile vFolder = virtualRepository.createVirtualFolder(resource.getName(), 
+							virtualRepository.getRootFolder(resource.getRealm()));
+					vFolder.setDefaultMount(resource);				
+					virtualRepository.saveFile(vFolder);
+				
 					resource.setVirtualPath("/" + resource.getName() + "/");
 					repository.saveResource(resource, new HashMap<String,String>());
-				} catch (ResourceException e) {
+				} catch (Exception e) {
 					log.error(String.format("Could not upgrade file resource %s. Resource requires virtual path value", resource.getName()), e);
 				}
 			}

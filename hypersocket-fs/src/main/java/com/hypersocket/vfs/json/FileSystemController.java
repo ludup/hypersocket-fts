@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FileExistsException;
 import org.apache.commons.vfs2.FileSystemException;
+import org.bouncycastle.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -495,10 +496,11 @@ public class FileSystemController extends ResourceController {
 			
 			return processDataTablesRequest(request, new BootstrapTableResourceProcessor<VirtualFileWrapper>() {
 				
+				Collection<VirtualFile> results;
 				@Override
 				public Long getTotalCount(String searchColumn, String searchPattern)
 						throws UnauthorizedException, AccessDeniedException {
-					long count = fileService.getSearchCount(virtualPath, "filename", searchPattern);
+					long count = results.size();
 					return count;
 				}
 				
@@ -506,8 +508,9 @@ public class FileSystemController extends ResourceController {
 				public Collection<?> getPage(String searchColumn, String searchPattern, int start, int length, ColumnSort[] sorting)
 						throws UnauthorizedException, AccessDeniedException {
 					try {
-						Collection<?> results = fileService.searchFiles(virtualPath, "filename", searchPattern, start, length, sorting, HTTP_PROTOCOL);
-						return results;
+						results = fileService.searchFiles(virtualPath, "filename", searchPattern, start, length, sorting, HTTP_PROTOCOL);
+						ArrayList<VirtualFile> ret = new ArrayList<VirtualFile>(results);
+						return ret.subList(start, start + Math.min(length, ret.size() - start));
 					} catch (IOException e) {
 						throw new IllegalStateException(e.getMessage(), e);
 					}

@@ -15,7 +15,9 @@ import javax.persistence.Lob;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
+import org.apache.commons.vfs2.FileObject;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
@@ -65,7 +67,7 @@ public class VirtualFile extends AbstractEntity<Long> {
 	@OneToOne
 	FileResource mount;
 	
-	@ManyToMany(fetch=FetchType.LAZY)
+	@ManyToMany(fetch=FetchType.EAGER)
 	@Fetch(FetchMode.SELECT)
 	@JoinTable(name = "virtual_fs_mounts", joinColumns={@JoinColumn(name="resource_id")}, 
 			inverseJoinColumns={@JoinColumn(name="mount_id")})
@@ -85,6 +87,9 @@ public class VirtualFile extends AbstractEntity<Long> {
 	
 	@Column(name="hash")
 	int hash;
+	
+	@Transient
+	FileObject fileObject;
 	
 	public Long getId() {
 		return id;
@@ -243,5 +248,15 @@ public class VirtualFile extends AbstractEntity<Long> {
 	public boolean isVirtualFolder() {
 		return mount==null;
 	}
+
+	@JsonIgnore
+	public FileObject getFileObject() {
+		return fileObject;
+	}
+
+	public void setFileObject(FileObject fileObject) {
+		this.fileObject = fileObject;
+	}
+	
 	
 }
