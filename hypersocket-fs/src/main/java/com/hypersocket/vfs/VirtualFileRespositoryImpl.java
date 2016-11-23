@@ -1,13 +1,12 @@
 package com.hypersocket.vfs;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
+import org.apache.commons.vfs2.FileContent;
 import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileType;
 import org.hibernate.Criteria;
 import org.hibernate.Hibernate;
 import org.hibernate.Query;
@@ -72,87 +71,69 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 	@Override
 	@Transactional
 	public VirtualFile reconcileNewFolder(String displayName, VirtualFile parent, FileObject fileObject, 
-			FileResource resource, boolean conflicted, Principal principal) throws FileSystemException {
+			FileResource resource, boolean conflicted, Principal principal) throws IOException {
 		
 		String filename = fileObject.getName().getBaseName();
 		
 		return buildFile(new VirtualFile(),
-					filename,
 					displayName,
 					FileUtils.checkEndsWithSlash(parent.getVirtualPath() + filename) , 
 					VirtualFileType.FOLDER, 
 					!resource.isReadOnly(), 
-					0L, 
-					fileObject.getType().hasAttributes() ? fileObject.getContent().getLastModifiedTime() : 0L, 
 					parent,
 					resource,
 					conflicted,
 					parent.getRealm(),
-					principal);
+					fileObject);
 	}
 	
 	@Override
 	@Transactional
-	public VirtualFile createVirtualFolder(String displayName, VirtualFile parent) {
+	public VirtualFile createVirtualFolder(String displayName, VirtualFile parent) throws IOException {
 		
-		return buildFile(new VirtualFile(),
+		VirtualFile folder = buildFile(new VirtualFile(),
 				displayName,
-					displayName,
 					FileUtils.checkEndsWithSlash(parent.getVirtualPath() + displayName) , 
 					VirtualFileType.FOLDER, 
 					false, 
-					0L, 
-					System.currentTimeMillis(), 
 					parent,
 					null,
 					false,
 					parent.getRealm(),
 					null);
+		save(folder);
+		return folder;
 	}
 	
 	@Override
 	@Transactional
 	public VirtualFile reconcileFolder(String displayName, VirtualFile folder, FileObject fileObject, 
-			FileResource resource, boolean conflicted, Principal principal) throws FileSystemException {
+			FileResource resource, boolean conflicted, Principal principal) throws IOException {
 		
 		String filename = fileObject.getName().getBaseName();
 		
 		return buildFile(folder,
-					filename,
 					displayName,
 					FileUtils.checkEndsWithSlash(folder.getParent().getVirtualPath() + filename) , 
 					VirtualFileType.FOLDER, 
 					!resource.isReadOnly(), 
-					0L, 
-					fileObject.getContent().getLastModifiedTime(), 
 					folder.getParent(),
 					resource,
 					conflicted,
 					folder.getRealm(),
-					principal);
+					fileObject);
 	}
 	
 	@Override
 	@Transactional
-	public VirtualFile reconcileParent(FileResource resource, Principal principal) {
-		Map<String,VirtualFile> parents = reconcileParents(resource, principal);
-		return parents.get(FileUtils.checkEndsWithSlash(
-				FileUtils.stripLastPathElement(resource.getVirtualPath())));
-	}
-	
-	@Override
-	@Transactional
-	public VirtualFile getRootFolder(Realm realm) {
+	public VirtualFile getRootFolder(Realm realm) throws IOException {
 		VirtualFile rootFile = get("filename", "__ROOT__", VirtualFile.class, new RealmCriteria(realm));
 		if(rootFile==null) {
 			rootFile = buildFile(new VirtualFile(),
-					"__ROOT__",
 					"/",
 					"/",
 					VirtualFileType.ROOT,
 					false,
-					0L,
-					System.currentTimeMillis(),
 					null,
 					null,
 					false,
@@ -162,74 +143,27 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 		return rootFile;
 	}
 	
-	@Override
-	@Transactional
-	public Map<String, VirtualFile> reconcileParents(FileResource resource, Principal principal) {
-		Map<String,VirtualFile> parents = new HashMap<String,VirtualFile>();
-		
-		VirtualFile rootFile = getRootFolder(resource.getRealm());
-		parents.put("/", rootFile);
-		VirtualFile currentParent = rootFile;
-		
-		List<String> parentPaths = FileUtils.generatePaths(FileUtils.stripLastPathElement(resource.getVirtualPath()));
-		for(String path : parentPaths) {
-			path = FileUtils.checkEndsWithSlash(path);
-			VirtualFile parent = get("virtualPath", path, VirtualFile.class);
-			if(parent==null) {
-				parent = buildFile(
-						new VirtualFile(),
-						FileUtils.stripPath(path),
-						FileUtils.stripPath(path),
-						path,
-						VirtualFileType.FOLDER,
-						false,
-						0L,
-						System.currentTimeMillis(),
-						currentParent,
-						null,
-						false,
-						resource.getRealm(),
-						principal);
-			} else {
-				Hibernate.initialize(parent);
-				if(!parent.getFolderMounts().contains(resource)) {
-					parent.getFolderMounts().add(resource);
-					saveFile(parent);
-				}
-			}
-			currentParent = parent;
-			parents.put(path, parent);
-		}
-		
-		return parents;
-	}
-	
-	VirtualFile buildFile(VirtualFile file, String filename, String displayName, String virtualPath, 
+	VirtualFile buildFile(VirtualFile file, String displayName, String virtualPath, 
 			VirtualFileType type, boolean writable,
-			Long size, Long lastModified, VirtualFile parent, 
+			VirtualFile parent, 
 			FileResource resource, boolean conflicted,
-			Realm realm, Principal principal) {
+			Realm realm, FileObject fileObject) throws IOException {
 		
+		FileContent content = fileObject==null ? null : fileObject.getContent();
 		file.setRealm(realm);
-		file.setFilename(filename);
+		file.setFilename(fileObject==null ? displayName :fileObject.getName().getBaseName());
 		file.setDisplayName(displayName);
 		file.setVirtualPath(virtualPath);
 		file.setType(type);
 		file.setWritable(writable);
-		file.setSize(size);
-		file.setLastModified(lastModified);
+		file.setSize(fileObject!=null && fileObject.getType() == FileType.FILE ? content.getSize() : 0L);
+		file.setLastModified(content==null ? 
+				  file.getLastModified() == null ? System.currentTimeMillis() : file.getLastModified() 
+				: content.getLastModifiedTime());
 		file.setParent(parent);
 		file.setMount(resource);
-		file.setConflicted(conflicted);
-		
-		file.setPrincipal(principal);
-		file.setHash(VirtualFileUtils.generateHash(filename, 
-				virtualPath, 
-				type.ordinal(), 
-				lastModified, 
-				size, 
-				writable,
-				conflicted));
+		file.setConflicted(conflicted);	
+		file.setFileObject(fileObject);
 		
 		return file;
 	}
@@ -242,38 +176,32 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 
 	@Override
 	@Transactional
-	public VirtualFile reconcileFile(String displayName, FileObject obj, FileResource resource, VirtualFile parent, Principal principal) throws FileSystemException {
+	public VirtualFile reconcileFile(String displayName, FileObject obj, FileResource resource, VirtualFile parent, Principal principal) throws IOException {
 		return buildFile(new VirtualFile(), 
-				obj.getName().getBaseName(), 
 				displayName,
 				FileUtils.checkEndsWithSlash(parent.getVirtualPath()) + obj.getName().getBaseName(), 
 				VirtualFileType.FILE, 
 				!resource.isReadOnly() && obj.isWriteable(), 
-				obj.getContent().getSize(), 
-				obj.getContent().getLastModifiedTime(), 
 				parent, 
 				resource,
 				!displayName.equals(obj.getName().getBaseName()),
 				resource.getRealm(),
-				principal);
+				obj);
 	}
 	
 	@Override
 	@Transactional
-	public VirtualFile reconcileFile(String displayName, FileObject obj, FileResource resource, VirtualFile virtual, VirtualFile parent, Principal principal) throws FileSystemException {
+	public VirtualFile reconcileFile(String displayName, FileObject obj, FileResource resource, VirtualFile virtual, VirtualFile parent, Principal principal) throws IOException {
 		return buildFile(virtual, 
-				obj.getName().getBaseName(),
 				displayName,
 				FileUtils.checkEndsWithSlash(parent.getVirtualPath()) + obj.getName().getBaseName(), 
 				VirtualFileType.FILE, 
 				!resource.isReadOnly() && obj.isWriteable(), 
-				obj.getContent().getSize(), 
-				obj.getContent().getLastModifiedTime(), 
 				parent, 
 				resource,
 				!displayName.equals(obj.getName().getBaseName()),
 				resource.getRealm(),
-				principal);
+				obj);
 	}
 	
 	
@@ -381,22 +309,21 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 
 	@Override
 	@Transactional
-	public VirtualFile renameVirtualFolder(VirtualFile fromFolder, String toFolder) {
-		
+	public VirtualFile renameVirtualFolder(VirtualFile fromFolder, String toFolder) throws IOException {
+
 		String newName = FileUtils.lastPathElement(toFolder);
-		return buildFile(fromFolder,
-					newName,
+		VirtualFile folder = buildFile(fromFolder,
 					newName,
 					FileUtils.checkEndsWithSlash(toFolder) , 
 					VirtualFileType.FOLDER, 
 					true, 
-					0L, 
-					System.currentTimeMillis(), 
 					fromFolder.getParent(),
 					null,
 					false,
 					fromFolder.getRealm(),
-					fromFolder.getPrincipal());
+					null);
+		save(folder);
+		return folder;
 	}
 
 	@Override

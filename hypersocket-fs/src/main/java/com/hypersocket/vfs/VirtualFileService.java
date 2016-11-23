@@ -43,7 +43,7 @@ public interface VirtualFileService extends AuthenticatedService {
 	Collection<VirtualFile> searchFiles(String virtualPath, String searchColumn, String search, int offset, int limit,
 			ColumnSort[] sorting, String proto) throws AccessDeniedException, IOException;
 
-	VirtualFile getRootFolder() throws FileNotFoundException, AccessDeniedException;
+	VirtualFile getRootFolder() throws AccessDeniedException, IOException;
 
 	boolean copyFile(String fromPath, String toPath, String proto) throws IOException, AccessDeniedException;
 
@@ -98,8 +98,6 @@ public interface VirtualFileService extends AuthenticatedService {
 	VirtualFile createFolder(String virtualPath, String proto, boolean disableEvent)
 			throws IOException, AccessDeniedException;
 
-	VirtualFile getFile(String virtualPath, boolean noSync) throws IOException, AccessDeniedException;
-
-	boolean isRootWritable(Principal currentPrincipal) throws FileNotFoundException, AccessDeniedException;
+	boolean isRootWritable(Principal currentPrincipal) throws AccessDeniedException, IOException;
 
 }

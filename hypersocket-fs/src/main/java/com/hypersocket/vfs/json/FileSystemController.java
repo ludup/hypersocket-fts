@@ -510,7 +510,7 @@ public class FileSystemController extends ResourceController {
 					try {
 						results = fileService.searchFiles(virtualPath, "filename", searchPattern, start, length, sorting, HTTP_PROTOCOL);
 						ArrayList<VirtualFile> ret = new ArrayList<VirtualFile>(results);
-						return ret.subList(start, start + Math.min(length, ret.size()));
+						return ret.subList(start, start + Math.min(length, ret.size() - start));
 					} catch (IOException e) {
 						throw new IllegalStateException(e);
 					}

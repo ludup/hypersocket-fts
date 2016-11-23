@@ -9,8 +9,12 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+
+import javax.annotation.PostConstruct;
 
 import org.apache.commons.io.FileExistsException;
 import org.apache.commons.io.IOUtils;
@@ -27,7 +31,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.hypersocket.auth.PasswordEnabledAuthenticatedServiceImpl;
 import com.hypersocket.config.ConfigurationService;
@@ -65,11 +68,17 @@ import com.hypersocket.resource.ResourceCreationException;
 import com.hypersocket.scheduler.SchedulerService;
 import com.hypersocket.session.Session;
 import com.hypersocket.tables.ColumnSort;
+import com.hypersocket.tables.Sort;
 import com.hypersocket.upload.FileStore;
 import com.hypersocket.upload.FileUpload;
 import com.hypersocket.upload.FileUploadService;
 import com.hypersocket.utils.FileUtils;
+import com.hypersocket.vfs.json.FileSystemColumn;
 import com.hypersocket.vfs.json.HttpDownloadProcessor;
+
+import net.sf.ehcache.Cache;
+import net.sf.ehcache.CacheManager;
+import net.sf.ehcache.Element;
 
 @Service
 public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceImpl 
@@ -95,11 +104,21 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	@Autowired
 	FileUploadService uploadService;
 
-//	@Autowired
-//	VirtualFileSynchronizationService syncService;
-
 	@Autowired
 	ConfigurationService configurationService; 
+	
+	CacheManager cacheManager;
+	Cache fileCache;
+	
+	enum CACHE {
+		CHILDREN
+	}
+	@PostConstruct
+	private void postConstruct() {
+		cacheManager = CacheManager.newInstance();
+		fileCache = new Cache("virtualFileCache", 5000, false, false, 60 * 5, 60 * 5);
+		cacheManager.addCache(fileCache);
+	}
 	
 	@Override
 	public Collection<VirtualFile> getVirtualFolders() throws AccessDeniedException {
@@ -110,7 +129,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	}
 	
 	@Override
-	public VirtualFile getRootFolder() throws FileNotFoundException, AccessDeniedException {
+	public VirtualFile getRootFolder() throws IOException, AccessDeniedException {
 		return virtualRepository.getRootFolder(getCurrentRealm());
 	}
 	
@@ -140,11 +159,6 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	
 	@Override
 	public VirtualFile getFile(String virtualPath) throws IOException, AccessDeniedException {
-		return getFile(virtualPath, false);
-	}
-	
-	@Override
-	public VirtualFile getFile(String virtualPath, boolean noSync) throws IOException, AccessDeniedException {
 		
 		virtualPath = normalise(virtualPath);
 		
@@ -213,14 +227,40 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		return getChildren(file);
 	}
 	
+	private String createCacheKey(CACHE cache, VirtualFile file) {
+		return String.format("%s-%s-%s-%d", cache.name(), file.getVirtualPath(), 
+				getCurrentPrincipal().getPrincipalName(), 
+				getCurrentRealm().getId());
+	}
+	
+	private void resetCache(VirtualFile file) {
+		for(CACHE c : CACHE.values()) {
+			String cacheKey = createCacheKey(c, file);
+			fileCache.remove(cacheKey);
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
 	@Override
 	public Collection<VirtualFile> getChildren(VirtualFile parentFile) throws AccessDeniedException, IOException {
 		
+		String cacheKey = createCacheKey(CACHE.CHILDREN, parentFile);
+		
+		if(fileCache.isElementInMemory(cacheKey)) {
+				
+			Element cached = fileCache.get(cacheKey);
+			if(cached!=null && !fileCache.isExpired(cached)) {
+				return (Collection<VirtualFile>) cached.getObjectValue();
+			}
+
+		}
+		
 		List<VirtualFile> results = new ArrayList<VirtualFile>();
-		
-		results.addAll(virtualRepository.getVirtualFilesByResource(parentFile, getCurrentRealm(), null, getPrincipalResources()));
-		
+		if(parentFile.isVirtualFolder()) {
+			results.addAll(virtualRepository.getVirtualFilesByResource(parentFile, getCurrentRealm(), null, getPrincipalResources()));
+		}
 		if(parentFile.getMount()==null && parentFile.getFolderMounts().isEmpty()) {
+			fileCache.put(new Element(cacheKey, results));
 			return results;
 		}
 		List<FileResource> resources = new ArrayList<FileResource>();
@@ -272,6 +312,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			}
 		}
 		
+		fileCache.put(new Element(cacheKey, results));
 		return results;
 	}
 
@@ -312,20 +353,14 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 				throw t;
 			}
 		} else {
-		
+	
 			DeleteFileResolver resolver = new DeleteFileResolver(proto);
 
 			boolean success = resolver.processRequest(file);
-			if(!resolver.isExisted()) {
-				virtualRepository.removeReconciledFile(file);
-				return true;
-			}
 			if(success) {
-				virtualRepository.removeReconciledFile(file);
-				return true;
-			} else {
-				return false;
+				resetCache(file.getParent());
 			}
+			return success;
 		}
 	}
 
@@ -374,8 +409,8 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			VirtualFile parent = getFile(parentPath);
 			
 			FileObject newFolder = resolver.processRequest(virtualPath);
+			resetCache(parent);
 			return virtualRepository.reconcileNewFolder(newFolder.getName().getBaseName(), parent, newFolder, resolver.getParentResource(), false, getOwnerPrincipal(resolver.getParentResource()));
-			
 		}
 	}
 	
@@ -400,7 +435,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 
 		try {
 			VirtualFile file = virtualRepository.createVirtualFolder(newName, parent);
-			
+			resetCache(parent);
 			eventService.publishEvent(new VirtualFolderCreatedEvent(this, 
 					getCurrentSession(), 
 					 FileUtils.checkEndsWithSlash(virtualPath) + newName));
@@ -483,6 +518,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 				try {
 					String originalPath = fromFile.getVirtualPath();
 					VirtualFile file =  virtualRepository.renameVirtualFolder(fromFile, toVirtualPath);
+					resetCache(file.getParent());
 					eventService.publishEvent(new VirtualFolderUpdatedEvent(this, 
 							getCurrentSession(), 
 							originalPath,
@@ -508,6 +544,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			if(existingFile!=null) {
 				displayName = String.format("%s (%s)", displayName, resolver.getToMount().getName());
 			}
+			resetCache(parent);
 			return virtualRepository.reconcileFile(displayName, resolver.getToFile(), resolver.getToMount(), parent, getOwnerPrincipal(resolver.getToMount()));
 		}
 	}
@@ -518,8 +555,13 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		fromPath = normalise(fromPath);
 		toPath = normalise(toPath);
 
+		VirtualFile toParent = getFile(FileUtils.stripLastPathElement(toPath));
 		CopyFileResolver resolver = new CopyFileResolver(proto);
-		return resolver.processRequest(fromPath, toPath);
+		boolean success = resolver.processRequest(fromPath, toPath);
+		if(success) {
+			resetCache(toParent);
+		}
+		return success;
 
 	}
 	
@@ -594,7 +636,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 					if (processor != null) {
 						processor.processUpload(resource, resolveVFSFile(parentFile.getMount()), childPath, file);
 					}
-					
+					resetCache(parentFile);
 					return upload;
 
 				} catch (ResourceCreationException e) {
@@ -635,22 +677,58 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			ColumnSort[] sort,
 			String proto) throws AccessDeniedException, IOException {
 		
-		FileResource[] resources = getPrincipalResources();
-		if(resources.length==0) {
-			return Collections.<VirtualFile>emptyList();
-		}
-		
-		List<VirtualFile> results = new ArrayList<VirtualFile>();
-		
 		VirtualFile parentFile = virtualRepository.getVirtualFile(virtualPath, getCurrentRealm(), null);
-		if(parentFile != null) {
-			results.addAll(virtualRepository.getVirtualFilesByResource(parentFile, getCurrentRealm(), null, resources));
-		} else {
+		if(parentFile == null) {
 			parentFile = getFile(virtualPath);
 		}
 		
-		results.addAll(getChildren(parentFile));
-				
+		List<VirtualFile> results = new ArrayList<VirtualFile>(getChildren(parentFile));
+		if(StringUtils.isNotBlank(search)) {
+			for(Iterator<VirtualFile> it = results.iterator(); it.hasNext(); ) {
+				VirtualFile file = it.next();
+				if(!file.getFilename().startsWith(search) && !file.getFilename().endsWith(search)) {
+					it.remove();
+				}
+			}
+		}
+		
+		if(sort.length > 0) {
+			final FileSystemColumn column = (FileSystemColumn) sort[0].getColumn();
+			final Sort sortDirection = sort[0].getSort();
+			Collections.sort(results, new Comparator<VirtualFile>() {
+
+				@Override
+				public int compare(VirtualFile o1, VirtualFile o2) {
+					
+					switch(column) {
+					case LASTMODIFIED:
+						if(sortDirection==Sort.ASC) {
+							return o1.getLastModified().compareTo(o2.getLastModified());
+						} else {
+							return o2.getLastModified().compareTo(o1.getLastModified());
+						}
+					case SIZE:
+						if(sortDirection==Sort.ASC) {
+							return o1.getSize().compareTo(o2.getSize());
+						} else {
+							return o2.getSize().compareTo(o1.getSize());
+						}
+					case TYPE:
+						if(sortDirection==Sort.ASC) {
+							return o1.getType().compareTo(o2.getType());
+						} else {
+							return o2.getType().compareTo(o1.getType());
+						}
+					default:
+						if(sortDirection==Sort.ASC) {
+							return o1.getFilename().compareTo(o2.getFilename());
+						} else {
+							return o2.getFilename().compareTo(o1.getFilename());
+						}
+					}
+				}
+			});
+		}
 		return results;
 	}
 	
@@ -694,7 +772,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			if (obj.isHidden() || obj.getName().getBaseName().startsWith(".")) {
 				return resource.isShowHidden();
 			}
-			return true;
+			return checkResourceFilter(obj.getName().getBaseName(), resource);
 		} catch (FileSystemException e) {
 			return true;
 		}
@@ -704,7 +782,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		if (!resource.isShowFolders()) {
 			return false;
 		}
-		// Check for hidden folder
+		// Check for hidden folder or filter
 		return isReconciledFile(resource, obj);
 	}
 	
@@ -1277,6 +1355,9 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		VirtualFile file;
 		try {
 			file = getFile(virtualPath);
+			if(file.getFileObject()!=null) {
+				return file.getFileObject();
+			}
 			String childPath = FileUtils.stripParentPath(file.getMount().getVirtualPath(), virtualPath);
 			return resolveVFSFile(file.getMount()).resolveFile(childPath);
 		} catch (FileNotFoundException e) {
@@ -1604,7 +1685,15 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 						event.getOutputFile(), event.getOutputStream(), position, event.getTimestamp(), 
 						new SessionAwareUploadEventProcessor(getCurrentSession(),
 								getCurrentLocale(), VirtualFileServiceImpl.this, uploadProcessor),
-						proto, getOwnerPrincipal(resource));
+						proto, getOwnerPrincipal(resource)) {
+					
+							@Override
+							public synchronized void close() throws IOException {
+								resetCache(parentFile);
+								super.close();
+							}
+					
+				};
 			}
 
 			@Override
@@ -1670,7 +1759,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	}
 
 	@Override
-	public boolean isRootWritable(Principal currentPrincipal) throws FileNotFoundException, AccessDeniedException {
+	public boolean isRootWritable(Principal currentPrincipal) throws IOException, AccessDeniedException {
 		
 		VirtualFile root = getRootFolder();
 		if(root.getDefaultMount()==null) {

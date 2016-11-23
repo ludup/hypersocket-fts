@@ -1,5 +1,6 @@
 package com.hypersocket.vfs;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 
@@ -14,20 +15,16 @@ import com.hypersocket.tables.ColumnSort;
 
 public interface VirtualFileRepository extends AbstractRepository<Long> {
 
-	Map<String, VirtualFile> reconcileParents(FileResource resource, Principal principal);
-	
-	VirtualFile reconcileParent(FileResource resource, Principal principal);
-
 	void removeReconciledFile(VirtualFile toDelete);
 
-	VirtualFile reconcileFile(String displayName, FileObject obj, FileResource resource, VirtualFile parent, Principal principal) throws FileSystemException;
+	VirtualFile reconcileFile(String displayName, FileObject obj, FileResource resource, VirtualFile parent, Principal principal) throws FileSystemException, IOException;
 //
 	VirtualFile reconcileFile(String displayName, FileObject obj, FileResource resource, VirtualFile virtual, VirtualFile parent, Principal principal)
-			throws FileSystemException;
+			throws FileSystemException, IOException;
 
-	VirtualFile reconcileFolder(String displayName, VirtualFile folder, FileObject fileObject, FileResource resource, boolean conflicted, Principal principal) throws FileSystemException;
+	VirtualFile reconcileFolder(String displayName, VirtualFile folder, FileObject fileObject, FileResource resource, boolean conflicted, Principal principal) throws FileSystemException, IOException;
 //
-	VirtualFile reconcileNewFolder(String displayName, VirtualFile parent, FileObject fileObject, FileResource resource, boolean conflicted, Principal principal) throws FileSystemException;
+	VirtualFile reconcileNewFolder(String displayName, VirtualFile parent, FileObject fileObject, FileResource resource, boolean conflicted, Principal principal) throws FileSystemException, IOException;
 
 //	VirtualFile reconcileMount(String displayName, FileResource resource, FileObject fileObject, VirtualFile virtualFile, Principal principal) throws FileSystemException;
 
@@ -43,13 +40,13 @@ public interface VirtualFileRepository extends AbstractRepository<Long> {
 
 	Collection<VirtualFile> getVirtualFolders(Realm realm);
 
-	VirtualFile getRootFolder(Realm realm);
+	VirtualFile getRootFolder(Realm realm) throws IOException;
 
 	VirtualFile getVirtualFile(String virtualPath, Realm realm, Principal principal);
 
-	VirtualFile createVirtualFolder(String displayName, VirtualFile parent);
+	VirtualFile createVirtualFolder(String displayName, VirtualFile parent) throws IOException;
 
-	VirtualFile renameVirtualFolder(VirtualFile fromFolder, String toFolder);
+	VirtualFile renameVirtualFolder(VirtualFile fromFolder, String toFolder) throws IOException;
 
 	VirtualFile getVirtualFileById(Long id);
 

@@ -57,6 +57,8 @@ import com.hypersocket.server.HypersocketServer;
 import com.hypersocket.ui.IndexPageFilter;
 import com.hypersocket.ui.UserInterfaceContentHandler;
 import com.hypersocket.upload.FileUploadService;
+import com.hypersocket.vfs.VirtualFile;
+import com.hypersocket.vfs.VirtualFileService;
 
 @Service
 public class FileResourceServiceImpl extends AbstractAssignableResourceServiceImpl<FileResource>
@@ -107,6 +109,8 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 	@Autowired
 	BrowserLaunchableService browserLaunchableService;
 
+	@Autowired
+	VirtualFileService virtualFileService; 
 	
 
 	Map<String, FileResourceScheme> schemes = new HashMap<String, FileResourceScheme>();
@@ -366,6 +370,15 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 						scheme.getFileService().getRepository().setValues(resource, properties);
 					}
 				}
+				
+				try {
+					VirtualFile mountedFile = virtualFileService.getFile(resource.getVirtualPath());
+					if(mountedFile.getDefaultMount()==null && !resource.isReadOnly()) {
+						virtualFileService.setDefaultMount(mountedFile, resource);
+					}
+				} catch (Throwable e) {
+					throw new IllegalStateException(new ResourceCreationException(RESOURCE_BUNDLE, "error.virtualFileError"));
+				}
 
 			}
 		});
@@ -391,6 +404,15 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 				FileResourceScheme scheme = schemes.get(resource.getScheme());
 				if(scheme.getFileService()!=null && scheme.getFileService().getRepository()!=null) {
 					scheme.getFileService().getRepository().setValues(resource, properties);
+				}
+				
+				try {
+					VirtualFile mountedFile = virtualFileService.getFile(resource.getVirtualPath());
+					if(mountedFile.getDefaultMount()==null && !resource.isReadOnly()) {
+						virtualFileService.setDefaultMount(mountedFile, resource);
+					}
+				} catch (Throwable e) {
+					throw new IllegalStateException(new ResourceCreationException(RESOURCE_BUNDLE, "error.virtualFileError"));
 				}
 			}
 		});
