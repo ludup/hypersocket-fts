@@ -1,7 +1,6 @@
 package com.hypersocket.fs;
 
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -10,21 +9,15 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.VFS;
-import org.apache.commons.vfs2.auth.StaticUserAuthenticator;
-import org.apache.commons.vfs2.impl.DefaultFileSystemConfigBuilder;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Service;
 
 import com.hypersocket.browser.BrowserLaunchableService;
-import com.hypersocket.config.ConfigurationChangedEvent;
 import com.hypersocket.config.ConfigurationPermission;
 import com.hypersocket.events.EventService;
 import com.hypersocket.fs.events.CopyFileEvent;
@@ -64,7 +57,8 @@ import com.hypersocket.server.HypersocketServer;
 import com.hypersocket.ui.IndexPageFilter;
 import com.hypersocket.ui.UserInterfaceContentHandler;
 import com.hypersocket.upload.FileUploadService;
-import com.hypersocket.vfs.VirtualFileSynchronizationService;
+import com.hypersocket.vfs.VirtualFile;
+import com.hypersocket.vfs.VirtualFileService;
 
 @Service
 public class FileResourceServiceImpl extends AbstractAssignableResourceServiceImpl<FileResource>
@@ -114,9 +108,9 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 	
 	@Autowired
 	BrowserLaunchableService browserLaunchableService;
-	
+
 	@Autowired
-	VirtualFileSynchronizationService syncService; 
+	VirtualFileService virtualFileService; 
 	
 
 	Map<String, FileResourceScheme> schemes = new HashMap<String, FileResourceScheme>();
@@ -377,35 +371,17 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 					}
 				}
 				
-				doInitialReconcile(resource, scheme);
+				try {
+					VirtualFile mountedFile = virtualFileService.getFile(resource.getVirtualPath());
+					if(mountedFile.getDefaultMount()==null && !resource.isReadOnly()) {
+						virtualFileService.setDefaultMount(mountedFile, resource);
+					}
+				} catch (Throwable e) {
+					throw new IllegalStateException(new ResourceCreationException(RESOURCE_BUNDLE, "error.virtualFileError"));
+				}
+
 			}
 		});
-	}
-
-	private void doInitialReconcile(FileResource resource, FileResourceScheme scheme) {
-		
-		try {
-			boolean makeDefault = !resource.isReadOnly();
-			if(makeDefault) {
-				Collection<FileResource> resources = getResourcesByVirtualPath(resource.getVirtualPath());
-				for(FileResource r : resources) {
-					if(!r.equals(resource)) {
-						if(!r.isReadOnly()) {
-							makeDefault = false;
-							break;
-						}
-					}
-				}
-			}
-			
-			syncService.reconcileTopFolder(resource, resourceRepository.getIntValue(resource, "fs.initialReconcileDepth"), makeDefault, null);
-				
-		} catch (AccessDeniedException e) {
-			throw new IllegalStateException(e.getMessage(), e);
-		} catch (IOException e) {
-			throw new IllegalStateException(e.getMessage(), e);
-		}
-		
 	}
 	
 	@Override
@@ -430,7 +406,14 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 					scheme.getFileService().getRepository().setValues(resource, properties);
 				}
 				
-				doInitialReconcile(resource, scheme);
+				try {
+					VirtualFile mountedFile = virtualFileService.getFile(resource.getVirtualPath());
+					if(mountedFile.getDefaultMount()==null && !resource.isReadOnly()) {
+						virtualFileService.setDefaultMount(mountedFile, resource);
+					}
+				} catch (Throwable e) {
+					throw new IllegalStateException(new ResourceCreationException(RESOURCE_BUNDLE, "error.virtualFileError"));
+				}
 			}
 		});
 	}
@@ -444,14 +427,7 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 	@Override
 	public void deleteResource(FileResource resource) throws ResourceChangeException, AccessDeniedException {
 		
-		super.deleteResource(resource, new TransactionAdapter<FileResource>() {
-
-			@Override
-			public void beforeOperation(FileResource resource, Map<String, String> properties) {
-				syncService.removeFileResource(resource);
-			}
-			
-		});
+		super.deleteResource(resource);
 	}
 
 	@Override
