@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Locale;
 
 import javax.annotation.PostConstruct;
+import javax.cache.Cache;
 
 import org.apache.commons.io.FileExistsException;
 import org.apache.commons.io.IOUtils;
@@ -33,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.hypersocket.auth.PasswordEnabledAuthenticatedServiceImpl;
+import com.hypersocket.cache.CacheService;
 import com.hypersocket.config.ConfigurationService;
 import com.hypersocket.events.EventService;
 import com.hypersocket.fs.ContentInputStream;
@@ -76,10 +78,6 @@ import com.hypersocket.utils.FileUtils;
 import com.hypersocket.vfs.json.FileSystemColumn;
 import com.hypersocket.vfs.json.HttpDownloadProcessor;
 
-import net.sf.ehcache.Cache;
-import net.sf.ehcache.CacheManager;
-import net.sf.ehcache.Element;
-
 @Service
 public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceImpl 
 	implements VirtualFileService, DownloadEventProcessor, UploadEventProcessor {
@@ -107,8 +105,10 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	@Autowired
 	ConfigurationService configurationService; 
 	
-	CacheManager cacheManager;
-	Cache fileCache;
+	@Autowired
+	CacheService cacheService;
+	
+	Cache<String,Collection> childrenCache;
 	
 	ThreadLocal<Principal> overridePrincipal = new ThreadLocal<Principal>();
 	ThreadLocal<String> overrideUsername = new ThreadLocal<String>();
@@ -118,11 +118,11 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		CHILDREN
 	}
 	
+	@SuppressWarnings("rawtypes")
 	@PostConstruct
 	private void postConstruct() {
-		cacheManager = CacheManager.newInstance();
-		fileCache = new Cache("virtualFileCache", 5000, false, false, 60 * 5, 60 * 5);
-		cacheManager.addCache(fileCache);
+		
+		childrenCache = (Cache<String,Collection>) cacheService.getCache("virtualFileCache", String.class, Collection.class);
 	}
 	
 	@Override
@@ -255,7 +255,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	private void resetCache(VirtualFile file) {
 		for(CACHE c : CACHE.values()) {
 			String cacheKey = createCacheKey(c, file);
-			fileCache.remove(cacheKey);
+			childrenCache.remove(cacheKey);
 		}
 	}
 	
@@ -265,12 +265,10 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		
 		String cacheKey = createCacheKey(CACHE.CHILDREN, parentFile);
 		
-		if(fileCache.isElementInMemory(cacheKey)) {
+		if(childrenCache.containsKey(cacheKey)) {
 				
-			Element cached = fileCache.get(cacheKey);
-			if(cached!=null && !fileCache.isExpired(cached)) {
-				return (Collection<VirtualFile>) cached.getObjectValue();
-			}
+			return (Collection<VirtualFile>) childrenCache.get(cacheKey);
+			
 
 		}
 		
@@ -279,7 +277,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			results.addAll(virtualRepository.getVirtualFilesByResource(parentFile, getCurrentRealm(), null, getPrincipalResources()));
 		}
 		if(parentFile.getMount()==null && parentFile.getFolderMounts().isEmpty()) {
-			fileCache.put(new Element(cacheKey, results));
+			childrenCache.put(cacheKey, results);
 			return results;
 		}
 		List<FileResource> resources = new ArrayList<FileResource>();
@@ -335,7 +333,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			}
 		}
 		
-		fileCache.put(new Element(cacheKey, results));
+		childrenCache.put(cacheKey, results);
 		return results;
 	}
 
