@@ -74,7 +74,6 @@ public class ContentOutputStream extends OutputStream {
 			bytesIn += len;
 		} catch (IOException e) {
 			FileUtils.closeQuietly(out);
-			reconcileFile();
 			eventProcessor.uploadFailed(resource, childPath, file, bytesIn, e,
 					protocol);
 			out = null;
@@ -88,20 +87,10 @@ public class ContentOutputStream extends OutputStream {
 		if (out != null) {
 			FileUtils.closeQuietly(out);
 			out = null;
-			reconcileFile();
 			eventProcessor.uploadComplete(resource, childPath, file,
 					bytesIn, started, protocol);
 			
 		}
 	}
 
-	private void reconcileFile() throws FileSystemException {
-		VirtualFile existingFile = virtualRepository.getVirtualFile(virtualPath, resource.getRealm(), principal);
-		
-		String displayName = FileUtils.lastPathElement(virtualPath);
-		if(existingFile!=null) {
-			displayName = String.format("%s (%s)", displayName, parentFile.getMount().getName());
-		}
-		virtualRepository.reconcileFile(displayName, file, resource, parentFile, principal);
-	}
 }

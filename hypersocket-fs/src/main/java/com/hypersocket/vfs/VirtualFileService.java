@@ -26,7 +26,7 @@ public interface VirtualFileService extends AuthenticatedService {
 
 	Collection<VirtualFile> getChildren(String virtualPath) throws AccessDeniedException, IOException;
 
-	Collection<VirtualFile> getChildren(VirtualFile folder) throws AccessDeniedException;
+	Collection<VirtualFile> getChildren(VirtualFile folder) throws AccessDeniedException, IOException;
 
 	Boolean deleteFile(String virtualPath, String proto) throws IOException, AccessDeniedException;
 
@@ -43,7 +43,7 @@ public interface VirtualFileService extends AuthenticatedService {
 	Collection<VirtualFile> searchFiles(String virtualPath, String searchColumn, String search, int offset, int limit,
 			ColumnSort[] sorting, String proto) throws AccessDeniedException, IOException;
 
-	VirtualFile getRootFolder() throws FileNotFoundException, AccessDeniedException;
+	VirtualFile getRootFolder() throws AccessDeniedException, IOException;
 
 	boolean copyFile(String fromPath, String toPath, String proto) throws IOException, AccessDeniedException;
 
@@ -55,8 +55,6 @@ public interface VirtualFileService extends AuthenticatedService {
 	InputStream downloadFile(String realPath, long position, String proto, Principal overridePrincipal, String overrideUsername, String overridePassword) throws IOException, AccessDeniedException;
 	
 	FileObject getFileObject(String path) throws IOException, AccessDeniedException;
-	
-	FileObject getFileObject(String path, Principal overridePrincipal, String overrideUsername, String overridePassword) throws IOException, AccessDeniedException;
 	
 	OutputStream uploadFile(String realPath, long position, String proto) throws IOException, AccessDeniedException;
 
@@ -92,16 +90,20 @@ public interface VirtualFileService extends AuthenticatedService {
 
 	void setDefaultMount(VirtualFile file, FileResource mount) throws AccessDeniedException, ResourceChangeException;
 
-	Principal getOwnerPrincipal(FileResource resource);
-
 	OutputStream uploadFile(String virtualPath, long position, String proto, UploadEventProcessor uploadProcessor)
 			throws IOException, AccessDeniedException;
 
 	VirtualFile createFolder(String virtualPath, String proto, boolean disableEvent)
 			throws IOException, AccessDeniedException;
 
-	VirtualFile getFile(String virtualPath, boolean noSync) throws IOException, AccessDeniedException;
+	boolean isRootWritable(Principal currentPrincipal) throws AccessDeniedException, IOException;
 
-	boolean isRootWritable(Principal currentPrincipal) throws FileNotFoundException, AccessDeniedException;
+	void detachMount(FileResource resource);
+
+	void attachMount(VirtualFile mountedFile, FileResource resource);
+
+	void clearCredentials();
+
+	void setupCredentials(Principal principal, String username, String password);
 
 }
