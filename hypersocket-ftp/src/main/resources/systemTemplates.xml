@@ -31,6 +31,9 @@
 	    <property resourceKey="ftps.enabled" inputType="switch"
 			weight="100" defaultValue="true" />
 	    
+	     <property resourceKey="ftps.implicit" inputType="switch"
+			weight="100" defaultValue="false" />
+			
 		<property resourceKey="ftps.port" inputType="integer"
 			minValue="1" maxValue="65535" weight="200" defaultValue="990" developmentValue="9990" />
 		

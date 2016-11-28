@@ -438,7 +438,7 @@ public class FTPServiceImpl implements FTPService,
 						
 						SslConfiguration sslConfig = ssl.createSslConfiguration();
 						factory.setSslConfiguration(sslConfig);
-						factory.setImplicitSsl(true);
+						factory.setImplicitSsl(systemConfigurationService.getBooleanValue("ftps.implicit"));
 
 						String passivePorts = systemConfigurationService.getValue("ftps.passivePorts");
 						

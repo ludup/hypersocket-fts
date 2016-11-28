@@ -119,8 +119,8 @@
 				});
 			});
 		}
-		debugger;
-		if(row.mount && row.writable) {
+		
+		if(row.mount && row.writable && !row.virtualFolder) {
 			actionHtml += '<a class="delete tableAction btn btn-danger btn-action"><i class="fa fa-trash fa-fw"></i></a>';
 			actionHtml += '<a class="edit tableAction btn btn-primary btn-action"><i class="fa fa-edit fa-fw"></i></a>';
 		}
@@ -268,7 +268,7 @@
 		var canDelete = false;
 		var selectAll = true;
 		$.each($('#table').bootstrapTable('getData'), function(idx, obj) {
-			if(!obj.writable) {
+			if(!obj.writable || obj.virtualFolder) {
 				$('#table tr[data-index="' + idx + '"] td input').hide();
 				selectAll = false;
 			} else {
