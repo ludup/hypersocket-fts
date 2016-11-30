@@ -198,8 +198,6 @@ public class FTPServiceImpl implements FTPService,
 							} catch (Exception e) {
 								log.error("Failed to start FTPS server");
 							}
-						} else if(!enabled) {
-							stopFTPS();
 						}
 					}
 				}
@@ -413,6 +411,7 @@ public class FTPServiceImpl implements FTPService,
 				if(ftpsServer!=null) {
 					ftpsServer.stop();
 				}
+				running = false;
 			} catch (Throwable t) {
 				log.error("Failed to stop FTPS service", t);
 			}
