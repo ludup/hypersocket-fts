@@ -480,7 +480,8 @@ public class FTPServiceImpl implements FTPService,
 						PassivePorts ports = new PassivePorts(passivePorts, true);
 						
 						factory.setDataConnectionConfiguration(new DefaultDataConnectionConfiguration(
-								idleTime, sslConfig, false, false, null, 0, i, ports, passiveExternalAddress, true));
+								idleTime, sslConfig, false, false, null, 0, i, ports, passiveExternalAddress, 
+								systemConfigurationService.getBooleanValue("ftps.implicit")));
 						
 						if (!replacedDefault) {
 							serverFactory.addListener("default",
