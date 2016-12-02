@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.hazelcast.nio.serialization.HazelcastSerializationException;
 import com.hypersocket.auth.PasswordEnabledAuthenticatedServiceImpl;
 import com.hypersocket.cache.CacheService;
 import com.hypersocket.config.ConfigurationService;
@@ -333,7 +334,12 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			}
 		}
 		
-		childrenCache.put(cacheKey, results);
+		try {
+			childrenCache.put(cacheKey, results);
+		}
+		catch(HazelcastSerializationException hse) {
+			log.error("Failed to cache.", hse);
+		}
 		return results;
 	}
 

@@ -89,7 +89,7 @@ public class VirtualFile extends AbstractEntity<Long> {
 	int hash;
 	
 	@Transient
-	FileObject fileObject;
+	transient FileObject fileObject;
 	
 	public Long getId() {
 		return id;
