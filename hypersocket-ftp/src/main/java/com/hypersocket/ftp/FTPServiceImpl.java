@@ -35,6 +35,7 @@ import com.hypersocket.auth.UsernameAndPasswordAuthenticator;
 import com.hypersocket.certificates.CertificateResourceService;
 import com.hypersocket.config.ConfigurationChangedEvent;
 import com.hypersocket.config.ConfigurationService;
+import com.hypersocket.config.ConfigurationValueChangedEvent;
 import com.hypersocket.config.SystemConfigurationService;
 import com.hypersocket.events.SystemEvent;
 import com.hypersocket.i18n.I18NService;
@@ -104,7 +105,8 @@ public class FTPServiceImpl implements FTPService,
 	
 	FTPService ftpService = new FTPService();
 	FTPSService ftpsService = new FTPSService();
-	
+	boolean pendingFTPChange = false;
+	boolean pendingFTPSChange = false;
 	@PostConstruct
 	private void postConstruct() {
 		i18nService.registerBundle(RESOURCE_BUNDLE);
@@ -168,10 +170,19 @@ public class FTPServiceImpl implements FTPService,
 					stopFTP();
 					stopFTPS();
 				
+				} else if(event instanceof ConfigurationValueChangedEvent) {
+					
+					if(event.getAttribute(ConfigurationValueChangedEvent.ATTR_CONFIG_RESOURCE_KEY).startsWith("ftp.")) {
+						pendingFTPChange = true;
+					}
+					
+					if(event.getAttribute(ConfigurationValueChangedEvent.ATTR_CONFIG_RESOURCE_KEY).startsWith("ftps.")) {
+						pendingFTPSChange = true;
+					}
+					
 				} else if(event instanceof ConfigurationChangedEvent) {
-					
-					
-					if(event.getAttribute(ConfigurationChangedEvent.ATTR_CONFIG_RESOURCE_KEY).startsWith("ftp.")) {
+						
+					if(pendingFTPChange) {
 						boolean enabled = systemConfigurationService.getBooleanValue("ftp.enabled");
 						
 						if(ftpService.isRunning()) {
@@ -179,13 +190,15 @@ public class FTPServiceImpl implements FTPService,
 						}
 						
 						if(enabled) {
-							startFTP();
-						} else if(!enabled) {
-							stopFTP();
-						}
+							if(!startFTP()) {
+								log.error("Failed to start FTP server");
+							}
+						} 
+						
+						pendingFTPChange = false;
 					}
 					
-					if(event.getAttribute(ConfigurationChangedEvent.ATTR_CONFIG_RESOURCE_KEY).startsWith("ftps.")) {
+					if(pendingFTPSChange) {
 						boolean enabled = systemConfigurationService.getBooleanValue("ftps.enabled");
 						
 						if(ftpsService.isRunning()) {
@@ -193,12 +206,12 @@ public class FTPServiceImpl implements FTPService,
 						}
 						
 						if(enabled) {
-							try {
-								startFTPS();
-							} catch (Exception e) {
+							if(!startFTPS()) {
 								log.error("Failed to start FTPS server");
 							}
 						}
+						
+						pendingFTPSChange = false;
 					}
 				}
 			}
@@ -218,13 +231,13 @@ public class FTPServiceImpl implements FTPService,
 		ftpsService.stop();
 	}
 	
-	private void startFTP() {
-		ftpService.start();
+	private boolean startFTP() {
+		return ftpService.start();
 	}
 	
 	
-	private void startFTPS() {
-		ftpsService.start();
+	private boolean startFTPS() {
+		return ftpsService.start();
 	}
 	
 	class FTPService implements ManageableService {
@@ -237,6 +250,10 @@ public class FTPServiceImpl implements FTPService,
 		public void stop() {
 			try {
 				if(ftpServer!=null) {
+					
+					if (log.isInfoEnabled()) {
+						log.info("Stopping FTP server");
+					}
 					ftpServer.stop();
 				}
 				running = false;
@@ -252,7 +269,11 @@ public class FTPServiceImpl implements FTPService,
 			FtpServerFactory serverFactory = new FtpServerFactory();
 
 			String[] interfaces = systemConfigurationService.getValues("ftp.interfaces");
-			if (interfaces != null && interfaces.length > 0) {
+			
+			if(interfaces==null || interfaces.length == 0) {
+				interfaces = new String[] { "::" };
+			}
+
 				boolean replacedDefault = false;
 				for (String i : interfaces) {
 					if (log.isInfoEnabled()) {
@@ -295,39 +316,7 @@ public class FTPServiceImpl implements FTPService,
 						serverFactory.addListener(i, factory.createListener());
 					}
 				}
-			} else {
-				ListenerFactory factory = new ListenerFactory();
-
-				// set the port of the listener
-				factory.setPort(systemConfigurationService.getIntValue("ftp.port"));
-				factory.setIdleTimeout(systemConfigurationService
-						.getIntValue("ftp.idleTimeout"));
-
-				int idleTime = systemConfigurationService
-						.getIntValue("ftp.idleTimeout");
-				// set the port of the listener
-				factory.setPort(systemConfigurationService.getIntValue("ftp.port"));
-				factory.setIdleTimeout(idleTime);
-				factory.setServerAddress("::");
-				
-				String passivePorts = systemConfigurationService.getValue("ftp.passivePorts");
-				
-				String passiveExternalAddress = systemConfigurationService.getValue("ftp.passiveExternalInterface");
-				
-				PassivePorts ports = new PassivePorts(passivePorts, true);
-				
-				factory.setDataConnectionConfiguration(new DefaultDataConnectionConfiguration(
-						idleTime, null, false, false, null, 0, "::", ports, passiveExternalAddress, false));
-				
-				factory.setIpFilter(new IpFilter() {
-					
-					@Override
-					public boolean accept(InetAddress address) {
-						return !ipRestrictionService.isBlockedAddress(address);
-					}
-				});
-				serverFactory.addListener("default", factory.createListener());
-			}
+			
 
 			// start the server
 			serverFactory.setUserManager(userManager);
@@ -409,6 +398,11 @@ public class FTPServiceImpl implements FTPService,
 			
 			try {
 				if(ftpsServer!=null) {
+					
+					if (log.isInfoEnabled()) {
+						log.info("Stopping FTPS server");
+					}
+					
 					ftpsServer.stop();
 				}
 				running = false;
@@ -435,79 +429,65 @@ public class FTPServiceImpl implements FTPService,
 				keystore.store(new FileOutputStream(tmp), "changeit".toCharArray());
 				
 				String[] interfaces = systemConfigurationService.getValues("ftps.interfaces");
-				if (interfaces != null && interfaces.length > 0) {
-					boolean replacedDefault = false;
-					for (String i : interfaces) {
-						if (log.isInfoEnabled()) {
-							log.info("Starting FTPS server on " + i);
-						}
-	
-						ListenerFactory factory = new ListenerFactory();
-	
-						int idleTime = systemConfigurationService
-								.getIntValue("ftps.idleTimeout");
-						
-						// set the port of the listener
-						factory.setPort(systemConfigurationService.getIntValue("ftps.port"));
-						factory.setIdleTimeout(systemConfigurationService
-								.getIntValue("ftps.idleTimeout"));
-						factory.setServerAddress(i);
-						
-						factory.setIpFilter(new IpFilter() {
-							
-							@Override
-							public boolean accept(InetAddress address) {
-								return !ipRestrictionService.isBlockedAddress(address);
-							}
-						});
-						// define SSL configuration
-						SslConfigurationFactory ssl = new SslConfigurationFactory();
-						ssl.setKeystoreFile(tmp);
-						ssl.setKeystorePassword("changeit");
-						
-						SslConfiguration sslConfig = ssl.createSslConfiguration();
-						factory.setSslConfiguration(sslConfig);
-						factory.setImplicitSsl(systemConfigurationService.getBooleanValue("ftps.implicit"));
-
-						String passivePorts = systemConfigurationService.getValue("ftps.passivePorts");
-						
-						String passiveExternalAddress = systemConfigurationService.getValue("ftps.passiveExternalInterface");
-						if(StringUtils.isEmptyOrWhitespaceOnly(passiveExternalAddress)) {
-							passiveExternalAddress = i;
-						}
-						
-						PassivePorts ports = new PassivePorts(passivePorts, true);
-						
-						factory.setDataConnectionConfiguration(new DefaultDataConnectionConfiguration(
-								idleTime, sslConfig, false, false, null, 0, i, ports, passiveExternalAddress, 
-								systemConfigurationService.getBooleanValue("ftps.implicit")));
-						
-						if (!replacedDefault) {
-							serverFactory.addListener("default",
-									factory.createListener());
-							replacedDefault = true;
-						} else {
-							serverFactory.addListener(i, factory.createListener());
-						}
+				if(interfaces==null || interfaces.length == 0) {
+					interfaces = new String[] { "::" };
+				}
+				
+				boolean replacedDefault = false;
+				for (String i : interfaces) {
+					if (log.isInfoEnabled()) {
+						log.info("Starting FTPS server on " + i);
 					}
-				} else {
+
 					ListenerFactory factory = new ListenerFactory();
-	
+
+					int idleTime = systemConfigurationService
+							.getIntValue("ftps.idleTimeout");
+					
 					// set the port of the listener
 					factory.setPort(systemConfigurationService.getIntValue("ftps.port"));
 					factory.setIdleTimeout(systemConfigurationService
 							.getIntValue("ftps.idleTimeout"));
+					factory.setServerAddress(i);
 					
+					factory.setIpFilter(new IpFilter() {
+						
+						@Override
+						public boolean accept(InetAddress address) {
+							return !ipRestrictionService.isBlockedAddress(address);
+						}
+					});
 					// define SSL configuration
 					SslConfigurationFactory ssl = new SslConfigurationFactory();
 					ssl.setKeystoreFile(tmp);
 					ssl.setKeystorePassword("changeit");
-					factory.setSslConfiguration(ssl.createSslConfiguration());
-					factory.setImplicitSsl(true);
 					
-					serverFactory.addListener("default", factory.createListener());
+					SslConfiguration sslConfig = ssl.createSslConfiguration();
+					factory.setSslConfiguration(sslConfig);
+					factory.setImplicitSsl(systemConfigurationService.getBooleanValue("ftps.implicit"));
+
+					String passivePorts = systemConfigurationService.getValue("ftps.passivePorts");
+					
+					String passiveExternalAddress = systemConfigurationService.getValue("ftps.passiveExternalInterface");
+					if(StringUtils.isEmptyOrWhitespaceOnly(passiveExternalAddress)) {
+						passiveExternalAddress = i;
+					}
+					
+					PassivePorts ports = new PassivePorts(passivePorts, true);
+					
+					factory.setDataConnectionConfiguration(new DefaultDataConnectionConfiguration(
+							idleTime, sslConfig, false, false, null, 0, i, ports, passiveExternalAddress, 
+							systemConfigurationService.getBooleanValue("ftps.implicit")));
+					
+					if (!replacedDefault) {
+						serverFactory.addListener("default",
+								factory.createListener());
+						replacedDefault = true;
+					} else {
+						serverFactory.addListener(i, factory.createListener());
+					}
 				}
-				
+			
 	
 				// start the server
 				serverFactory.setUserManager(userManager);
