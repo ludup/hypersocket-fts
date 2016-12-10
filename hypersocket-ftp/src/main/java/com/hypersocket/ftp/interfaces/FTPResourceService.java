@@ -250,13 +250,15 @@ public class FTPResourceService implements ManageableService{
 		
 		if(sslConfig != null){
 			factory.setSslConfiguration(sslConfig);
-			factory.setImplicitSsl(true);
+			factory.setImplicitSsl(false);
 		}
 		
 		PassivePorts ports = new PassivePorts(passivePorts, true);
 		
 		factory.setDataConnectionConfiguration(new DefaultDataConnectionConfiguration(
-				idleTime, sslConfig, false, false, null, ftpInterfaceResource.getPort(), intface, ports, passiveExternalAddress, sslConfig != null));
+				idleTime, sslConfig, false, false, null, 
+				ftpInterfaceResource.getPort(), intface,
+				ports, passiveExternalAddress, false));
 		
 		factory.setIpFilter(new IpFilter() {
 			
