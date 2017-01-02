@@ -46,6 +46,7 @@ import com.hypersocket.permissions.PermissionType;
 import com.hypersocket.properties.PropertyCategory;
 import com.hypersocket.realm.RealmService;
 import com.hypersocket.realm.UserVariableReplacement;
+import com.hypersocket.realm.UserVariableReplacementService;
 import com.hypersocket.resource.AbstractAssignableResourceRepository;
 import com.hypersocket.resource.AbstractAssignableResourceServiceImpl;
 import com.hypersocket.resource.ResourceChangeException;
@@ -104,7 +105,7 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 	FileUploadService uploadService;
 
 	@Autowired
-	UserVariableReplacement userVariableReplacement;
+	UserVariableReplacementService userVariableReplacement;
 	
 	@Autowired
 	BrowserLaunchableService browserLaunchableService;

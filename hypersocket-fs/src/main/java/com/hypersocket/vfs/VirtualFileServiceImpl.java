@@ -66,6 +66,7 @@ import com.hypersocket.properties.ResourceUtils;
 import com.hypersocket.realm.Principal;
 import com.hypersocket.realm.Realm;
 import com.hypersocket.realm.UserVariableReplacement;
+import com.hypersocket.realm.UserVariableReplacementService;
 import com.hypersocket.resource.ResourceChangeException;
 import com.hypersocket.resource.ResourceCreationException;
 import com.hypersocket.scheduler.ClusteredSchedulerService;
@@ -95,7 +96,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	VirtualFileRepository virtualRepository; 
 	
 	@Autowired
-	UserVariableReplacement userVariableReplacement;
+	UserVariableReplacementService userVariableReplacement;
 	
 	@Autowired
 	EventService eventService; 
@@ -1765,7 +1766,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	}
 
 	@Override
-	public UserVariableReplacement getUserVariableReplacement() {
+	public UserVariableReplacementService getUserVariableReplacement() {
 		return userVariableReplacement;
 	}
 

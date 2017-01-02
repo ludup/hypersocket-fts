@@ -14,6 +14,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.hypersocket.realm.Principal;
 import com.hypersocket.realm.UserVariableReplacement;
+import com.hypersocket.realm.UserVariableReplacementService;
 import com.hypersocket.resource.AssignableResource;
 import com.hypersocket.util.Utils;
 import com.hypersocket.utils.FileUtils;
@@ -155,21 +156,21 @@ public class FileResource extends AssignableResource  {
 	@JsonIgnore
 	@XmlTransient
 	public String getPrivateUrl(Principal principal,
-			UserVariableReplacement replacementService) {
+			UserVariableReplacementService replacementService) {
 		return getUrl(false, principal, replacementService, username, password);
 	}
 	
 	@JsonIgnore
 	@XmlTransient
 	public String getPrivateUrl(Principal principal,
-			UserVariableReplacement replacementService,
+			UserVariableReplacementService replacementService,
 			String overrideUsername,
 			String overridePassword) {
 		return getUrl(false, principal, replacementService, overrideUsername, overridePassword);
 	}
 
 	private String getUrl(boolean friendly, Principal principal,
-			UserVariableReplacement replacementService, String overrideUsername,
+			UserVariableReplacementService replacementService, String overrideUsername,
 			String overridePassword) {
 		try {
 			StringBuffer buf = new StringBuffer();

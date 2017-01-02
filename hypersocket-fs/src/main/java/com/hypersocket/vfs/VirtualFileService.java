@@ -15,6 +15,7 @@ import com.hypersocket.fs.UploadProcessor;
 import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.realm.Principal;
 import com.hypersocket.realm.UserVariableReplacement;
+import com.hypersocket.realm.UserVariableReplacementService;
 import com.hypersocket.resource.ResourceChangeException;
 import com.hypersocket.tables.ColumnSort;
 import com.hypersocket.upload.FileUpload;
@@ -64,7 +65,7 @@ public interface VirtualFileService extends AuthenticatedService {
 
 	void setLastModified(String path, long lastModified, String protocol) throws IOException, AccessDeniedException;
 
-	UserVariableReplacement getUserVariableReplacement();
+	UserVariableReplacementService getUserVariableReplacement();
 
 	VirtualFile createUntitledFolder(String virtualPath, String proto) throws IOException, AccessDeniedException;
 
