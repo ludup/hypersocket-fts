@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<propertyTemplates context="fileTask">
+<propertyTemplates context="fileTask" extends="tasks/retryTask.xml">
 	<propertyCategory resourceKey="category.file"
 		resourceBundle="TriggerResourceService" weight="1000">
 		<property resourceKey="folder.path" inputType="text" 

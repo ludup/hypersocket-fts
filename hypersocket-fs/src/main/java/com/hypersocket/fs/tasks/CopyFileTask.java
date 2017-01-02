@@ -13,7 +13,7 @@ import com.hypersocket.events.SystemEvent;
 import com.hypersocket.i18n.I18NService;
 import com.hypersocket.properties.ResourceTemplateRepository;
 import com.hypersocket.realm.Realm;
-import com.hypersocket.tasks.AbstractTaskProvider;
+import com.hypersocket.tasks.AbstractRetryTaskProvider;
 import com.hypersocket.tasks.Task;
 import com.hypersocket.tasks.TaskProviderService;
 import com.hypersocket.triggers.AbstractTaskResult;
@@ -22,7 +22,7 @@ import com.hypersocket.triggers.ValidationException;
 import com.hypersocket.vfs.VirtualFileService;
 
 @Component
-public class CopyFileTask extends AbstractTaskProvider {
+public class CopyFileTask extends AbstractRetryTaskProvider {
 
 	static Logger log = LoggerFactory.getLogger(CopyFileTask.class);
 
@@ -79,7 +79,7 @@ public class CopyFileTask extends AbstractTaskProvider {
 	}
 
 	@Override
-	public AbstractTaskResult execute(Task task, Realm currentRealm, SystemEvent event)
+	public AbstractTaskResult onExecute(Task task, Realm currentRealm, SystemEvent event)
 			throws ValidationException {
 
 		String originPath = processTokenReplacements(repository.getValue(task, "origin.path"), event);
