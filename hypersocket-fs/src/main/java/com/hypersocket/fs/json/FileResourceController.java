@@ -395,6 +395,7 @@ public class FileResourceController extends ResourceController {
 		resource.setPassword(update.getPassword());
 
 		resource.setReadOnly(update.isReadOnly());
+		resource.setCacheStrategy(update.getCacheStrategy());
 		resource.setShowFolders(update.isShowFolders());
 		resource.setShowHidden(update.isShowHidden());
 

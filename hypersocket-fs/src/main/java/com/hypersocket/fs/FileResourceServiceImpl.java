@@ -8,9 +8,8 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.vfs2.CacheStrategy;
 import org.apache.commons.vfs2.FileSystemException;
-import org.apache.commons.vfs2.VFS;
-import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -165,7 +164,7 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 			log.info("VFS reports the following schemes available");
 
 			try {
-				for (String s : VFS.getManager().getSchemes()) {
+				for (String s : virtualFileService.getManager(null, CacheStrategy.ON_CALL).getSchemes()) {
 					if (log.isInfoEnabled()) {
 						log.info(s);
 					}
@@ -206,24 +205,10 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 		}
 	}
 
-	private boolean isVFSScheme(String scheme) {
-		try {
-			for (String s : VFS.getManager().getSchemes()) {
-				if (s.equals(scheme)) {
-					return true;
-				}
-			}
-		} catch (FileSystemException e) {
-		}
-		return false;
-	}
-
 	@Override
 	public void registerScheme(FileResourceScheme scheme) {
 		if (schemes.containsKey(scheme.getScheme())) {
 			throw new IllegalArgumentException(scheme.getScheme() + " is already a registerd scheme");
-		} else if (scheme.getProvider() == null && !isVFSScheme(scheme.getScheme())) {
-			throw new IllegalArgumentException(scheme.getScheme() + " is not a valid VFS scheme");
 		}
 
 		if (log.isInfoEnabled()) {
@@ -233,13 +218,8 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 
 		try {
 
-			if (scheme.getProvider() != null && !VFS.getManager().hasProvider(scheme.getScheme())) {
-				((DefaultFileSystemManager) VFS.getManager()).addProvider(scheme.getScheme(),
-						scheme.getProvider().newInstance());
-				if (!isVFSScheme(scheme.getScheme())) {
-					log.error("Scheme is still not reported as registred!");
-					return;
-				}
+			if (scheme.getProvider() != null) {
+				virtualFileService.addProvider(scheme.getScheme(), scheme.getProvider().newInstance());
 			}
 
 			schemes.put(scheme.getScheme(), scheme);

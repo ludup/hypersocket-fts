@@ -6,7 +6,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collection;
 
+import org.apache.commons.vfs2.CacheStrategy;
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileSystemManager;
+import org.apache.commons.vfs2.provider.FileProvider;
 
 import com.hypersocket.auth.AuthenticatedService;
 import com.hypersocket.fs.FileResource;
@@ -14,8 +18,8 @@ import com.hypersocket.fs.UploadEventProcessor;
 import com.hypersocket.fs.UploadProcessor;
 import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.realm.Principal;
-import com.hypersocket.realm.UserVariableReplacement;
 import com.hypersocket.realm.UserVariableReplacementService;
+import com.hypersocket.resource.Resource;
 import com.hypersocket.resource.ResourceChangeException;
 import com.hypersocket.tables.ColumnSort;
 import com.hypersocket.upload.FileUpload;
@@ -107,4 +111,7 @@ public interface VirtualFileService extends AuthenticatedService {
 
 	void setupCredentials(Principal principal, String username, String password);
 
+	<T extends Resource> FileSystemManager getManager(T id, CacheStrategy cacheStrategy) throws FileSystemException;
+
+	void addProvider(String scheme, FileProvider newInstance) throws FileSystemException;
 }

@@ -6,7 +6,6 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import com.hypersocket.certificates.CertificateResource;
-import com.hypersocket.resource.RealmResource;
 import com.hypersocket.server.interfaces.InterfaceResource;
 
 @Entity
@@ -70,4 +69,8 @@ public class FTPInterfaceResource extends InterfaceResource {
 		this.ftpIdleTimeout = ftpIdleTimeout;
 	}
 
+	@Override
+	protected Integer getDefaultPort() {
+		return 21;
+	}
 }

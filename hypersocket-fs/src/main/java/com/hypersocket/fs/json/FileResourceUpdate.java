@@ -1,5 +1,7 @@
 package com.hypersocket.fs.json;
 
+import org.apache.commons.vfs2.CacheStrategy;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.hypersocket.properties.json.PropertyItem;
 
@@ -15,6 +17,7 @@ public class FileResourceUpdate {
 	String path;
 	String username;
 	String password;
+	CacheStrategy cacheStrategy;
 	boolean readOnly;
 	boolean showHidden;
 	boolean showFolders;
@@ -23,6 +26,14 @@ public class FileResourceUpdate {
 	PropertyItem[] properties;
 
 	public FileResourceUpdate() {
+	}
+
+	public CacheStrategy getCacheStrategy() {
+		return cacheStrategy;
+	}
+
+	public void setCacheStrategy(CacheStrategy cacheStrategy) {
+		this.cacheStrategy = cacheStrategy;
 	}
 
 	public Long getId() {

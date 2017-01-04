@@ -94,6 +94,16 @@
 					</div>
 					<div id="tabOptions" class="dialogTab">
 						<div class="propertyItem">
+							<label for="cacheStrategy" class="col-md-3 control-label" 
+								localize="mount.cacheStrategy.label"></label> 
+							<div class="propertyValue col-md-9">
+								<div id="cacheStrategy"></div>
+								<div>
+									<span class="help-block" localize="mount.cacheStrategy.info"></span>
+								</div>
+							</div>
+						</div>
+						<div class="propertyItem">
 							<label for="readOnly" class="col-md-3 control-label" 
 								localize="mount.readOnly.label"></label> 
 							<div class="propertyValue col-md-9">
@@ -580,6 +590,31 @@
 			}
 		});
 		
+		var cacheStrategyButton = $('#cacheStrategy').selectButton({
+			id : 'cacheStrategy',
+			options : [ 
+				{
+					id : 'MANUAL',
+					name : 'MANUAL',
+					value : 'MANUAL'
+				}, 
+				{
+					id : 'ON_RESOLVE',
+					name : 'ON_RESOLVE',
+					value : 'ON_RESOLVE'
+				},
+				{
+					id : 'ON_CALL',
+					name : 'ON_CALL',
+					value : 'ON_CALL'
+				}
+				],
+				nameIsResourceKey : false,
+				name : 'cacheStrategy',
+				value : 'ON_RESOLVE'
+		});
+		cacheStrategyButton.setValue('ON_RESOLVE');
+		
 		var logo = $('#logo').logoInput({
 			defaultTextCallback: function() {
 				return $('#resourceName').val();
@@ -658,6 +693,7 @@
 						
 						schemeButton.enable();
 						schemeButton.setValue('file');
+						cacheStrategyButton.setValue('ON_RESOLVE');
 						
 					    if(isCreate) {
 					    	schemeButton.changed();
@@ -697,6 +733,7 @@
 						resource.name = $('#resourceName').val();
 						resource.virtualPath = $('#virtualPath').val();
 						resource.scheme = schemeButton.getValue();
+						resource.cacheStrategy = cacheStrategyButton.getValue();
 						resource.server = $('#serverName').val();
 						resource.port = $('#port').val();
 						resource.path = pathInput.getValue();
@@ -720,6 +757,8 @@
 						
 						$('#serverName').val(resource.server);
 						$('#port').val(resource.port);
+						
+						cacheStrategyButton.setValue(resource.cacheStrategy);
 						pathInput.setValue(resource.path);
 						usernameInput.setValue(resource.username);
 						passwordInput.setValue(resource.password);

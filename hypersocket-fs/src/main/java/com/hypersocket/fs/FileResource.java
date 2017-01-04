@@ -5,10 +5,13 @@ import java.net.URLEncoder;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlTransient;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.vfs2.CacheStrategy;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -56,6 +59,10 @@ public class FileResource extends AssignableResource  {
 	@Column(name = "show_folders")
 	boolean showFolders;
 
+	@Column(name = "cache_strategy")
+	@Enumerated(EnumType.STRING)
+	CacheStrategy cacheStrategy  = CacheStrategy.ON_RESOLVE;
+
 	@Column(name = "displayInBrowserResourcesTable")
 	Boolean displayInBrowserResourcesTable = Boolean.FALSE;
 	
@@ -71,6 +78,14 @@ public class FileResource extends AssignableResource  {
 
 	public void setScheme(String scheme) {
 		this.scheme = scheme;
+	}
+
+	public CacheStrategy getCacheStrategy() {
+		return cacheStrategy;
+	}
+
+	public void setCacheStrategy(CacheStrategy cacheStrategy) {
+		this.cacheStrategy = cacheStrategy;
 	}
 
 	public String getServer() {
