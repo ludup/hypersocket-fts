@@ -245,7 +245,7 @@ public class FTPResourceService implements ManageableService{
 		
 		String passiveExternalAddress = ftpInterfaceResource.ftpPassiveExternalAddress;
 		if(StringUtils.isEmptyOrWhitespaceOnly(passiveExternalAddress)) {
-			passiveExternalAddress = intface;
+			passiveExternalAddress = null;
 		}
 		
 		if(sslConfig != null){
