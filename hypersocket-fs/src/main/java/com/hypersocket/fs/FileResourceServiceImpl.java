@@ -154,7 +154,7 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 				}, MenuService.MENU_MY_RESOURCES);
 
 		menuService.registerMenu(new MenuRegistration(RESOURCE_BUNDLE,
-				"fileSettings", "fa-cog", "fileSettings", 9999, 
+				"fileSettings", "fa-gears", "fileSettings", Integer.MAX_VALUE, 
 				ConfigurationPermission.READ,
 				null, 
 				ConfigurationPermission.UPDATE,

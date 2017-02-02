@@ -5,7 +5,7 @@
 		<property resourceKey="fsEvents.excludeFilter" inputType="multipleTextInput" defaultValue="._*]|[.DS_Store" weight="100" />
 	</propertyCategory>
 	<propertyCategory resourceKey="fs.cache"
-		resourceBundle="FileResourceService" weight="9999" store="db">
+		resourceBundle="FileResourceService" weight="9999" group="files" store="db">
 		<property resourceKey="fs.invalidateCacheSeconds" inputType="integer"
 		    minValue="30" maxValue="86400" invalidResourceKey="error.between30and86400"
 			defaultValue="900" weight="0" />

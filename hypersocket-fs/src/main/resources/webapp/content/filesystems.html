@@ -44,8 +44,7 @@
 						<div class="propertyItem form-group remoteDiv">
 							<label for="server" class="col-md-3 control-label" localize="mount.server.label"></label>
 							<div class="propertyValue col-md-9">
-								<input type="text" class="form-control"
-									placeholder="" id="serverName" maxlength="" name="server" value="">
+								<div id="serverName"></div>
 								<div>
 									<span class="help-block" localize="mount.server.info"></span>
 								</div>
@@ -242,7 +241,7 @@
 			}
 		} else {
 			$('.remoteDiv').hide();
-			$('#serverName').val('');
+			$('#serverName').widget().setValue('');
 			$('#port').val('');
 		}
 		if(scheme.supportsCredentials) {	
@@ -549,6 +548,15 @@
 			id: 'username',
 			url: 'realms/realm/userVariables/' + $(document).data('session').currentRealm.id,
 			getUrlData: function(data) {
+				
+				return data.resources;
+			}
+		});
+		
+		var serverInput = $('#serverName').textInput({
+			id: 'server',
+			url: 'realms/realm/userVariables/' + $(document).data('session').currentRealm.id,
+			getUrlData: function(data) {
 				return data.resources;
 			}
 		});
@@ -680,10 +688,12 @@
 							return false;
 						}
 
-						if ($('#serverName').val() != '') {
-							if (!isValidHostname($('#serverName').val())) {
-								showError("error.hostnameInvalid");
-								return false;
+						if ($('#serverName').widget().getValue() != '') {
+							if(!isReplacementVariable($('#serverName').widget().getValue())) {
+								if (!isValidHostname($('#serverName').widget().getValue())) {
+									showError("error.hostnameInvalid");
+									return false;
+								}
 							}
 						}
 
@@ -709,7 +719,7 @@
 							$('#virtualPath').attr('disabled', true);
 							
 						}
-						$('#serverName').val('');
+						$('#serverName').widget().setValue('');
 						$('#port').val('');
 						
 						$('.remoteDiv').hide();
@@ -734,7 +744,7 @@
 						resource.virtualPath = $('#virtualPath').val();
 						resource.scheme = schemeButton.getValue();
 						resource.cacheStrategy = cacheStrategyButton.getValue();
-						resource.server = $('#serverName').val();
+						resource.server = $('#serverName').widget().getValue();
 						resource.port = $('#port').val();
 						resource.path = pathInput.getValue();
 						resource.username = usernameInput.getValue();
@@ -755,7 +765,7 @@
 						$('#resourceName').val(resource.name);
 						$('#virtualPath').val(resource.virtualPath);
 						
-						$('#serverName').val(resource.server);
+						$('#serverName').widget().setValue(resource.server);
 						$('#port').val(resource.port);
 						
 						cacheStrategyButton.setValue(resource.cacheStrategy);

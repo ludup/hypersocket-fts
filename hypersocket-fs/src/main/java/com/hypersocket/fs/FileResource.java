@@ -16,7 +16,6 @@ import org.apache.commons.vfs2.CacheStrategy;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.hypersocket.realm.Principal;
-import com.hypersocket.realm.UserVariableReplacement;
 import com.hypersocket.realm.UserVariableReplacementService;
 import com.hypersocket.resource.AssignableResource;
 import com.hypersocket.util.Utils;
@@ -152,6 +151,7 @@ public class FileResource extends AssignableResource  {
 		this.showFolders = showFolders;
 	}
 
+	@JsonIgnore
 	public String getUrl() {
 		return getUrl(true, null, null, username, password);
 	}
@@ -212,7 +212,7 @@ public class FileResource extends AssignableResource  {
 			}
 
 			if (server != null && !server.equals("")) {
-				buf.append(server);
+				buf.append(replacementService.replaceVariables(principal, server));
 				if (port != null) {
 					buf.append(":");
 					buf.append(port);
