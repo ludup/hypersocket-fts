@@ -10,7 +10,6 @@ import java.util.Set;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.ftpserver.impl.DefaultFtpServer;
 import org.apache.ftpserver.impl.DefaultFtpServerContext;
 import org.apache.ftpserver.impl.PassivePorts;
@@ -39,6 +38,7 @@ import com.hypersocket.menus.MenuService;
 import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.permissions.PermissionCategory;
 import com.hypersocket.permissions.PermissionService;
+import com.hypersocket.properties.EntityResourcePropertyStore;
 import com.hypersocket.properties.PropertyCategory;
 import com.hypersocket.properties.ResourceUtils;
 import com.hypersocket.realm.Realm;
@@ -134,7 +134,7 @@ public class FTPInterfaceResourceServiceImpl extends
 				FTPInterfaceResourceDeletedEvent.class, RESOURCE_BUNDLE,
 				this);
 
-		repository.getEntityStore().registerResourceService(FTPInterfaceResource.class, repository);
+		EntityResourcePropertyStore.registerResourceService(FTPInterfaceResource.class, repository);
 		
 	}
 	

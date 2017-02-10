@@ -44,7 +44,6 @@ import com.hypersocket.permissions.PermissionService;
 import com.hypersocket.permissions.PermissionType;
 import com.hypersocket.properties.PropertyCategory;
 import com.hypersocket.realm.RealmService;
-import com.hypersocket.realm.UserVariableReplacement;
 import com.hypersocket.realm.UserVariableReplacementService;
 import com.hypersocket.resource.AbstractAssignableResourceRepository;
 import com.hypersocket.resource.AbstractAssignableResourceServiceImpl;

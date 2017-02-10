@@ -31,6 +31,11 @@ import com.hypersocket.repository.AbstractEntity;
 @Table(name="virtual_fs")
 public class VirtualFile extends AbstractEntity<Long> {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 2956499544612180484L;
+
 	@Id
 	@GeneratedValue(strategy=GenerationType.TABLE)
 	@Column(name="id")

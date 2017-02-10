@@ -1,6 +1,5 @@
 package upgrade;
 
-import java.util.Date;
 import java.util.HashMap;
 
 import org.slf4j.Logger;

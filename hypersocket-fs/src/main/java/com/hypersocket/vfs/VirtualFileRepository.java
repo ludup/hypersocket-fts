@@ -2,7 +2,6 @@ package com.hypersocket.vfs;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Map;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;

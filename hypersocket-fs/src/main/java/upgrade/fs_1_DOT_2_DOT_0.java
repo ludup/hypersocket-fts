@@ -12,7 +12,6 @@ import com.hypersocket.fs.FileResource;
 import com.hypersocket.fs.FileResourceRepository;
 import com.hypersocket.realm.Realm;
 import com.hypersocket.realm.RealmRepository;
-import com.hypersocket.resource.ResourceException;
 import com.hypersocket.vfs.VirtualFile;
 import com.hypersocket.vfs.VirtualFileRepository;
 
