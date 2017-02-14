@@ -363,6 +363,9 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			}
 			
 			try {
+				
+				virtualRepository.deleteVirtualFolder(file);
+				
 				eventService.publishEvent(new VirtualFolderDeletedEvent(this, 
 						getCurrentSession(), 
 						file.getVirtualPath()));
