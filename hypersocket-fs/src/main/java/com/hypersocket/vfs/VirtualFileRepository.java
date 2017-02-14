@@ -18,15 +18,13 @@ public interface VirtualFileRepository extends AbstractRepository<Long> {
 	void removeReconciledFile(VirtualFile toDelete);
 
 	VirtualFile reconcileFile(String displayName, FileObject obj, FileResource resource, VirtualFile parent, Principal principal) throws FileSystemException, IOException;
-//
+
 	VirtualFile reconcileFile(String displayName, FileObject obj, FileResource resource, VirtualFile virtual, VirtualFile parent, Principal principal)
 			throws FileSystemException, IOException;
 
 	VirtualFile reconcileFolder(String displayName, VirtualFile folder, FileObject fileObject, FileResource resource, boolean conflicted, Principal principal) throws FileSystemException, IOException;
-//
-	VirtualFile reconcileNewFolder(String displayName, VirtualFile parent, FileObject fileObject, FileResource resource, boolean conflicted, Principal principal) throws FileSystemException, IOException;
 
-//	VirtualFile reconcileMount(String displayName, FileResource resource, FileObject fileObject, VirtualFile virtualFile, Principal principal) throws FileSystemException;
+	VirtualFile reconcileNewFolder(String displayName, VirtualFile parent, FileObject fileObject, FileResource resource, boolean conflicted, Principal principal) throws FileSystemException, IOException;
 
 	VirtualFile getVirtualFileByResource(String virtualPath, Realm realm, Principal principal, FileResource... resources);
 
@@ -54,18 +52,14 @@ public interface VirtualFileRepository extends AbstractRepository<Long> {
 
 	void removeFileResource(FileResource resource);
 
-//	int removeReconciledFiles(VirtualFile folder);
-
-//	int removeReconciledFolder(VirtualFile toDelete);
-
 	void clearFileResource(FileResource resource);
-
-//	void forceSync();
-
+	
 	Collection<VirtualFile> getVirtualFiles(VirtualFile parent, Realm realm, Principal principal);
 
 	Collection<VirtualFile> getVirtualFilesByResource(VirtualFile parent, Realm realm, Principal principal,
 			FileResource... resources);
 
 	void addFileResource(VirtualFile mountedFile, FileResource resource);
+
+	void deleteVirtualFolder(VirtualFile file);
 }

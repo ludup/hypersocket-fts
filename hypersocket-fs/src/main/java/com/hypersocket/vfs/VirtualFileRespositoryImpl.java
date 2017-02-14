@@ -358,4 +358,10 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 			mountedFile = mountedFile.getParent();
 		} while(mountedFile!=null);
 	}
+
+	@Override
+	@Transactional
+	public void deleteVirtualFolder(VirtualFile file) {
+		delete(file);
+	}
 }
