@@ -31,9 +31,6 @@ import com.hypersocket.repository.AbstractEntity;
 @Table(name="virtual_fs")
 public class VirtualFile extends AbstractEntity<Long> {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 2956499544612180484L;
 
 	@Id
@@ -56,8 +53,7 @@ public class VirtualFile extends AbstractEntity<Long> {
 	@Column(name="last_modified")
 	Long lastModified;
 	
-	@Column(name="virtual_path")
-	@Lob
+	@Column(name="virtual_path", length=8000)
 	String virtualPath;
 	
 	@Column(name="filename", length=256)
