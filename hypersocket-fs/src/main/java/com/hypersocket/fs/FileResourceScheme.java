@@ -27,19 +27,6 @@ public class FileResourceScheme {
 			boolean createRoot,
 			boolean isRemote, 
 			boolean supportsCredentials, 
-			boolean showPort,
-			int defaultPort,
-			boolean showPath,
-			boolean readOnly,
-			boolean showHidden,
-			boolean showFolders) {
-		this(scheme, createRoot, isRemote, supportsCredentials, showPort, defaultPort, showPath, readOnly, showHidden, showFolders, null, null);
-	}
-	
-	public FileResourceScheme(String scheme, 
-			boolean createRoot,
-			boolean isRemote, 
-			boolean supportsCredentials, 
 			boolean showPort, 
 			int defaultPort,
 			boolean showPath,
@@ -49,20 +36,7 @@ public class FileResourceScheme {
 			Class<? extends FileProvider> provider) {
 		this(scheme, createRoot, isRemote, supportsCredentials, showPort, defaultPort, showPath, readOnly, showHidden, showFolders, provider, null);
 	}
-	
-	public FileResourceScheme(String scheme, 
-			boolean createRoot,
-			boolean isRemote, 
-			boolean supportsCredentials, 
-			boolean showPort, 
-			int defaultPort,
-			boolean showPath,
-			boolean readOnly,
-			boolean showHidden,
-			boolean showFolders,
-			FileService fileService) {
-		this(scheme, createRoot, isRemote, supportsCredentials, showPort, defaultPort, showPath, readOnly, showHidden, showFolders, null, fileService);
-	}
+
 	
 	public FileResourceScheme(String scheme, 
 			boolean createRoot,

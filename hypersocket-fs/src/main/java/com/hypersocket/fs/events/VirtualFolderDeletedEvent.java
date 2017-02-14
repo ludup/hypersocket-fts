@@ -1,5 +1,7 @@
 package com.hypersocket.fs.events;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import com.hypersocket.session.Session;
 
 public class VirtualFolderDeletedEvent extends VirtualFolderEvent {
@@ -16,4 +18,7 @@ public class VirtualFolderDeletedEvent extends VirtualFolderEvent {
 		super(source, EVENT_RESOURCE_KEY, e, session, virtualPath);
 	}
 
+	public String[] getResourceKeys() {
+		return ArrayUtils.add(super.getResourceKeys(), EVENT_RESOURCE_KEY);
+	}
 }

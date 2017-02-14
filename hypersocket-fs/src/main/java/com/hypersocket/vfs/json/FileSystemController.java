@@ -361,7 +361,7 @@ public class FileSystemController extends ResourceController {
 	}
 	
 	@AuthenticationRequired
-	@RequestMapping(value = "fs/download/**", method = RequestMethod.GET, produces = { "application/json" })
+	@RequestMapping(value = "fs/download/**", method = RequestMethod.GET)
 	public void downloadFile(HttpServletRequest request,
 			HttpServletResponse response,
 			@RequestParam(required=false) Boolean forceDownload) throws AccessDeniedException,
@@ -400,7 +400,7 @@ public class FileSystemController extends ResourceController {
 	}
 	
 	@AuthenticationRequired
-	@RequestMapping(value = "fs/upload/**", method = RequestMethod.POST, produces = {"application/json" })
+	@RequestMapping(value = "fs/upload/**", method = RequestMethod.POST)
 	@ResponseStatus(value = HttpStatus.OK)
 	@ResponseBody
 	public ResourceStatus<FileUpload> uploadFile(final HttpServletRequest request,

@@ -135,6 +135,9 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 
 		childrenCache = (Cache<String, Collection>) cacheService.getCache("virtualFileCache", String.class,
 				Collection.class);
+		
+		eventService.registerEvent(VirtualFolderCreatedEvent.class, FileResourceServiceImpl.RESOURCE_BUNDLE);
+		eventService.registerEvent(VirtualFolderDeletedEvent.class, FileResourceServiceImpl.RESOURCE_BUNDLE);
 	}
 
 	@Override
@@ -371,12 +374,16 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 
 			Collection<FileResource> mounts = fileService.getResourcesByVirtualPath(file.getVirtualPath());
 			if (!mounts.isEmpty()) {
+				
 				eventService.publishEvent(new VirtualFolderDeletedEvent(this, new AccessDeniedException(),
 						getCurrentSession(), file.getVirtualPath()));
 				throw new AccessDeniedException();
 			}
 
 			try {
+				
+				virtualRepository.deleteVirtualFolder(file);
+				
 				eventService
 						.publishEvent(new VirtualFolderDeletedEvent(this, getCurrentSession(), file.getVirtualPath()));
 				return true;

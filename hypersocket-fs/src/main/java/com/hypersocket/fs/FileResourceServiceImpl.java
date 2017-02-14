@@ -10,6 +10,8 @@ import javax.annotation.PostConstruct;
 
 import org.apache.commons.vfs2.CacheStrategy;
 import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.provider.local.DefaultLocalFileProvider;
+import org.apache.commons.vfs2.provider.temp.TemporaryFileProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -192,8 +194,8 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 		eventService.registerEvent(CreateFileTaskResult.class, CreateFileTask.RESOURCE_BUNDLE);
 		eventService.registerEvent(DeleteFolderTaskResult.class, CreateFileTask.RESOURCE_BUNDLE);
 
-		registerScheme(new FileResourceScheme("file", false, false, false, false, -1, true, false, true, true ));
-		registerScheme(new FileResourceScheme("tmp", true, false, false, false, -1, false, false, true, false));
+		registerScheme(new FileResourceScheme("file", false, false, false, false, -1, true, false, true, true, DefaultLocalFileProvider.class));
+		registerScheme(new FileResourceScheme("tmp", true, false, false, false, -1, false, false, true, false, TemporaryFileProvider.class));
 
 		indexPage.addScript("${uiPath}/js/jstree.js");
 		indexPage.addStyleSheet("${uiPath}/css/themes/default/style.min.css");
@@ -217,9 +219,7 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 
 		try {
 
-			if (scheme.getProvider() != null) {
-				virtualFileService.addProvider(scheme.getScheme(), scheme.getProvider().newInstance());
-			}
+			virtualFileService.addProvider(scheme.getScheme(), scheme.getProvider()==null ? null : scheme.getProvider().newInstance());
 
 			schemes.put(scheme.getScheme(), scheme);
 		} catch (Throwable e) {
