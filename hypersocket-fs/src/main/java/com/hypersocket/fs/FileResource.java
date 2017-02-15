@@ -150,11 +150,6 @@ public class FileResource extends AssignableResource  {
 	public void setShowFolders(boolean showFolders) {
 		this.showFolders = showFolders;
 	}
-
-	@JsonIgnore
-	public String getUrl() {
-		return getUrl(true, null, null, username, password);
-	}
 	
 	public void setLogo(String logo) {
 		this.logo = logo;

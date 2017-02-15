@@ -14,7 +14,6 @@ public abstract class FileOperationEvent extends ResourceSessionEvent {
 
 	public static final String EVENT_RESOURCE_KEY = "fileOperation.event";
 	
-	public static final String ATTR_FILE_URL = "attr.fileUrl";
 	public static final String ATTR_FILE_NAME = "attr.fileName";
 	public static final String ATTR_VIRTUAL_PATH = "attr.virtualPath";
 	public static final String ATTR_PROTOCOL = "attr.protocol";
@@ -25,8 +24,6 @@ public abstract class FileOperationEvent extends ResourceSessionEvent {
 		super(source, resourceKey, success, session, sourceResource);
 		addAttribute(ATTR_VIRTUAL_PATH, FileUtils.checkEndsWithSlash(sourceResource.getVirtualPath())
 				+ FileUtils.checkStartsWithNoSlash(sourcePath));
-		addAttribute(ATTR_FILE_URL, FileUtils.checkEndsWithSlash(sourceResource.getUrl())
-				+ FileUtils.checkStartsWithNoSlash(sourcePath));
 		addAttribute(ATTR_FILE_NAME, FileUtils.lastPathElement(sourcePath));
 		addAttribute(ATTR_PROTOCOL, protocol);
 	}
@@ -35,8 +32,6 @@ public abstract class FileOperationEvent extends ResourceSessionEvent {
 			Session session, FileResource sourceResource, String sourcePath, String protocol) {
 		super(source, resourceKey, sourceResource.getName(), e, session);
 		addAttribute(ATTR_VIRTUAL_PATH, FileUtils.checkEndsWithSlash(sourceResource.getVirtualPath())
-				+ FileUtils.checkStartsWithNoSlash(sourcePath));
-		addAttribute(ATTR_FILE_URL, FileUtils.checkEndsWithSlash(sourceResource.getUrl())
 				+ FileUtils.checkStartsWithNoSlash(sourcePath));
 		addAttribute(ATTR_FILE_NAME, FileUtils.lastPathElement(sourcePath));
 		addAttribute(ATTR_PROTOCOL, protocol);
