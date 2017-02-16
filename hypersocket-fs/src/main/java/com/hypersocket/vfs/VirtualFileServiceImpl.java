@@ -209,10 +209,16 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 					if(StringUtils.isNotBlank(childPath)) {
 						fileObject = resourceFile.resolveFile(childPath);
 						if(!fileObject.exists()) {
+							if(log.isInfoEnabled()) {
+								log.info(String.format("REMOVEME: %s does not exist on resource %s", childPath, resource.getName()));
+							}
 							continue;
 						}
 					}
 					
+					if(log.isInfoEnabled()) {
+						log.info(String.format("REMOVEME: %s was found on resource %s", childPath, resource.getName()));
+					}
 					switch(fileObject.getType()) {
 					case FOLDER:
 						return virtualRepository.reconcileNewFolder(fileObject.getName().getBaseName(), parentFile, fileObject, resource, false, null);
@@ -220,9 +226,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 						return virtualRepository.reconcileFile(fileObject.getName().getBaseName(), fileObject, resource, parentFile, null);
 					default:
 						// Not supported
-					}
-					
-						
+					}	
 				}
 			}
 		} 
@@ -278,12 +282,12 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		if(parentFile.isVirtualFolder()) {
 			results.addAll(virtualRepository.getVirtualFilesByResource(parentFile, getCurrentRealm(), null, getPrincipalResources()));
 		}
-		if(parentFile.getMount()==null && parentFile.getFolderMounts().isEmpty()) {
+		if(!parentFile.isMounted() && parentFile.getFolderMounts().isEmpty()) {
 			fileCache.put(new Element(cacheKey, results));
 			return results;
 		}
 		List<FileResource> resources = new ArrayList<FileResource>();
-		if(parentFile.getMount()!=null) {
+		if(parentFile.isMounted()) {
 			resources.add(parentFile.getMount());
 		} else {
 			resources.addAll(parentFile.getFolderMounts());
@@ -611,7 +615,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	@Override
 	public void downloadFile(VirtualFile file, final HttpDownloadProcessor processor, final String proto) throws AccessDeniedException, IOException {
 		
-		if(file.getMount()==null) {
+		if(!file.isMounted()) {
 			throw new IOException("Download must be a file and have a valid mount point!");
 		}
 		FileResolver<Object> resolver = new FileResolver<Object>(true, false) {
@@ -1367,10 +1371,10 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		} catch (FileNotFoundException e) {
 			String parent = FileUtils.stripLastPathElement(virtualPath);
 			VirtualFile parentFile = getFile(parent);
-			if(parentFile.getMount()==null && parentFile.getDefaultMount()==null) {
+			if(!parentFile.isMounted() && parentFile.getDefaultMount()==null) {
 				throw new AccessDeniedException();
 			}
-			FileResource resource = parentFile.getMount()!=null ? parentFile.getMount() : parentFile.getDefaultMount();
+			FileResource resource = parentFile.getMount();
 			FileObject parentObject = resolveVFSFile(resource);
 			String childPath =  FileUtils.stripParentPath(resource.getVirtualPath(), virtualPath);
 			return parentObject.resolveFile(childPath);
