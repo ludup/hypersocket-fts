@@ -239,7 +239,6 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 					default:
 						// Not supported
 					}
-
 				}
 			}
 		}
@@ -292,12 +291,13 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			results.addAll(virtualRepository.getVirtualFilesByResource(parentFile, getCurrentRealm(), null,
 					getPrincipalResources()));
 		}
-		if (parentFile.getMount() == null && parentFile.getFolderMounts().isEmpty()) {
+
+		if(!parentFile.isMounted() && parentFile.getFolderMounts().isEmpty()) {
 			childrenCache.put(cacheKey, results);
 			return results;
 		}
 		List<FileResource> resources = new ArrayList<FileResource>();
-		if (parentFile.getMount() != null) {
+		if(parentFile.isMounted()) {
 			resources.add(parentFile.getMount());
 		} else {
 			resources.addAll(parentFile.getFolderMounts());
@@ -624,7 +624,8 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	public void downloadFile(VirtualFile file, final HttpDownloadProcessor processor, final String proto)
 			throws AccessDeniedException, IOException {
 
-		if (file.getMount() == null) {
+		if(!file.isMounted()) {
+
 			throw new IOException("Download must be a file and have a valid mount point!");
 		}
 		FileResolver<Object> resolver = new FileResolver<Object>(true, false) {
@@ -1380,11 +1381,11 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		} catch (FileNotFoundException e) {
 			String parent = FileUtils.stripLastPathElement(virtualPath);
 			VirtualFile parentFile = getFile(parent);
+
 			if (parentFile.getMount() == null && parentFile.getDefaultMount() == null) {
 				throw new AccessDeniedException();
 			}
-			FileResource resource = parentFile.getMount() != null ? parentFile.getMount()
-					: parentFile.getDefaultMount();
+			FileResource resource = parentFile.getMount();
 			FileObject parentObject = resolveVFSFile(resource);
 			String childPath = FileUtils.stripParentPath(resource.getVirtualPath(), virtualPath);
 			return parentObject.resolveFile(childPath);
