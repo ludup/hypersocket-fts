@@ -1,9 +1,16 @@
+#virtualFileSystemView {
+	min-height: 600px;
+}
+
 #virtualFileSystemTree {
-	height: 600px;
+	min-height: 600px;
+	height: 100%;
+	overflow: scroll;
 }
 
 #virtualFileSystemInfo {
-	height: 600px;
+	height: 100%;
+	border: none;
 }
 
 .jstree-default .jstree-themeicon-custom {

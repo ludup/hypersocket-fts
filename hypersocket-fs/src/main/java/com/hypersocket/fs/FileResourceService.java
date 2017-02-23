@@ -3,9 +3,11 @@ package com.hypersocket.fs;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.properties.PropertyCategory;
+import com.hypersocket.realm.Principal;
 import com.hypersocket.resource.AbstractAssignableResourceService;
 import com.hypersocket.resource.ResourceException;
 
@@ -33,5 +35,7 @@ public interface FileResourceService extends
 	void deleteResource(FileResource resource) throws ResourceException, AccessDeniedException;
 
 	void resetRebuildReconcileStatus(FileResource resource);
+
+	Collection<FileResource> getPersonalResources(Principal currentPrincipal, Set<FileResource> folderMounts);
 
 }

@@ -216,9 +216,8 @@
 				<h4><span id="infScheme"></span></h4>
 			</div>	
 		</div>
-		
-
 	</div>
+	<div class="clear"></div>
 </div>
 <script type="text/javascript">
 
@@ -761,6 +760,10 @@
 					},
 					displayResource : function(resource) {
 						
+						schemeButton.setValue(resource.scheme);
+						var scheme = schemeButton.getSelectedObject();
+						displayScheme(scheme,'properties/' + resource.id);
+						
 						$('#resourceId').val(resource.id);
 						$('#resourceName').val(resource.name);
 						$('#virtualPath').val(resource.virtualPath);
@@ -773,28 +776,21 @@
 						usernameInput.setValue(resource.username);
 						passwordInput.setValue(resource.password);
 						
-						if(resource.logo == '')
+						if(resource.logo == '') {
 							logo.clear();
-						else
+						} else {
 							logo.setValue(resource.logo);
-						if(resource.readOnly) {
-							$('#readOnly').prop('checked', true);
 						}
-						if(resource.showHidden) {
-							$('#showHidden').prop('checked', true);
-						}
-						if(resource.showFolders) {
-							$('#showFolders').prop('checked', true);
-						}
+
+						$('#readOnly').prop('checked', resource.readOnly);
+						$('#showHidden').prop('checked', resource.showHidden);
+						$('#showFolders').prop('checked', resource.showFolders);
+						
 						$('#tabRoles').multipleSelect({
 							selected : resource.roles,
 							selectedIsObjectList : true,
 							resourceKey : 'mount'
 						});
-						
-						schemeButton.setValue(resource.scheme);
-						var scheme = schemeButton.getSelectedObject();
-						displayScheme(scheme,'properties/' + resource.id);
 						
 						schemeButton.disable();
 					},

@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.PostConstruct;
 
@@ -12,6 +13,8 @@ import org.apache.commons.vfs2.CacheStrategy;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.provider.local.DefaultLocalFileProvider;
 import org.apache.commons.vfs2.provider.temp.TemporaryFileProvider;
+import org.hibernate.Criteria;
+import org.hibernate.criterion.Restrictions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,8 +48,11 @@ import com.hypersocket.permissions.PermissionCategory;
 import com.hypersocket.permissions.PermissionService;
 import com.hypersocket.permissions.PermissionType;
 import com.hypersocket.properties.PropertyCategory;
+import com.hypersocket.properties.ResourceUtils;
+import com.hypersocket.realm.Principal;
 import com.hypersocket.realm.RealmService;
 import com.hypersocket.realm.UserVariableReplacementService;
+import com.hypersocket.repository.CriteriaConfiguration;
 import com.hypersocket.resource.AbstractAssignableResourceRepository;
 import com.hypersocket.resource.AbstractAssignableResourceServiceImpl;
 import com.hypersocket.resource.ResourceChangeException;
@@ -431,6 +437,17 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 		assertPermission(FileResourcePermission.READ);
 		
 		return resourceRepository.getNonRootResources(getCurrentRealm());
+	}
+
+	@Override
+	public Collection<FileResource> getPersonalResources(Principal principal, final Set<FileResource> folderMounts) {
+		
+		return resourceRepository.getAssignedResources(realmService.getAssociatedPrincipals(principal), new CriteriaConfiguration() {
+			@Override
+			public void configure(Criteria criteria) {
+				criteria.add(Restrictions.in("id", ResourceUtils.createResourceIdArray(folderMounts)));
+			}
+		});
 	}
 
 }

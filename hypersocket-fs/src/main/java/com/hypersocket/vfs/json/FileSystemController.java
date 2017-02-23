@@ -522,7 +522,8 @@ public class FileSystemController extends ResourceController {
 
 				@Override
 				public VirtualFileWrapper getResource() throws IOException, AccessDeniedException {
-					return new VirtualFileWrapper(fileService.getFile(virtualPath), fileService.isRootWritable(getCurrentPrincipal()));
+					return new VirtualFileWrapper(fileService.getFile(virtualPath), 
+							fileService.isRootWritable(getCurrentPrincipal()));
 				}
 			});
 

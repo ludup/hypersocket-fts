@@ -258,6 +258,4 @@ public class VirtualFile extends AbstractEntity<Long> {
 	public void setFileObject(FileObject fileObject) {
 		this.fileObject = fileObject;
 	}
-	
-	
 }
