@@ -370,7 +370,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	private void buildFileMap(Map<String,VirtualFile> map, VirtualFile file, Set<FileResource> accessible) throws FileSystemException {
 		file = checkWriteState(file, accessible);
 		VirtualFile existing = map.get(file.getFilename());
-		if(Objects.isNull(existing)) {
+		if(existing==null) {
 			map.put(file.getFilename(), file);
 		} else {
 			if(!existing.isVirtualFolder()) {

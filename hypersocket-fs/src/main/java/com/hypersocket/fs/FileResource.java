@@ -80,7 +80,7 @@ public class FileResource extends AssignableResource  {
 	}
 
 	public CacheStrategy getCacheStrategy() {
-		return cacheStrategy;
+		return cacheStrategy == null ? CacheStrategy.ON_RESOLVE : cacheStrategy;
 	}
 
 	public void setCacheStrategy(CacheStrategy cacheStrategy) {
