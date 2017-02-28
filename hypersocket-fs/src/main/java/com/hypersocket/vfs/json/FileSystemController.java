@@ -218,7 +218,7 @@ public class FileSystemController extends ResourceController {
 	}
 	
 	@AuthenticationRequired
-	@RequestMapping(value = "fs/delete/**", method = RequestMethod.GET, produces = { "application/json" })
+	@RequestMapping(value = "fs/delete/**", method = RequestMethod.GET, consumes = "*/*", produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
 	public ResourceStatus<Object> delete(HttpServletRequest request,

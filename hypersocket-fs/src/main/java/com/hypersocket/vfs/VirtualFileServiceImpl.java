@@ -218,12 +218,17 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 				throw new FileNotFoundException(virtualPath);
 			}
 			
+			VirtualFile containingVirtualFolder = parentFile;
+			while(!containingVirtualFolder.isVirtualFolder()) {
+				containingVirtualFolder = containingVirtualFolder.getParent();
+			}
+			
 			if(permissionService.hasAdministrativePermission(getCurrentPrincipal())) {
-				resources.addAll(parentFile.getFolderMounts());
+				resources.addAll(containingVirtualFolder.getFolderMounts());
 			} else {
 				resources.addAll(fileService.getPersonalResources(
 						getCurrentPrincipal(), 
-						parentFile.getParent().getFolderMounts()));
+						containingVirtualFolder.getFolderMounts()));
 			}
 
 			// Lookup file from resources
@@ -288,12 +293,17 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			if(parentFile.getMount()!=null) {
 				resources.add(parentFile.getMount());
 			} else {
+				VirtualFile containingVirtualFolder = parentFile;
+				while(!containingVirtualFolder.isVirtualFolder()) {
+					containingVirtualFolder = containingVirtualFolder.getParent();
+				}
+				
 				if(permissionService.hasAdministrativePermission(getCurrentPrincipal())) {
-					resources.addAll(parentFile.getFolderMounts());
+					resources.addAll(containingVirtualFolder.getFolderMounts());
 				} else {
 					resources.addAll(fileService.getPersonalResources(
 							getCurrentPrincipal(), 
-							parentFile.getParent().getFolderMounts()));
+							containingVirtualFolder.getFolderMounts()));
 				}
 			}
 		} else {

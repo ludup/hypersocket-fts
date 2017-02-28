@@ -155,7 +155,8 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 		menuService.registerMenu(
 				new MenuRegistration(RESOURCE_BUNDLE, "myFilesystems", "fa-folder-open", "myFilesystems", 200) {
 					public boolean canRead() {
-						return resourceRepository.getAssignableResourceCount(
+						return permissionService.hasAdministrativePermission(getCurrentPrincipal()) 
+					 || resourceRepository.getAssignableResourceCount(
 								realmService.getAssociatedPrincipals(getCurrentPrincipal())) > 0;
 					}
 				}, MenuService.MENU_MY_RESOURCES);
