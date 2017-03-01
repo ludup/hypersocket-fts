@@ -361,10 +361,11 @@
 	                }
 	            },
 			    "themes" : { "stripes" : false },
-			    'data' : {
-			    	"url": basePath + '/api/fs/tree'
-			    }
-			    
+			    'data' : function(obj, cb) {
+		    		getJSON(basePath + '/api/fs/tree', null, function(data) {
+		    			cb.call(this, data);
+		    		});
+	    		} 
 			  }, "types" : {
 			        "mount" : {
 			          "icon" : "fa fa-2x fa-hdd-o"
@@ -495,7 +496,7 @@
 				});
 		    	
 		    } else {
-		    	
+		    	debugger;
 		    	getJSON('fs/mountsByPath' + selected.node.original.virtualPath, null, function(data) {
 
 		    		if(!data.success) {
