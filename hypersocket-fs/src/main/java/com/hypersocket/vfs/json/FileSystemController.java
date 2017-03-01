@@ -481,21 +481,19 @@ public class FileSystemController extends ResourceController {
 	@RequestMapping(value = "fs/search/**", method = RequestMethod.GET, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
-	public BootstrapTableResult<?> search(HttpServletRequest request,
+	public BootstrapTableResult<?> search(final HttpServletRequest request,
 			HttpServletResponse response) throws AccessDeniedException,
 			UnauthorizedException, IOException, SessionTimeoutException {
 
 		setupAuthenticatedContext(sessionUtils.getSession(request),
 				sessionUtils.getLocale(request));
 		try {
-
-			final String virtualPath = FileUtils.checkStartsWithSlash(
-					FileUtils.stripParentPath(server.getApiPath() + "/fs/search", 
-							URLDecoder.decode(request.getRequestURI(), "UTF-8")));
 			
 			return processDataTablesRequest(request, new BootstrapTableResourceProcessor<VirtualFileWrapper>() {
 				
 				Collection<VirtualFile> results;
+				String virtualPath;
+				
 				@Override
 				public Long getTotalCount(String searchColumn, String searchPattern)
 						throws UnauthorizedException, AccessDeniedException {
@@ -507,7 +505,21 @@ public class FileSystemController extends ResourceController {
 				public Collection<?> getPage(String searchColumn, String searchPattern, int start, int length, ColumnSort[] sorting)
 						throws UnauthorizedException, AccessDeniedException {
 					try {
-						results = fileService.searchFiles(virtualPath, "filename", searchPattern, start, length, sorting, HTTP_PROTOCOL);
+						String filename;
+						if(searchPattern.endsWith("/")) {
+							filename = "";
+							virtualPath = searchPattern;
+						} else {
+							filename = FileUtils.lastPathElement(searchPattern);
+							if(searchPattern.contains("/")) {
+								virtualPath = FileUtils.stripLastPathElement(searchPattern);
+							} else {
+								virtualPath = FileUtils.checkStartsWithSlash(
+										FileUtils.stripParentPath(server.getApiPath() + "/fs/search", 
+												URLDecoder.decode(request.getRequestURI(), "UTF-8")));
+							}
+						}
+						results = fileService.searchFiles(virtualPath, "filename", filename, start, length, sorting, HTTP_PROTOCOL);
 						ArrayList<VirtualFile> ret = new ArrayList<VirtualFile>(results);
 						return ret.subList(start, start + Math.min(length, ret.size() - start));
 					} catch (IOException e) {
@@ -528,9 +540,6 @@ public class FileSystemController extends ResourceController {
 			});
 
 		} catch (IllegalStateException e) {
-			request.getSession().setAttribute("lastError", e);
-			throw e;
-		} catch (IOException e) {
 			request.getSession().setAttribute("lastError", e);
 			throw e;
 		} finally {
