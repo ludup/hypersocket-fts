@@ -148,9 +148,10 @@
 <!-- 							</div> -->
 <!-- 						</div> -->
 <!-- 					</div> -->
-					<div id="tabRoles" class="dialogTab">
-					<input type="hidden" id="resourceId" name="resourceId" value="" />
-				</div>
+					<div id="tabRoles" class="dialogTab col-xs-12">
+						
+					</div>
+				<input type="hidden" id="resourceId" name="resourceId" value="" />
 				</div>
 				<div class="modal-footer"></div>
 			</div>
@@ -638,12 +639,11 @@
 		});
 		
 		if(currentMenu.canCreate || currentMenu.canUpdate) {
-			getJSON('roles/list', null, function(data) {
-				$('#tabRoles').multipleSelect({
-					values : data.resources,
-					selectedIsObjectList : true,
-					resourceKey : 'mount'
-				});
+			$('#tabRoles').multipleSearchInput({
+				url: 'roles/table',
+				valueIsNamePair: false,
+				selectedIsObjectList : true,
+				resourceKey : 'mount'
 			});
 		}
 	
@@ -733,7 +733,7 @@
 						$('#showHidden').prop('checked', false);
 						$('#showFolders').prop('checked', true);
 						
-						$('#tabRoles').multipleSelect();
+						$('#tabRoles').multipleSearchInput();
 						
 					},
 					createResource : function() {
@@ -786,7 +786,9 @@
 						$('#showHidden').prop('checked', resource.showHidden);
 						$('#showFolders').prop('checked', resource.showFolders);
 						
-						$('#tabRoles').multipleSelect({
+						$('#tabRoles').multipleSearchInput({
+							url: 'roles/table',
+							valueIsNamePair: false,
 							selected : resource.roles,
 							selectedIsObjectList : true,
 							resourceKey : 'mount'
