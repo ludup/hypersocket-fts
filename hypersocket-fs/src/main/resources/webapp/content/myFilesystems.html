@@ -306,7 +306,7 @@
 						var row = $('#table').bootstrapTable('getRowByUniqueId', $(this).data('unique'));
 						var d = new $.Deferred;
 						var original = $(this).data('original');
-						$.post( createApiUrl('rename', row, 'forceDownload=false'),
+						postFORM( createApiUrl('rename', row, 'forceDownload=false'),
 								"toUri=" + basePath + '/api/fs/rename'
 										+ mountPath + params.value,
 								function(data) {

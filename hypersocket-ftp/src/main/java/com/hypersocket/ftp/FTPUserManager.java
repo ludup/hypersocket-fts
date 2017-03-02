@@ -54,9 +54,7 @@ public class FTPUserManager implements UserManager {
 			Map<String, Object> environment = new HashMap<String, Object>();
 
 			environment.put(BrowserEnvironment.USER_AGENT.toString(), "FTP Client");
-			environment
-					.put(HttpHeaders.AUTHORIZATION,
-							"basic "
+			environment.put(HttpHeaders.AUTHORIZATION,  "basic "
 									+ new String(Base64.encodeBase64((auth.getUsername()
 											+ ":" + auth.getPassword())
 											.getBytes("UTF-8")), "UTF-8"));
@@ -64,7 +62,7 @@ public class FTPUserManager implements UserManager {
 					.createAuthenticationState(FTPService.AUTHENTICATION_SCHEME_RESOURCE_KEY,
 							auth.getUserMetadata()
 							.getInetAddress().getHostAddress(), environment,
-							Locale.getDefault());
+							Locale.getDefault(), null);
 			return state;
 		} catch (UnsupportedEncodingException e) {
 			throw new IllegalStateException("Surely all environments support UTF-8?");
