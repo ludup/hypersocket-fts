@@ -78,7 +78,7 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 	public static final String MENU_FILE_SYSTEMS = "fileSystems";
 
 	public static final String ACTIONS_FILE = "fileActions";
-	public static final String ACTIONS_BULK = "bulkActions";
+	public static final String ACTIONS_BULK = "fileToolbarActions";
 
 	@Autowired
 	HypersocketServer server;

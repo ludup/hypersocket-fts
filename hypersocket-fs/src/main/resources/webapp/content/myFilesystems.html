@@ -271,16 +271,11 @@
 		var selectAll = true;
 		$.each($('#table').bootstrapTable('getData'), function(idx, obj) {
 			if(!obj.writable || obj.virtualFolder) {
-				$('#table tr[data-index="' + idx + '"] td input').hide();
 				selectAll = false;
 			} else {
 				canDelete = true;
 			}
 		});
-		
-		if(!selectAll) {
-			$('input[name="btSelectAll"]').hide();
-		}
 		
 		if(!canDelete) {
 			$('#multipleDelete').prop('disabled', true);
@@ -482,7 +477,34 @@
 																}
 															});
 												});
+												
+												getJSON('menus/tableActions/fileToolbarActions', null, function(data) {
+													
+													if(data.resources.length > 0) {
+														$.each(data.resources, function(idx, action) {
+															$('.fixed-table-toolbar').find('.btn-group').first().prepend('<button id="' 
+																	+ action.resourceKey + 'Button" class="btn btn-default" type="button" name="'
+																	+ action.resourceKey + 'Button" title="' 
+																	+ getResource(action.resourceKey + '.title') + '">'
+																	+ '<i class="fa ' + getResource(action.resourceKey + '.icon') + '"></i></button>');
+															
+															var div = action.resourceKey + 'Div';
+															$('#additionalActions').append('<div id="' + div + '"></div>');
+															$('#' + div).load(uiPath + '/content/' + action.url + '.html');
+															
+															$('#' + action.resourceKey + 'Button').click(
+																	function(e) {
+																if($('#' + action.resourceKey).data('action')) {
+																	var arr = $('#table').bootstrapTable('getSelections');
+																	$('#' + action.resourceKey).data('action')(arr);
+																}
+															});
+														});
+													 }
+												});
 											}
+											
+											
 										},
 										onLoadSuccess : function(data) {
 											
