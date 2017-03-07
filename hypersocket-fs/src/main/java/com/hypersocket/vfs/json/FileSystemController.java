@@ -38,6 +38,7 @@ import com.hypersocket.i18n.I18N;
 import com.hypersocket.json.RequestStatus;
 import com.hypersocket.json.ResourceList;
 import com.hypersocket.json.ResourceStatus;
+import com.hypersocket.netty.Request;
 import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.resource.ResourceException;
 import com.hypersocket.server.HypersocketServer;
@@ -519,7 +520,10 @@ public class FileSystemController extends ResourceController {
 												URLDecoder.decode(request.getRequestURI(), "UTF-8")));
 							}
 						}
-						results = fileService.searchFiles(virtualPath, "filename", filename, start, length, sorting, HTTP_PROTOCOL);
+						String requiredFlags = Request.get().getParameter("flags");
+						results = fileService.searchFiles(virtualPath, "filename",
+								filename, start, length,
+								sorting, HTTP_PROTOCOL, requiredFlags);
 						ArrayList<VirtualFile> ret = new ArrayList<VirtualFile>(results);
 						return ret.subList(start, start + Math.min(length, ret.size() - start));
 					} catch (IOException e) {

@@ -43,10 +43,11 @@ public interface VirtualFileService extends AuthenticatedService {
 
 	Collection<VirtualFile> listChildren(String virtualPath, String proto) throws IOException, AccessDeniedException;
 
-	long getSearchCount(String virtualPath, String searchColumn, String search) throws AccessDeniedException;
+	long getSearchCount(String virtualPath, String searchColumn, String search, String flags) throws AccessDeniedException;
 
-	Collection<VirtualFile> searchFiles(String virtualPath, String searchColumn, String search, int offset, int limit,
-			ColumnSort[] sorting, String proto) throws AccessDeniedException, IOException;
+	Collection<VirtualFile> searchFiles(String virtualPath, 
+			String searchColumn, String search, int offset, int limit,
+			ColumnSort[] sorting, String proto, String flags) throws AccessDeniedException, IOException;
 
 	VirtualFile getRootFolder() throws AccessDeniedException, IOException;
 

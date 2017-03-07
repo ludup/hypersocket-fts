@@ -26,9 +26,6 @@ import com.hypersocket.utils.FileUtils;
 @JsonDeserialize(using=FileResourceDeserializer.class)
 public class FileResource extends AssignableResource  {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 4890173886479512286L;
 
 	@Column(name = "scheme")
@@ -68,8 +65,11 @@ public class FileResource extends AssignableResource  {
 	@Column(name = "logo")
 	String logo;
 
-	@Column(name="virtual_path")
+	@Column(name="virtual_path", length=8000)
 	String virtualPath;
+	
+	@Column(name="flags")
+	String flags;
 	
 	public String getScheme() {
 		return scheme;
@@ -241,4 +241,13 @@ public class FileResource extends AssignableResource  {
 		return logo == null ? "logo://100_autotype_autotype_auto.png" : logo;
 	}
 
+	public String getFlags() {
+		return flags;
+	}
+
+	public void setFlags(String flags) {
+		this.flags = flags;
+	}
+
+	
 }

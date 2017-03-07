@@ -496,7 +496,7 @@
 				});
 		    	
 		    } else {
-		    	debugger;
+		    	
 		    	getJSON('fs/mountsByPath' + selected.node.original.virtualPath, null, function(data) {
 
 		    		if(!data.success) {
@@ -642,7 +642,7 @@
 		if(currentMenu.canCreate || currentMenu.canUpdate) {
 			$('#tabRoles').multipleSearchInput({
 				url: 'roles/table',
-				valueIsNamePair: false,
+				isNamePairValue: false,
 				selectedIsObjectList : true,
 				resourceKey : 'mount'
 			});
@@ -789,7 +789,7 @@
 						
 						$('#tabRoles').multipleSearchInput({
 							url: 'roles/table',
-							valueIsNamePair: false,
+							isNamePairValue: false,
 							selected : resource.roles,
 							selectedIsObjectList : true,
 							resourceKey : 'mount'

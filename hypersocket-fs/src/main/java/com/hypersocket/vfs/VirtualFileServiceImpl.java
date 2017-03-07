@@ -129,7 +129,6 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		CHILDREN
 	}
 
-	@SuppressWarnings("rawtypes")
 	@PostConstruct
 	private void postConstruct() {
 		
@@ -746,7 +745,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	}
 
 	@Override
-	public long getSearchCount(String virtualPath, String searchColumn, String search) throws AccessDeniedException {
+	public long getSearchCount(String virtualPath, String searchColumn, String search, String flags) throws AccessDeniedException {
 		VirtualFile file = virtualRepository.getVirtualFileByResource(virtualPath, getCurrentRealm(),
 				getCurrentPrincipal(), getPrincipalResources());
 		return virtualRepository.getCount(VirtualFile.class, searchColumn, search, new ParentCriteria(file),
@@ -755,7 +754,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 
 	@Override
 	public Collection<VirtualFile> searchFiles(String virtualPath, String searchColumn, String search, int offset,
-			int limit, ColumnSort[] sort, String proto) throws AccessDeniedException, IOException {
+			int limit, ColumnSort[] sort, String proto, String flags) throws AccessDeniedException, IOException {
 
 		VirtualFile parentFile = virtualRepository.getVirtualFile(virtualPath, getCurrentRealm(), null);
 		if (parentFile == null) {
@@ -763,14 +762,23 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		}
 
 		List<VirtualFile> results = new ArrayList<VirtualFile>(getChildren(parentFile));
-		if (StringUtils.isNotBlank(search)) {
-			for (Iterator<VirtualFile> it = results.iterator(); it.hasNext();) {
-				VirtualFile file = it.next();
+		
+		for (Iterator<VirtualFile> it = results.iterator(); it.hasNext();) {
+			VirtualFile file = it.next();
+			if (StringUtils.isNotBlank(search)) {
 				if (!file.getFilename().startsWith(search) && !file.getFilename().endsWith(search)) {
 					it.remove();
+					continue;
+				}
+			}
+			if(StringUtils.isNotBlank(flags)) {
+				if(file.getMount()==null || !file.getMount().getFlags().contains(flags)) {
+					it.remove();
+					continue;
 				}
 			}
 		}
+		
 
 		if (sort.length > 0) {
 			final FileSystemColumn column = (FileSystemColumn) sort[0].getColumn();
@@ -1480,7 +1488,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			String url = resource.getPrivateUrl(getCurrentPrincipal(), userVariableReplacement, getUsername(resource),
 					getPassword(resource));
 			FileSystemOptions opts = scheme.getFileService().buildFileSystemOptions(resource);
-			obj = VFS.getManager().resolveFile(url, opts);
+			obj = getManager(resource, resource.getCacheStrategy()).resolveFile(url, opts);
 		} else {
 			String url = resource.getPrivateUrl(getCurrentPrincipal(), userVariableReplacement, getUsername(resource),
 					getPassword(resource));

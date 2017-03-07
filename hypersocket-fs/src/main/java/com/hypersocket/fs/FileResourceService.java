@@ -38,4 +38,6 @@ public interface FileResourceService extends
 
 	Collection<FileResource> getPersonalResources(Principal currentPrincipal, Set<FileResource> folderMounts);
 
+	void registerProcessor(FileResourceProcessor processor);
+
 }

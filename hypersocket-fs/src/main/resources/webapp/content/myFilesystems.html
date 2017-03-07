@@ -15,6 +15,7 @@
 						<th data-field="state" data-checkbox="true"></th>
 						<th data-field="filename" data-sortable="true" data-formatter="nameFormatter">Name</th>
 						<th data-field="type" data-sortable="true">Type</th>
+						<th data-field="flags" data-sortable="false" data-formatter="flagFormatter">Flags</th>
 						<th data-field="lastModified" data-sortable="true" data-formatter="dateFormatter">Last Modified</th>
 						<th data-field="size" data-sortable="true" data-formatter="sizeFormatter">Size</th>
 						<th data-field="action" data-formatter="actionFormatter" data-events="actionEvents">Action</th>
@@ -59,6 +60,13 @@
 	
 	function createViewUrl(virtualFile, additionalParams) {
 		return createFsUrl('/ui/', 'viewfs', virtualFile, additionalParams);
+	}
+	
+	function flagFormatter(value, row, index) {
+		if(row.mount) {
+			return row.mount.flags;
+		}
+		return "r";
 	}
 	
 	function actionFormatter(value, row, index) {
@@ -202,7 +210,7 @@
 
 	window.actionEvents = {
 		'click .download' : function(e, value, row, index) {
-			window.location = createApiUrl('download', row, 'forceDownload=true');
+			window.location = createApiUrl('download', row, 'forceDownload=true&token=' + getCsrfToken());
 		},
 		'click .edit' : function(e, value, row, index) {
 			e.stopPropagation();
@@ -414,7 +422,6 @@
 									$('#table').bootstrapTable({
 										url : basePath + '/api/fs/search' + mountPath,
 										queryParams: function(params) {
-											
  											params._ = new Date().getTime();
 											return params;
 										},

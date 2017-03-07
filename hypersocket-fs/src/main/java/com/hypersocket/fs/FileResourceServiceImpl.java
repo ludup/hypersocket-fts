@@ -119,7 +119,7 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 	@Autowired
 	VirtualFileService virtualFileService; 
 	
-
+	List<FileResourceProcessor> processors = new ArrayList<FileResourceProcessor>();
 	Map<String, FileResourceScheme> schemes = new HashMap<String, FileResourceScheme>();
 
 	public FileResourceServiceImpl() {
@@ -214,6 +214,11 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 	}
 
 	@Override
+	public void registerProcessor(FileResourceProcessor processor) {
+		processors.add(processor);
+	}
+	
+	@Override
 	public void registerScheme(FileResourceScheme scheme) {
 		if (schemes.containsKey(scheme.getScheme())) {
 			throw new IllegalArgumentException(scheme.getScheme() + " is already a registerd scheme");
@@ -225,9 +230,7 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 		}
 
 		try {
-
 			virtualFileService.addProvider(scheme.getScheme(), scheme.getProvider()==null ? null : scheme.getProvider().newInstance());
-
 			schemes.put(scheme.getScheme(), scheme);
 		} catch (Throwable e) {
 			log.error("Failed to add scheme " + scheme.getScheme(), e);
@@ -349,29 +352,48 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 		createResource(resource, properties, new TransactionAdapter<FileResource>() {
 
 			@Override
+			public void beforeOperation(FileResource resource, Map<String,String> properties) {
+				processFile(resource, properties);
+			}
+			
+			@Override
 			public void afterOperation(FileResource resource, Map<String, String> properties) {
-				
-				FileResourceScheme scheme = schemes.get(resource.getScheme());
-				if(scheme.getFileService()!=null) {
-					if(scheme.getFileService().getRepository()!=null) {
-						scheme.getFileService().getRepository().setValues(resource, properties);
-					}
-				}
-				
-				try {
-					VirtualFile mountedFile = virtualFileService.getFile(resource.getVirtualPath());
-					virtualFileService.attachMount(mountedFile, resource);
-					if(mountedFile.getDefaultMount()==null && !resource.isReadOnly()) {
-						virtualFileService.setDefaultMount(mountedFile, resource);
-					}
-				} catch (Throwable e) {
-					throw new IllegalStateException(new ResourceCreationException(RESOURCE_BUNDLE, "error.virtualFileError"));
-				}
-
+				setSchemeProperties(resource, properties);
+				configureDefaults(resource, true);
 			}
 		});
 	}
 	
+	protected void processFile(FileResource resource, Map<String, String> properties) {
+		resource.setFlags("r" + (resource.isReadOnly() ? "" : "w"));
+		for(FileResourceProcessor processor : processors) {
+			processor.processFileResource(resource, properties);
+		}
+	}
+
+	protected void configureDefaults(FileResource resource, boolean isNew) {
+		try {
+			VirtualFile mountedFile = virtualFileService.getFile(resource.getVirtualPath());
+			if(isNew) {
+				virtualFileService.attachMount(mountedFile, resource);
+			}
+			if(mountedFile.getDefaultMount()==null && !resource.isReadOnly()) {
+				virtualFileService.setDefaultMount(mountedFile, resource);
+			}
+		} catch (Throwable e) {
+			throw new IllegalStateException(new ResourceCreationException(RESOURCE_BUNDLE, "error.virtualFileError"));
+		}
+	}
+
+	protected void setSchemeProperties(FileResource resource, Map<String, String> properties) {
+		FileResourceScheme scheme = schemes.get(resource.getScheme());
+		if(scheme.getFileService()!=null) {
+			if(scheme.getFileService().getRepository()!=null) {
+				scheme.getFileService().getRepository().setValues(resource, properties);
+			}
+		}
+	}
+
 	@Override
 	public void updateFileResource(FileResource resource, Map<String, String> properties) throws AccessDeniedException, ResourceException {
 		
@@ -387,21 +409,14 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 		updateResource(resource, null, properties, new TransactionAdapter<FileResource>() {
 
 			@Override
+			public void beforeOperation(FileResource resource, Map<String,String> properties) {
+				processFile(resource, properties);
+			}
+			
+			@Override
 			public void afterOperation(FileResource resource, Map<String, String> properties) {
-				
-				FileResourceScheme scheme = schemes.get(resource.getScheme());
-				if(scheme.getFileService()!=null && scheme.getFileService().getRepository()!=null) {
-					scheme.getFileService().getRepository().setValues(resource, properties);
-				}
-				
-				try {
-					VirtualFile mountedFile = virtualFileService.getFile(resource.getVirtualPath());
-					if(mountedFile.getDefaultMount()==null && !resource.isReadOnly()) {
-						virtualFileService.setDefaultMount(mountedFile, resource);
-					}
-				} catch (Throwable e) {
-					throw new IllegalStateException(new ResourceCreationException(RESOURCE_BUNDLE, "error.virtualFileError"));
-				}
+				setSchemeProperties(resource, properties);
+				configureDefaults(resource, false);
 			}
 		});
 	}

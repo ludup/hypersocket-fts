@@ -158,7 +158,7 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 			file.setType(type);
 			file.setWritable(writable);
 			file.setSize(fileObject!=null && fileObject.getType() == FileType.FILE ? content.getSize() : 0L);
-			file.setLastModified(content==null ? 
+			file.setLastModified(content==null || fileObject.getType() == FileType.FOLDER ? 
 					  file.getLastModified() == null ? System.currentTimeMillis() : file.getLastModified() 
 					: content.getLastModifiedTime());
 			file.setParent(parent);
