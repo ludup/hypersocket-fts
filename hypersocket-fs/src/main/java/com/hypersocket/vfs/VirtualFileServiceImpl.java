@@ -16,7 +16,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
@@ -33,7 +32,6 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.FileType;
-import org.apache.commons.vfs2.VFS;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.apache.commons.vfs2.provider.FileProvider;
 import org.apache.derby.impl.io.vfmem.PathUtil;
@@ -637,7 +635,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		fromPath = normalise(fromPath);
 		toPath = normalise(toPath);
 
-		VirtualFile toParent = getFile(FileUtils.stripLastPathElement(toPath));
+		getFile(FileUtils.stripLastPathElement(toPath));
 		CopyFileResolver resolver = new CopyFileResolver(proto);
 		boolean success = resolver.processRequest(fromPath, toPath);
 		return success;
