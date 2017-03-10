@@ -179,5 +179,10 @@ public class UploadHttpHandler extends HttpRequestHandler {
 		}
 		
 	}
+	
+	@Override
+	public boolean getDisableCache() {
+		return true;
+	}
 
 }
