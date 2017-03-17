@@ -5,7 +5,7 @@
 #virtualFileSystemTree {
 	min-height: 600px;
 	height: 100%;
-	overflow: scroll;
+	overflow: auto;
 }
 
 #virtualFileSystemInfo {
