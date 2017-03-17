@@ -304,7 +304,13 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 				}
 			}
 		} else {
-			resources.addAll(parentFile.getFolderMounts());
+			if(permissionService.hasAdministrativePermission(getCurrentPrincipal())) {
+				resources.addAll(parentFile.getFolderMounts());
+			} else {
+				resources.addAll(fileService.getPersonalResources(
+						getCurrentPrincipal(), 
+						parentFile.getFolderMounts()));
+			}
 		}
 		
 		if (parentFile.isVirtualFolder()) {
