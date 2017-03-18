@@ -242,7 +242,7 @@ public class FileResource extends AssignableResource  {
 	}
 
 	public String getFlags() {
-		return flags;
+		return flags == null ? "" : flags;
 	}
 
 	public void setFlags(String flags) {
