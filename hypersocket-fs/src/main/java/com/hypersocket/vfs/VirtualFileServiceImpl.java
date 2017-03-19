@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -238,7 +239,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 
 					FileObject resourceFile = getFileObject(resource);
 					FileObject fileObject = resourceFile;
-					if (StringUtils.isNotBlank(childPath)) {
+					if (StringUtils.isNotBlank(childPath) && fileObject.getType()==FileType.FOLDER) {
 						fileObject = resourceFile.resolveFile(childPath);
 						if (!fileObject.exists()) {
 							continue;
@@ -365,6 +366,14 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 						// Unsupported file type
 					}
 				}
+				break;
+			case FILE:
+				buildFileMap(results, virtualRepository.reconcileFile(
+						fileObject.getName().getBaseName(), 
+						fileObject, 
+						resource, 
+						parentFile, 
+						null), resources);
 				break;
 			default:
 				// What do we do here?
@@ -671,7 +680,6 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			throws AccessDeniedException, IOException {
 
 		if(!file.isMounted()) {
-
 			throw new IOException("Download must be a file and have a valid mount point!");
 		}
 		FileResolver<Object> resolver = new FileResolver<Object>(true, false) {
@@ -959,7 +967,9 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 					overridePassword = resource.getPassword();
 				}
 				file = resolveVFSFile(resource);
-				file = file.resolveFile(childPath);
+				if(StringUtils.isNotBlank(childPath) && file.getType()==FileType.FOLDER) {
+					file = file.resolveFile(childPath);
+				}
 
 				checkFile(file);
 
