@@ -287,31 +287,18 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		Map<String,VirtualFile> results = new HashMap<String,VirtualFile>();
 		
 		Set<FileResource> resources = new HashSet<FileResource>();
-		if(parentFile.getParent()!=null) {
-			if(parentFile.getMount()!=null) {
-				resources.add(parentFile.getMount());
-			} else {
-				VirtualFile containingVirtualFolder = parentFile;
-				while(!containingVirtualFolder.isVirtualFolder()) {
-					containingVirtualFolder = containingVirtualFolder.getParent();
-				}
-				
-				if(permissionService.hasAdministrativePermission(getCurrentPrincipal())) {
-					resources.addAll(containingVirtualFolder.getFolderMounts());
-				} else {
-					resources.addAll(fileService.getPersonalResources(
-							getCurrentPrincipal(), 
-							containingVirtualFolder.getFolderMounts()));
-				}
-			}
+
+		VirtualFile containingVirtualFolder = parentFile;
+		while(!containingVirtualFolder.isVirtualFolder()) {
+			containingVirtualFolder = containingVirtualFolder.getParent();
+		}
+		
+		if(permissionService.hasAdministrativePermission(getCurrentPrincipal())) {
+			resources.addAll(containingVirtualFolder.getFolderMounts());
 		} else {
-			if(permissionService.hasAdministrativePermission(getCurrentPrincipal())) {
-				resources.addAll(parentFile.getFolderMounts());
-			} else {
-				resources.addAll(fileService.getPersonalResources(
-						getCurrentPrincipal(), 
-						parentFile.getFolderMounts()));
-			}
+			resources.addAll(fileService.getPersonalResources(
+					getCurrentPrincipal(), 
+					containingVirtualFolder.getFolderMounts()));
 		}
 		
 		if (parentFile.isVirtualFolder()) {
@@ -324,13 +311,15 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			return results.values();
 		}
 		
-
 		for (FileResource resource : resources) {
 
 			if (!parentFile.getVirtualPath().startsWith(resource.getVirtualPath())) {
 				continue;
 			}
 
+			if(log.isDebugEnabled()) {
+				log.debug(String.format("%s %s", resource.getName(), resource.getPath()));
+			}
 			String childPath = FileUtils.stripParentPath(resource.getVirtualPath(), parentFile.getVirtualPath());
 
 			FileObject resourceFile = getFileObject(resource);
