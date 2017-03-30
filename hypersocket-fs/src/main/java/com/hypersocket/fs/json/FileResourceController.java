@@ -88,8 +88,7 @@ public class FileResourceController extends ResourceController {
 				sessionUtils.getLocale(request));
 		try {
 			return new ResourceList<FileResource>(
-					mountService.getResources(sessionUtils
-							.getCurrentRealm(request)));
+					mountService.getResources(getCurrentRealm()));
 		} finally {
 			clearAuthenticatedContext();
 		}
@@ -157,7 +156,7 @@ public class FileResourceController extends ResourceController {
 								throws UnauthorizedException,
 								AccessDeniedException {
 							return mountService.searchResources(
-									sessionUtils.getCurrentRealm(request),
+									getCurrentRealm(),
 									searchColumn, searchPattern, start, length, sorting);
 						}
 
@@ -166,7 +165,7 @@ public class FileResourceController extends ResourceController {
 								throws UnauthorizedException,
 								AccessDeniedException {
 							return mountService.getResourceCount(
-									sessionUtils.getCurrentRealm(request),
+									getCurrentRealm(),
 									searchColumn, searchPattern);
 						}
 					});
@@ -207,8 +206,7 @@ public class FileResourceController extends ResourceController {
 		try {
 			ResourceList<FileResource> list = new ResourceList<FileResource>(
 					new HashMap<String,String>(),
-					mountService.getPersonalResources(sessionUtils
-							.getPrincipal(request)));
+					mountService.getPersonalResources(getCurrentPrincipal()));
 			list.getProperties().put(
 					"authCode",
 					sessionService.createSessionToken(
@@ -246,7 +244,7 @@ public class FileResourceController extends ResourceController {
 								throws UnauthorizedException,
 								AccessDeniedException {
 							return mountService.searchPersonalResources(
-									sessionUtils.getPrincipal(request),
+									getCurrentPrincipal(),
 									searchColumn, searchPattern, start, length, sorting);
 						}
 
@@ -255,7 +253,7 @@ public class FileResourceController extends ResourceController {
 								throws UnauthorizedException,
 								AccessDeniedException {
 							return mountService.getPersonalResourceCount(
-									sessionUtils.getPrincipal(request),
+									getCurrentPrincipal(),
 									searchColumn, searchPattern);
 						}
 					});
@@ -278,7 +276,7 @@ public class FileResourceController extends ResourceController {
 				sessionUtils.getLocale(request));
 		try {
 
-			Realm realm = sessionUtils.getCurrentRealm(request);
+			Realm realm = getCurrentRealm();
 
 			Map<String, String> properties = new HashMap<String, String>();
 			for (PropertyItem i : resource.getProperties()) {
