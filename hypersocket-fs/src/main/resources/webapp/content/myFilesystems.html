@@ -3,11 +3,11 @@
 	<h2><i class="fa fa-folder-open-o"></i><span class="break"></span>My Files</h2>
 </div>
 <div id="viewfs" class="panel-body">
-		<div id="navigation">
-			<ol id="breadcrumbs" class="breadcrumb"></ol>
-		</div>
-		<div id="dragAndDrop"></div>
 		<div id="viewfsContent">
+			<div id="navigation">
+				<ol id="breadcrumbs" class="breadcrumb"></ol>
+			</div>
+			<div id="dragAndDrop"></div>
 			<div id="tableWrapper">
 			<table id="table">
 				<thead>
@@ -29,6 +29,8 @@
 </div>
 <script src="${uiPath}/js/notify.min.js"></script>
 <script type="text/javascript">
+    
+    $('#viewfs').startSpin();
     
 	var mountPath = '/'
     var virtualPath = getAnchorByName('virtualPath');
@@ -292,7 +294,8 @@
 		$('.open').off('click');
 		$('.open').on('click', function() {
 			mountPath = $(this).data('path');
-			$('#dragAndDrop').widget().setOptions({url: basePath + '/api/fs/upload' + mountPath})
+			$('#dragAndDrop').widget().setOptions({url: basePath + '/api/fs/upload' + mountPath});
+			$('#viewfs').startSpin();
 			$('#table').bootstrapTable('refreshOptions', {url: basePath + '/api/fs/search' + mountPath, pageNumber: 1, searchText: null });
 		});
 		
@@ -418,7 +421,12 @@
 														
 														$(this).trigger('notify-hide');
 													});
-
+								getState('myFilesystems', true, function(data) {
+									var pageSize = 25;
+									if(data.success && data.resources && data.resources.length > 0) {
+										pageSize = JSON.parse(data.resources[0].preferences).pageSize;
+									}
+				
 									$('#table').bootstrapTable({
 										url : basePath + '/api/fs/search' + mountPath,
 										queryParams: function(params) {
@@ -427,8 +435,8 @@
 										},
 										pagination : true,
 										page : 1,
-										pageSize : 5,
-										pageList : [ 5, 10, 20, 50, 100 ],
+										pageSize: pageSize,
+										pageList : [ 5, 10, 20, 50, 100, 250, 500, 1000],
 										clickToSelect : false,
 										search : true,
 										showColumns : true,
@@ -438,6 +446,11 @@
 										showToggle : true,
 										checkboxHeader: false,
 										uniqueId: 'id',
+									    onPageChange: function(number, size){
+								    		var sortName = $('#table').bootstrapTable('getOptions').sortName;
+								    		var sortOrder = $('#table').bootstrapTable('getOptions').sortOrder;
+								    		saveState('myFilesystems', {'pageSize': size, 'sortOrder': sortOrder, 'sortName': sortName}, true);
+									    },
 										ajaxOptions: {
 											beforeSend: function(request) {
 												request.setRequestHeader("X-Csrf-Token", getCsrfToken());
@@ -532,9 +545,12 @@
 											}
 											rebindEditable();
 											
+											$('#viewfs').stopSpin();
+											
 											loadComplete();
 										},
 										onLoadError: function(status) {
+											$('#viewfs').stopSpin();
 											getJSON(basePath + '/api/fs/lastError', null, function(data) {
 												if(data.success) {
 													showError(data.message);
@@ -543,7 +559,7 @@
 											});
 										}
 									});
-									
+								});
 									
 								});
 						});

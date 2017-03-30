@@ -18,6 +18,7 @@
 
 #viewfs {
 	padding-top: 5px;
+	min-height: 400px;
 }
 
 #viewfs .breadcrumb {
