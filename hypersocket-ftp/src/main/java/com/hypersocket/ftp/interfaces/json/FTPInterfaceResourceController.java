@@ -65,7 +65,8 @@ public class FTPInterfaceResourceController extends ResourceController {
 				sessionUtils.getLocale(request));
 		try {
 			return new ResourceList<FTPInterfaceResource>(
-					resourceService.getResources(getCurrentRealm()));
+					resourceService.getResources(sessionUtils
+							.getCurrentRealm(request)));
 		} finally {
 			clearAuthenticatedContext();
 		}
@@ -98,7 +99,7 @@ public class FTPInterfaceResourceController extends ResourceController {
 								throws UnauthorizedException,
 								AccessDeniedException {
 							return resourceService.searchResources(
-									getCurrentRealm(),
+									sessionUtils.getCurrentRealm(request),
 									searchColumn, searchPattern, start, length, sorting);
 						}
 
@@ -107,7 +108,7 @@ public class FTPInterfaceResourceController extends ResourceController {
 								throws UnauthorizedException,
 								AccessDeniedException {
 							return resourceService.getResourceCount(
-									getCurrentRealm(),
+									sessionUtils.getCurrentRealm(request),
 									searchColumn, searchPattern);
 						}
 					});
@@ -186,7 +187,7 @@ public class FTPInterfaceResourceController extends ResourceController {
 
 			FTPInterfaceResource newResource;
 
-			Realm realm = getCurrentRealm();
+			Realm realm = sessionUtils.getCurrentRealm(request);
 
 			Map<String, String> properties = new HashMap<String, String>();
 			for (PropertyItem i : resource.getProperties()) {
