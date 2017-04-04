@@ -318,8 +318,7 @@
 						var d = new $.Deferred;
 						var original = $(this).data('original');
 						postFORM( createApiUrl('rename', row, 'forceDownload=false'),
-								"toUri=" + basePath + '/api/fs/rename'
-										+ mountPath + params.value,
+								"toUri=" + mountPath + params.value,
 								function(data) {
 									
 									if (data.success) {

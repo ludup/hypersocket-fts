@@ -99,6 +99,7 @@ public class VirtualFile extends AbstractEntity<Long> {
 		this.id = id;
 	}
 
+	@JsonIgnore
 	public Realm getRealm() {
 		return realm;
 	}
@@ -155,6 +156,7 @@ public class VirtualFile extends AbstractEntity<Long> {
 		this.virtualPath = virtualPath;
 	}
 
+	@JsonIgnore
 	public FileResource getMount() {
 		return mount == null ? getDefaultMount() : mount;
 	}
@@ -163,6 +165,7 @@ public class VirtualFile extends AbstractEntity<Long> {
 		this.mount = mount;
 	}
 
+	@JsonIgnore
 	public VirtualFile getParent() {
 		return parent;
 	}
@@ -219,6 +222,7 @@ public class VirtualFile extends AbstractEntity<Long> {
 		this.defaultMount = defaultMount;
 	}
 	
+	@JsonIgnore
 	public FileResource getDefaultMount() {
 		return defaultMount;
 	}

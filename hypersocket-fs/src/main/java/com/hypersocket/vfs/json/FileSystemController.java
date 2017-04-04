@@ -338,6 +338,30 @@ public class FileSystemController extends ResourceController {
 	}
 	
 	@AuthenticationRequired
+	@RequestMapping(value = "fs/makeDirectory/**", method = RequestMethod.GET, produces = { "application/json" })
+	@ResponseBody
+	@ResponseStatus(value = HttpStatus.OK)
+	public ResourceStatus<VirtualFile> makeDirectory(HttpServletRequest request,
+			HttpServletResponse response) throws AccessDeniedException,
+			UnauthorizedException, IOException, SessionTimeoutException {
+
+		setupAuthenticatedContext(sessionUtils.getSession(request),
+				sessionUtils.getLocale(request));
+		try {
+
+			String virtualPath = FileUtils.checkStartsWithSlash(
+					FileUtils.stripParentPath(server.getApiPath() + "/fs/createFolder", 
+							URLDecoder.decode(request.getRequestURI(), "UTF-8")));
+			return new ResourceStatus<VirtualFile>(fileService.createFolder(virtualPath, HTTP_PROTOCOL));
+		} catch(AccessDeniedException ex) { 
+			return new ResourceStatus<VirtualFile>(false, I18N.getResource(sessionUtils.getLocale(request),
+					FileResourceServiceImpl.RESOURCE_BUNDLE, "error.folderPermissionDenied"));
+		} finally {
+			clearAuthenticatedContext();
+		}
+	}
+	
+	@AuthenticationRequired
 	@RequestMapping(value = "fs/rename/**", method = { RequestMethod.POST, RequestMethod.GET }, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
@@ -353,8 +377,7 @@ public class FileSystemController extends ResourceController {
 			String virtualPath = FileUtils.checkStartsWithSlash(
 					FileUtils.stripParentPath(server.getApiPath() + "/fs/rename", 
 							URLDecoder.decode(request.getRequestURI(), "UTF-8")));
-			String toVirtualPath = FileUtils.checkStartsWithSlash(
-					FileUtils.stripParentPath(server.getApiPath() + "/fs/rename", toUri));
+			String toVirtualPath = FileUtils.checkStartsWithSlash(toUri);
 			
 			return new ResourceStatus<VirtualFile>(fileService.renameFile(virtualPath, toVirtualPath, HTTP_PROTOCOL));
 		} finally {
