@@ -239,6 +239,9 @@ public class FileSystemController extends ResourceController {
 			} else {
 				return new ResourceStatus<Object>(false);
 			}
+		} catch(IOException | AccessDeniedException ex) { 
+			return new ResourceStatus<Object>(false, I18N.getResource(sessionUtils.getLocale(request),
+					FileResourceServiceImpl.RESOURCE_BUNDLE, "error.fileError", ex.getMessage()));
 		} finally {
 			clearAuthenticatedContext();
 		}
@@ -305,9 +308,9 @@ public class FileSystemController extends ResourceController {
 						URLDecoder.decode(request.getRequestURI(), "UTF-8")));
 		try {
 			return new ResourceStatus<VirtualFile>(fileService.createVirtualFolder(virtualPath));
-		} catch(FileExistsException e) { 
+		} catch(IOException | AccessDeniedException ex) { 
 			return new ResourceStatus<VirtualFile>(false, I18N.getResource(sessionUtils.getLocale(request),
-					FileResourceServiceImpl.RESOURCE_BUNDLE, "error.pathExists", virtualPath));
+					FileResourceServiceImpl.RESOURCE_BUNDLE, "error.fileError", ex.getMessage()));
 		} finally {
 			clearAuthenticatedContext();
 		}
@@ -329,9 +332,9 @@ public class FileSystemController extends ResourceController {
 					FileUtils.stripParentPath(server.getApiPath() + "/fs/createFolder", 
 							URLDecoder.decode(request.getRequestURI(), "UTF-8")));
 			return new ResourceStatus<VirtualFile>(fileService.createUntitledFolder(virtualPath, HTTP_PROTOCOL));
-		} catch(AccessDeniedException ex) { 
+		} catch(IOException | AccessDeniedException ex) { 
 			return new ResourceStatus<VirtualFile>(false, I18N.getResource(sessionUtils.getLocale(request),
-					FileResourceServiceImpl.RESOURCE_BUNDLE, "error.folderPermissionDenied"));
+					FileResourceServiceImpl.RESOURCE_BUNDLE, "error.fileError", ex.getMessage()));
 		} finally {
 			clearAuthenticatedContext();
 		}
@@ -350,12 +353,12 @@ public class FileSystemController extends ResourceController {
 		try {
 
 			String virtualPath = FileUtils.checkStartsWithSlash(
-					FileUtils.stripParentPath(server.getApiPath() + "/fs/createFolder", 
+					FileUtils.stripParentPath(server.getApiPath() + "/fs/makeDirectory", 
 							URLDecoder.decode(request.getRequestURI(), "UTF-8")));
 			return new ResourceStatus<VirtualFile>(fileService.createFolder(virtualPath, HTTP_PROTOCOL));
-		} catch(AccessDeniedException ex) { 
+		} catch(IOException | AccessDeniedException ex) { 
 			return new ResourceStatus<VirtualFile>(false, I18N.getResource(sessionUtils.getLocale(request),
-					FileResourceServiceImpl.RESOURCE_BUNDLE, "error.folderPermissionDenied"));
+					FileResourceServiceImpl.RESOURCE_BUNDLE, "error.fileError", ex.getMessage()));
 		} finally {
 			clearAuthenticatedContext();
 		}
@@ -380,6 +383,9 @@ public class FileSystemController extends ResourceController {
 			String toVirtualPath = FileUtils.checkStartsWithSlash(toUri);
 			
 			return new ResourceStatus<VirtualFile>(fileService.renameFile(virtualPath, toVirtualPath, HTTP_PROTOCOL));
+		} catch(IOException | AccessDeniedException ex) { 
+			return new ResourceStatus<VirtualFile>(false, I18N.getResource(sessionUtils.getLocale(request),
+					FileResourceServiceImpl.RESOURCE_BUNDLE, "error.fileError", ex.getMessage()));
 		} finally {
 			clearAuthenticatedContext();
 		}
