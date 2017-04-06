@@ -65,10 +65,7 @@
 	}
 	
 	function flagFormatter(value, row, index) {
-		if(row.mount) {
-			return row.mount.flags;
-		}
-		return "r";
+		return row.flags;
 	}
 	
 	function actionFormatter(value, row, index) {
@@ -130,7 +127,7 @@
 			});
 		}
 		
-		if(row.mount && row.writable && !row.virtualFolder) {
+		if(row.writable && !row.virtualFolder) {
 			actionHtml += '<a class="delete tableAction btn btn-danger btn-action"><i class="fa fa-trash fa-fw"></i></a>';
 			actionHtml += '<a class="edit tableAction btn btn-primary btn-action"><i class="fa fa-edit fa-fw"></i></a>';
 		}
