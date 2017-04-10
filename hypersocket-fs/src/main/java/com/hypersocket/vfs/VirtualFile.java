@@ -12,6 +12,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
@@ -79,10 +80,10 @@ public class VirtualFile extends AbstractEntity<Long> {
 	@Column(name="sync")
 	Boolean sync;
 	
-	@OneToOne
+	@ManyToOne
 	FileResource defaultMount;
 	
-	@OneToOne
+	@ManyToOne
 	Principal principal;
 	
 	@Column(name="hash")
@@ -156,7 +157,6 @@ public class VirtualFile extends AbstractEntity<Long> {
 		this.virtualPath = virtualPath;
 	}
 
-	@JsonIgnore
 	public FileResource getMount() {
 		return mount == null ? getDefaultMount() : mount;
 	}
@@ -222,7 +222,6 @@ public class VirtualFile extends AbstractEntity<Long> {
 		this.defaultMount = defaultMount;
 	}
 	
-	@JsonIgnore
 	public FileResource getDefaultMount() {
 		return defaultMount;
 	}

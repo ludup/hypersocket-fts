@@ -1343,10 +1343,10 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			}
 
 			if (toMount == null) {
-				throw new AccessDeniedException();
+				throw new AccessDeniedException("The target destination is not mounted.");
 			}
 			if (toMount.isReadOnly()) {
-				throw new AccessDeniedException();
+				throw new AccessDeniedException("The target destination is read only.");
 			}
 			String toChildPath = FileUtils.stripParentPath(toMount.getVirtualPath(), toPath);
 			String fromChildPath = FileUtils.stripParentPath(fromMount.getVirtualPath(), fromFile.getVirtualPath());

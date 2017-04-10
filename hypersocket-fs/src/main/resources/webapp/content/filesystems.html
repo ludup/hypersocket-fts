@@ -487,8 +487,6 @@
 				    	$('#infVirtualPath').text(data.resource.virtualPath);
 				    	$('#infLastReconcile').text(new Date(data.resource.modifiedDate).format("ddd d mmm yyyy, HH:MM"));
 				    	$('#infScheme').text(getResource('mount.' + data.resource.scheme + '.label'));
-				    	
-				    	
 				    	$('#mountPanel').show();
 				    	$('#defaultPanel').hide();
 				    	$('#folderPanel').hide();
@@ -513,6 +511,8 @@
 					    			writableMounts.push(obj);
 					    		}
 					    	});
+					    	configuring = true;
+					    	
 					    	$('#defaultMounts').selectButton({
 					    		options: writableMounts,
 					    		value: (file.resource.defaultMount ? file.resource.defaultMount.id : 0),
@@ -522,14 +522,15 @@
 					    		valueAttr: "id",
 					    		changed: function(widget) {
 					    			
-									var mount = widget.getSelectedObject();
-					    			getJSON('fs/setDefaultMount/' + selected.node.original.resourceId + '/' + (mount ? mount.id : 0), null, function(data) {
-					    				if(!data.success) {
-					    					showError(data.message);
-					    					widget.setValue((file.resource.defaultMount ? file.resource.defaultMount.id : 0));
-					    				}
-					    			});
-					    			
+					    			if(!configuring) {
+										var mount = widget.getSelectedObject();
+						    			getJSON('fs/setDefaultMount/' + selected.node.original.resourceId + '/' + (mount ? mount.id : 0), null, function(data) {
+						    				if(!data.success) {
+						    					showError(data.message);
+						    					widget.setValue((file.resource.defaultMount ? file.resource.defaultMount.id : 0));
+						    				}
+						    			});
+					    			}
 					    			configuring = false;
 					    		}
 					    	});
