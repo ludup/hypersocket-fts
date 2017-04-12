@@ -381,6 +381,10 @@ public class FileSystemController extends ResourceController {
 					FileUtils.stripParentPath(server.getApiPath() + "/fs/rename", 
 							URLDecoder.decode(request.getRequestURI(), "UTF-8")));
 			String toVirtualPath = FileUtils.checkStartsWithSlash(toUri);
+			if(toVirtualPath.startsWith(server.getApiPath() + "/fs/rename")) {
+				toVirtualPath = FileUtils.checkStartsWithSlash(FileUtils.stripParentPath(server.getApiPath() + "/fs/rename", 
+						URLDecoder.decode(toVirtualPath, "UTF-8")));
+			}
 			
 			return new ResourceStatus<VirtualFile>(fileService.renameFile(virtualPath, toVirtualPath, HTTP_PROTOCOL));
 		} catch(IOException | AccessDeniedException ex) { 
