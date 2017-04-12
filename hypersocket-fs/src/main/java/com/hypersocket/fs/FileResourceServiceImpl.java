@@ -381,7 +381,7 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 				virtualFileService.setDefaultMount(mountedFile, resource);
 			}
 		} catch (Throwable e) {
-			throw new IllegalStateException(new ResourceCreationException(RESOURCE_BUNDLE, "error.virtualFileError"));
+			throw new IllegalStateException(new ResourceCreationException(RESOURCE_BUNDLE, "error.virtualFileError").initCause(e));
 		}
 	}
 
