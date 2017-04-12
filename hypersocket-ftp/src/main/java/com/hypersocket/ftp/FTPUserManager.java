@@ -29,6 +29,7 @@ import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.realm.PrincipalType;
 import com.hypersocket.realm.RealmService;
 import com.hypersocket.resource.ResourceNotFoundException;
+import com.hypersocket.session.SessionService;
 
 @Component
 public class FTPUserManager implements UserManager {
@@ -46,6 +47,9 @@ public class FTPUserManager implements UserManager {
 
 	@Autowired
 	ConfigurationService configurationService;
+	
+	@Autowired
+	SessionService sessionService;
 
 	AuthenticationState createAuthenticationState(
 			UsernamePasswordAuthentication auth) throws AccessDeniedException {
@@ -81,7 +85,8 @@ public class FTPUserManager implements UserManager {
 			try {
 				AuthenticationState state = createAuthenticationState(pwd);
 				
-				authenticationService.logon(state, new HashMap<String,String>());
+				HashMap<String, String> params = new HashMap<String,String>();
+				authenticationService.logon(state, params);
 
 				if (state.isAuthenticationComplete()) {
 
@@ -92,6 +97,9 @@ public class FTPUserManager implements UserManager {
 					if(log.isDebugEnabled()) {
 						log.debug(state.getSession().getCurrentPrincipal().getName() + " has authenticated via FTP authentication");
 					}
+					
+					state.getSession().setTransient(true);
+					sessionService.updateSession(state.getSession());
 					
 					return new FTPSessionUser(state.getSession(), pwd.getPassword(), fileResourceService.getPersonalResources());
 				} 
