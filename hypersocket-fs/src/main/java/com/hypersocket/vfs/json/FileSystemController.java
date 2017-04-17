@@ -222,7 +222,7 @@ public class FileSystemController extends ResourceController {
 	}
 	
 	@AuthenticationRequired
-	@RequestMapping(value = "fs/delete/**", method = RequestMethod.GET, consumes = "*/*", produces = { "application/json" })
+	@RequestMapping(value = "fs/delete/**", method = { RequestMethod.GET, RequestMethod.DELETE }, consumes = "*/*", produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
 	public ResourceStatus<Object> delete(HttpServletRequest request,
@@ -243,6 +243,31 @@ public class FileSystemController extends ResourceController {
 			}
 		} catch(IOException | AccessDeniedException ex) { 
 			return new ResourceStatus<Object>(false, I18N.getResource(sessionUtils.getLocale(request),
+					FileResourceServiceImpl.RESOURCE_BUNDLE, "error.fileError", ex.getMessage()));
+		} finally {
+			clearAuthenticatedContext();
+		}
+	}
+	
+	@AuthenticationRequired
+	@RequestMapping(value = "fs/stat/**", method = RequestMethod.GET, consumes = "*/*", produces = { "application/json" })
+	@ResponseBody
+	@ResponseStatus(value = HttpStatus.OK)
+	public ResourceStatus<VirtualFile> stat(HttpServletRequest request,
+			HttpServletResponse response) throws AccessDeniedException,
+			UnauthorizedException, IOException, SessionTimeoutException {
+
+		setupAuthenticatedContext(sessionUtils.getSession(request),
+				sessionUtils.getLocale(request));
+		try {
+			
+			String virtualPath = FileUtils.checkStartsWithSlash(
+					FileUtils.stripParentPath(server.getApiPath() + "/fs/stat", 
+							URLDecoder.decode(request.getRequestURI(), "UTF-8")));
+			return new ResourceStatus<VirtualFile>(fileService.getFile(virtualPath));
+
+		} catch(IOException | AccessDeniedException ex) { 
+			return new ResourceStatus<VirtualFile>(false, I18N.getResource(sessionUtils.getLocale(request),
 					FileResourceServiceImpl.RESOURCE_BUNDLE, "error.fileError", ex.getMessage()));
 		} finally {
 			clearAuthenticatedContext();
