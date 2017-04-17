@@ -217,7 +217,7 @@ public class FileResource extends AssignableResource  {
 			String thisPath = path;
 			if (!friendly) {
 				thisPath = replacementService.replaceVariables(principal,
-						thisPath);
+						Utils.checkNull(thisPath));
 			}
 			buf.append(FileUtils.checkStartsWithSlash(Utils.checkNull(thisPath)));
 			return buf.toString();

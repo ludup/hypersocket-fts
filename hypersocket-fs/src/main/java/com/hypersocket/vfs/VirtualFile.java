@@ -1,6 +1,7 @@
 package com.hypersocket.vfs;
 
 
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.persistence.Column;
@@ -72,7 +73,7 @@ public class VirtualFile extends AbstractEntity<Long> {
 	@Fetch(FetchMode.SELECT)
 	@JoinTable(name = "virtual_fs_mounts", joinColumns={@JoinColumn(name="resource_id")}, 
 			inverseJoinColumns={@JoinColumn(name="mount_id")})
-	Set<FileResource> folderMounts;
+	Set<FileResource> folderMounts = new HashSet<>();
 	
 	@Column(name="conflicted")
 	Boolean conflicted;

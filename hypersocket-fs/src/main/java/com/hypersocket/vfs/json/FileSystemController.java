@@ -146,18 +146,20 @@ public class FileSystemController extends ResourceController {
 			Collection<FileResource> mounts = fileService.getRootMounts();
 			
 			for(FileResource resource : mounts) {
-				try {
-					TreeNode node = new TreeNode();
-					node.setParent(rootNode.id);
-					node.setText(resource.getName());
-					node.getState().opened = true;
-					node.setFileType(VirtualFileType.FOLDER);
-					node.setType("mount");
-					node.setVirtualPath(resource.getVirtualPath());
-					node.setResourceId(resource.getId());
-					rootNode.children.add(node);
-				} catch (Throwable e) {
-					log.error(String.format("Could not add root mount resource %s", resource.getName()), e);
+				if(!resource.isSystem()) {
+					try {
+						TreeNode node = new TreeNode();
+						node.setParent(rootNode.id);
+						node.setText(resource.getName());
+						node.getState().opened = true;
+						node.setFileType(VirtualFileType.FOLDER);
+						node.setType("mount");
+						node.setVirtualPath(resource.getVirtualPath());
+						node.setResourceId(resource.getId());
+						rootNode.children.add(node);
+					} catch (Throwable e) {
+						log.error(String.format("Could not add root mount resource %s", resource.getName()), e);
+					}
 				}
 			}
 			

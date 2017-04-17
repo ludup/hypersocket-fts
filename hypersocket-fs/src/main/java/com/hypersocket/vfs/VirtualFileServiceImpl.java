@@ -235,8 +235,18 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 						.startsWith(FileUtils.checkEndsWithSlash(resource.getVirtualPath()))) {
 
 					String childPath = FileUtils.stripParentPath(resource.getVirtualPath(), virtualPath);
-
-					FileObject resourceFile = getFileObject(resource);
+					
+					FileObject resourceFile;
+					try {
+						resourceFile = getFileObject(resource);
+					}
+					catch(FileNotFoundException fne) {
+						/* If we get file not found exception here, it means the scheme no longer exists,
+						 * probably because of a plugin that was is installed is now gone.
+						 */
+						continue;
+					}
+					
 					FileObject fileObject = resourceFile;
 					if (StringUtils.isNotBlank(childPath) && fileObject.getType()==FileType.FOLDER) {
 						fileObject = resourceFile.resolveFile(childPath);
@@ -321,7 +331,18 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			}
 			String childPath = FileUtils.stripParentPath(resource.getVirtualPath(), parentFile.getVirtualPath());
 
-			FileObject resourceFile = getFileObject(resource);
+			FileObject resourceFile = null;
+			try {
+				resourceFile = getFileObject(resource);
+			}
+			catch(FileNotFoundException fnfe) {
+				/* If we get file not found exception here, it means the scheme no longer exists,
+				 * probably because of a plugin that was is installed is now gone.
+				 *
+				 */
+				continue;
+			}
+			
 			FileObject fileObject = resourceFile;
 			if (StringUtils.isNotBlank(childPath)) {
 				fileObject = resourceFile.resolveFile(childPath);
@@ -1485,6 +1506,8 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 
 	protected FileObject resolveVFSFile(FileResource resource) throws IOException {
 		FileResourceScheme scheme = fileService.getScheme(resource.getScheme());
+		if(scheme == null)
+			throw new FileNotFoundException(String.format("No such scheme %s", resource.getScheme()));
 
 		FileObject obj;
 		if (scheme.getFileService() != null) {
