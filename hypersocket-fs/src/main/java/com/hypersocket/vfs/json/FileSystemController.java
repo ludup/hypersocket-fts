@@ -3,6 +3,7 @@ package com.hypersocket.vfs.json;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -568,6 +569,7 @@ public class FileSystemController extends ResourceController {
 				public Collection<?> getPage(String searchColumn, String searchPattern, int start, int length, ColumnSort[] sorting)
 						throws UnauthorizedException, AccessDeniedException {
 					try {
+						searchPattern = URLDecoder.decode(searchPattern, "UTF-8");
 						String filename;
 						if(searchPattern.endsWith("/")) {
 							filename = "";
