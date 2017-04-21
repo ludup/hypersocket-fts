@@ -320,7 +320,7 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 					newName,
 					FileUtils.checkEndsWithSlash(toFolder) , 
 					VirtualFileType.FOLDER, 
-					true, 
+					fromFolder.getWritable(), 
 					fromFolder.getParent(),
 					null,
 					false,
