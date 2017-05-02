@@ -2,6 +2,7 @@ package com.hypersocket.vfs;
 
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.sql.JoinType;
 
 import com.hypersocket.fs.FileResource;
 import com.hypersocket.repository.CriteriaConfiguration;
@@ -23,7 +24,7 @@ public class FileResourceCriteria implements CriteriaConfiguration {
 	@Override
 	public void configure(Criteria criteria) {
 		
-		criteria.createAlias("folderMounts", "folderMount", Criteria.LEFT_JOIN);
+		criteria.createAlias("folderMounts", "folderMount", JoinType.LEFT_OUTER_JOIN);
 		
 		if(resource!=null) {
 			criteria.add(Restrictions.or(Restrictions.eq("mount", resource), Restrictions.eq("folderMount.id", resource.getId())));
