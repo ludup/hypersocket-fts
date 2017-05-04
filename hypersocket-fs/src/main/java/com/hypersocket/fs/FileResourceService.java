@@ -34,8 +34,6 @@ public interface FileResourceService extends
 
 	void deleteResource(FileResource resource) throws ResourceException, AccessDeniedException;
 
-	void resetRebuildReconcileStatus(FileResource resource);
-
 	Collection<FileResource> getPersonalResources(Principal currentPrincipal, Set<FileResource> folderMounts);
 
 	void registerProcessor(FileResourceProcessor processor);

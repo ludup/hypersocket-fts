@@ -424,6 +424,9 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			}
 		} else {
 			if(accessible.contains(file.getMount())) {
+				/**
+				 * TODO need differentiator between root mount being writable and folders/files within it.
+				 */
 				file.setWritable(!file.getMount().isReadOnly() && file.getFileObject().isWriteable());
 			} else {
 				file.setWritable(false);
@@ -1889,8 +1892,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		if (root.getDefaultMount() == null) {
 			return false;
 		}
-		Collection<FileResource> resources = fileService.getPersonalResources();
-		return resources.contains(root.getDefaultMount());
+		return !root.getDefaultMount().getReadOnly();
 	}
 
 	@Override

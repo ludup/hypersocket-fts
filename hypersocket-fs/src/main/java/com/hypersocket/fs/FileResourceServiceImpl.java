@@ -201,9 +201,11 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 		eventService.registerEvent(CreateFileTaskResult.class, CreateFileTask.RESOURCE_BUNDLE);
 		eventService.registerEvent(DeleteFolderTaskResult.class, CreateFileTask.RESOURCE_BUNDLE);
 
-		registerScheme(new FileResourceScheme("file", false, false, false, false, -1, true, false, true, true, DefaultLocalFileProvider.class));
-		registerScheme(new FileResourceScheme("tmp", true, false, false, false, -1, false, false, true, false, TemporaryFileProvider.class));
-
+		if(!Boolean.getBoolean("fs.disableLocalFiles")) {
+			registerScheme(new FileResourceScheme("file", false, false, false, false, -1, true, false, true, true, DefaultLocalFileProvider.class));
+			registerScheme(new FileResourceScheme("tmp", true, false, false, false, -1, false, false, true, false, TemporaryFileProvider.class));
+		}
+		
 		indexPage.addScript("${uiPath}/js/jstree.js");
 		indexPage.addStyleSheet("${uiPath}/css/themes/default/style.min.css");
 		indexPage.addStyleSheet("${uiPath}/css/fs.css");
@@ -400,15 +402,6 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 	@Override
 	public void updateFileResource(FileResource resource, Map<String, String> properties) throws AccessDeniedException, ResourceException {
 		
-		try {
-			FileResource original = getResourceById(resource.getId());
-			if(!original.getPath().equals(resource.getPath())) {
-				properties.put("fs.rebuildOnNextReconcile", "true");
-			}
-		} catch (ResourceNotFoundException e) {
-			throw new ResourceChangeException(e);
-		}
-		
 		updateResource(resource, null, properties, new TransactionAdapter<FileResource>() {
 
 			@Override
@@ -423,11 +416,7 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 			}
 		});
 	}
-	
-	@Override
-	public void resetRebuildReconcileStatus(FileResource resource) {
-		getRepository().setValue(resource, "fs.rebuildOnNextReconcile", "false");
-	}
+
 	
 	@SuppressWarnings("unchecked")
 	@Override
