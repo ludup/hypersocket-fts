@@ -784,6 +784,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 
 		List<VirtualFile> results = new ArrayList<VirtualFile>(getChildren(parentFile));
 		search = search.toLowerCase();
+		
 		for (Iterator<VirtualFile> it = results.iterator(); it.hasNext();) {
 			VirtualFile file = it.next();
 			if (StringUtils.isNotBlank(search)) {
