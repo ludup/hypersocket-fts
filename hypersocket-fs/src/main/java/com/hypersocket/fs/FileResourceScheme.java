@@ -16,7 +16,7 @@ public class FileResourceScheme {
 	boolean showHidden;
 	boolean showFolders;
 	boolean createRoot;
-	boolean userFilesystem;
+	boolean userFilesystem = true;
 	FileService fileService;
 	Class<? extends FileProvider> provider;
 	

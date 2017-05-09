@@ -121,7 +121,8 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 	
 	List<FileResourceProcessor> processors = new ArrayList<FileResourceProcessor>();
 	Map<String, FileResourceScheme> schemes = new HashMap<String, FileResourceScheme>();
-
+	List<FileResourceScheme> userSchemes = new ArrayList<FileResourceScheme>();
+	
 	public FileResourceServiceImpl() {
 		super("fileResource");
 	}
@@ -234,6 +235,9 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 		try {
 			virtualFileService.addProvider(scheme.getScheme(), scheme.getProvider()==null ? null : scheme.getProvider().newInstance());
 			schemes.put(scheme.getScheme(), scheme);
+			if(scheme.isUserFilesystem()) {
+				userSchemes.add(scheme);
+			}
 		} catch (Throwable e) {
 			log.error("Failed to add scheme " + scheme.getScheme(), e);
 		}
@@ -247,7 +251,7 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 	
 	@Override
 	public List<FileResourceScheme> getSchemes() {
-		return new ArrayList<FileResourceScheme>(schemes.values());
+		return userSchemes;
 	}
 
 	
@@ -379,7 +383,8 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 			if(isNew) {
 				virtualFileService.attachMount(mountedFile, resource);
 			}
-			if(mountedFile.getDefaultMount()==null && !resource.isReadOnly()) {
+			FileResourceScheme scheme = getScheme(resource.getScheme());
+			if(mountedFile.getDefaultMount()==null && !resource.isReadOnly() && scheme.isUserFilesystem()) {
 				virtualFileService.setDefaultMount(mountedFile, resource);
 			}
 		} catch (Throwable e) {

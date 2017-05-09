@@ -507,7 +507,7 @@
 					    	$('#defaultMounts').empty();
 					    	var writableMounts = [];
 					    	$.each(data.resources, function(idx, obj) {
-					    		if(!obj.readOnly) {
+					    		if(!obj.readOnly && !obj.system) {
 					    			writableMounts.push(obj);
 					    		}
 					    	});

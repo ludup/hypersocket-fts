@@ -78,7 +78,7 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 					displayName,
 					FileUtils.checkEndsWithSlash(parent.getVirtualPath() + filename) , 
 					VirtualFileType.FOLDER, 
-					!resource.isReadOnly(), 
+					!resource.isReadOnly() ? fileObject.isWriteable() : false, 
 					parent,
 					resource,
 					conflicted,
