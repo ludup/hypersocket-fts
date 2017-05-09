@@ -1,6 +1,7 @@
 package com.hypersocket.fs.events;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.vfs2.FileObject;
 
 import com.hypersocket.fs.FileResource;
 import com.hypersocket.session.Session;
@@ -14,11 +15,14 @@ public class DownloadCompleteEvent extends FileOperationEvent {
 
 	public static final String EVENT_RESOURCE_KEY = "fs.downloadComplete";
 
+	FileObject file;
+	
 	public DownloadCompleteEvent(Object source, Session currentSession,
-			FileResource resource, String childPath, long bytesOut,
+			FileResource resource, FileObject file, String childPath, long bytesOut,
 			long timeMillis, String protocol) {
 		super(source, "fs.downloadComplete", true, currentSession, resource,
-				childPath, protocol);
+				file, childPath, protocol);
+		this.file = file;
 		addAttribute(ATTR_BYTES_OUT, String.valueOf(bytesOut));
 		addAttribute(ATTR_TRANSFER_TIME_MILLIS, String.valueOf(timeMillis));
 	}

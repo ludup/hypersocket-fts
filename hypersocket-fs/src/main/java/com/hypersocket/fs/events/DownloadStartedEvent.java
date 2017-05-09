@@ -3,6 +3,7 @@ package com.hypersocket.fs.events;
 import java.io.InputStream;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.vfs2.FileObject;
 
 import com.hypersocket.fs.FileResource;
 import com.hypersocket.session.Session;
@@ -19,8 +20,8 @@ public class DownloadStartedEvent extends FileOperationEvent implements FileOutp
 	String originalFilename;
 	
 	public DownloadStartedEvent(Object source, Session session, FileResource sourceResource,
-			String sourcePath, InputStream in, String protocol) {
-		super(source, EVENT_RESOURCE_KEY, true, session, sourceResource, sourcePath, protocol);
+			FileObject file, String sourcePath, InputStream in, String protocol) {
+		super(source, EVENT_RESOURCE_KEY, true, session, sourceResource, file, sourcePath, protocol);
 		this.in = in;
 		this.transformationFilename = FileUtils.lastPathElement(sourcePath);
 		this.originalFilename = FileUtils.lastPathElement(sourcePath);

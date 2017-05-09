@@ -20,7 +20,7 @@ public class NoUploadEventProcessor implements UploadEventProcessor {
 		@Override
 		public UploadStartedEvent uploadStarted(FileResource resource, String virtualPath, FileObject file,
 				String protocol) {
-			return new UploadStartedEvent(this, session, resource, virtualPath, file, protocol);
+			return new UploadStartedEvent(this, session, resource, file, virtualPath, protocol);
 		}
 
 		@Override

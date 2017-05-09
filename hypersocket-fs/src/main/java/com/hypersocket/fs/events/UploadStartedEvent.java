@@ -23,8 +23,8 @@ public class UploadStartedEvent extends FileOperationEvent implements FileInputT
 	OutputStream out;
 	
 	public UploadStartedEvent(Object source, Session session, FileResource sourceResource,
-			String sourcePath, FileObject file, String protocol) {
-		super(source, "fs.uploadStarted", true, session, sourceResource, sourcePath, protocol);
+			FileObject file, String sourcePath, String protocol) {
+		super(source, "fs.uploadStarted", true, session, sourceResource, file, sourcePath, protocol);
 		this.outputFile = file;
 		this.out = null;
 		this.transformationFilename = FileUtils.lastPathElement(sourcePath);
@@ -73,10 +73,6 @@ public class UploadStartedEvent extends FileOperationEvent implements FileInputT
 			throw new IOException("You cannot set the OutputStream without calling getOutputStream first as you should be using that as a source to transform the file");
 		}
 		this.out = out;
-	}
-
-	public FileObject getOutputFile() {
-		return outputFile;
 	}
 
 	@Override

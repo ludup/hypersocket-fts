@@ -1134,7 +1134,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 
 			if (wantsEvent) {
 				eventService.publishEvent(new CreateFolderEvent(this, !exists && created, getCurrentSession(), resource,
-						childPath, protocol));
+						file, childPath, protocol));
 			}
 
 			return newFile;
@@ -1187,7 +1187,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			boolean created = newFile.exists();
 
 			eventService.publishEvent(new CreateFileEvent(this, !exists && created, getCurrentSession(), resource,
-					childPath + FileUtils.checkStartsWithSlash(newFile.getName().getBaseName()), protocol));
+					file, childPath + FileUtils.checkStartsWithSlash(newFile.getName().getBaseName()), protocol));
 
 			return newFile;
 		}
@@ -1231,8 +1231,8 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 
 				});
 
-				eventService.publishEvent(new CopyFileEvent(this, getCurrentSession(), fromResource, fromChildPath,
-						toResource, toChildPath, protocol));
+				eventService.publishEvent(new CopyFileEvent(this, getCurrentSession(), fromResource, fromFile, 
+						fromChildPath, toResource, toChildPath, protocol));
 
 				return true;
 			} catch (Exception e) {
@@ -1273,7 +1273,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 
 				fromFile.moveTo(toFile);
 
-				eventService.publishEvent(new RenameEvent(this, getCurrentSession(), fromResource, fromChildPath,
+				eventService.publishEvent(new RenameEvent(this, getCurrentSession(), fromResource, fromFile, fromChildPath,
 						toResource, toChildPath, protocol));
 
 				return true;
@@ -1315,13 +1315,13 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 
 					if (deleted) {
 						eventService.publishEvent(
-								new DeleteFileEvent(this, deleted, getCurrentSession(), resource, childPath, protocol));
+								new DeleteFileEvent(this, deleted, getCurrentSession(), resource, file, childPath, protocol));
 						return true;
 					}
 				}
 
 				eventService.publishEvent(
-						new DeleteFileEvent(this, false, getCurrentSession(), resource, childPath, protocol));
+						new DeleteFileEvent(this, false, getCurrentSession(), resource, file, childPath, protocol));
 
 			} catch (FileSystemException ex) {
 				eventService.publishEvent(new DeleteFileEvent(this, ex, getCurrentSession(), childPath, protocol));
@@ -1558,7 +1558,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	@Override
 	public DownloadStartedEvent downloadStarted(FileResource resource, String childPath, FileObject file,
 			InputStream in, String protocol) {
-		DownloadStartedEvent evt = new DownloadStartedEvent(this, getCurrentSession(), resource, childPath, in,
+		DownloadStartedEvent evt = new DownloadStartedEvent(this, getCurrentSession(), resource, file, childPath, in,
 				protocol);
 
 		if (checkEventFilter(file.getName().getBaseName())) {
@@ -1575,7 +1575,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		try {
 			if (checkEventFilter(file.getName().getBaseName())) {
 				eventService.publishEvent(
-						new DownloadCompleteEvent(this, session, resource, childPath, bytesOut, timeMillis, protocol));
+						new DownloadCompleteEvent(this, session, resource, file, childPath, bytesOut, timeMillis, protocol));
 			}
 		} finally {
 			clearPrincipalContext();
@@ -1607,7 +1607,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	@Override
 	public UploadStartedEvent uploadStarted(FileResource resource, String childPath, FileObject file, String protocol) {
 
-		UploadStartedEvent evt = new UploadStartedEvent(this, getCurrentSession(), resource, childPath, file, protocol);
+		UploadStartedEvent evt = new UploadStartedEvent(this, getCurrentSession(), resource, file, childPath, protocol);
 
 		if (checkEventFilter(file.getName().getBaseName())) {
 			eventService.publishEvent(evt);
@@ -1621,7 +1621,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			String protocol) {
 
 		if (checkEventFilter(file.getName().getBaseName())) {
-			eventService.publishEvent(new UploadCompleteEvent(this, getCurrentSession(), resource, childPath, bytesIn,
+			eventService.publishEvent(new UploadCompleteEvent(this, getCurrentSession(), resource, file, childPath, bytesIn,
 					timeMillis, protocol));
 		}
 	}
@@ -1693,18 +1693,18 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			long bytesIn = 0;
 
 			UploadStartedEvent event = uploadStarted(resource, childPath, file, protocol);
-			file = event.getOutputFile();
+			file = event.getFileObject();
 			virtualPath = event.getTransformationPath();
 
 			OutputStream out = event.getOutputStream();
 			try {
 
 				bytesIn = IOUtils.copyLarge(in, out);
-				event.getOutputFile().refresh();
+				event.getFileObject().refresh();
 
 				uploadComplete(resource,
 						FileUtils.stripParentPath(resource.getVirtualPath(), event.getTransformationPath()),
-						event.getOutputFile(), bytesIn, System.currentTimeMillis() - event.getTimestamp(), protocol);
+						event.getFileObject(), bytesIn, System.currentTimeMillis() - event.getTimestamp(), protocol);
 
 			} catch (Exception e) {
 
@@ -1816,7 +1816,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 				UploadStartedEvent event = uploadProcessor.uploadStarted(resource, childPath, file, proto);
 
 				return new ContentOutputStream(resource, childPath, virtualPath, virtualRepository, parentFile,
-						event.getOutputFile(), event.getOutputStream(), position,
+						event.getFileObject(), event.getOutputStream(), position,
 						event.getTimestamp(), new SessionAwareUploadEventProcessor(getCurrentSession(),
 								getCurrentLocale(), VirtualFileServiceImpl.this, uploadProcessor),
 						proto, getOwnerPrincipal(resource));

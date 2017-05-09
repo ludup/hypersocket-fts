@@ -1,5 +1,7 @@
 package com.hypersocket.fs.events;
 
+import org.apache.commons.vfs2.FileObject;
+
 import com.hypersocket.fs.FileResource;
 import com.hypersocket.session.Session;
 
@@ -10,8 +12,8 @@ public class FileUpdatedEvent extends FileOperationEvent {
 	public static String EVENT_RESOURCE_KEY = "file.updated";
 	
 	public FileUpdatedEvent(Object source, Session session,
-			FileResource sourceResource, String sourcePath, String protocol) {
-		super(source, EVENT_RESOURCE_KEY, true, session, sourceResource, sourcePath, protocol);
+			FileResource sourceResource, FileObject file, String sourcePath, String protocol) {
+		super(source, EVENT_RESOURCE_KEY, true, session, sourceResource, file, sourcePath, protocol);
 	}
 
 	public FileUpdatedEvent(Object source, Throwable e, Session session,

@@ -1,6 +1,7 @@
 package com.hypersocket.fs.events;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.vfs2.FileObject;
 
 import com.hypersocket.fs.FileResource;
 import com.hypersocket.session.Session;
@@ -12,8 +13,8 @@ public class CreateFolderEvent extends FileOperationEvent {
 	public static final String EVENT_RESOURCE_KEY = "fs.createFolder";
 	
 	public CreateFolderEvent(Object source, boolean success,
-			Session currentSession, FileResource resource, String childPath, String protocol) {
-		super(source, "fs.createFolder", success, currentSession, resource, childPath, protocol);
+			Session currentSession, FileResource resource, FileObject file, String childPath, String protocol) {
+		super(source, "fs.createFolder", success, currentSession, resource, file, childPath, protocol);
 	}
 
 	public CreateFolderEvent(Object source, Throwable t,

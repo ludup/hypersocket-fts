@@ -1,6 +1,7 @@
 package com.hypersocket.fs.events;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.vfs2.FileObject;
 
 import com.hypersocket.fs.FileResource;
 import com.hypersocket.fs.FileResourceServiceImpl;
@@ -17,11 +18,13 @@ public abstract class FileOperationEvent extends ResourceSessionEvent {
 	public static final String ATTR_FILE_NAME = "attr.fileName";
 	public static final String ATTR_VIRTUAL_PATH = "attr.virtualPath";
 	public static final String ATTR_PROTOCOL = "attr.protocol";
-
+	
+	FileObject file;
 	
 	public FileOperationEvent(Object source, String resourceKey, boolean success,
-			Session session, FileResource sourceResource, String sourcePath, String protocol) {
+			Session session, FileResource sourceResource, FileObject file, String sourcePath, String protocol) {
 		super(source, resourceKey, success, session, sourceResource);
+		this.file = file;
 		addAttribute(ATTR_VIRTUAL_PATH, FileUtils.checkEndsWithSlash(sourceResource.getVirtualPath())
 				+ FileUtils.checkStartsWithNoSlash(sourcePath));
 		addAttribute(ATTR_FILE_NAME, FileUtils.lastPathElement(sourcePath));
@@ -56,5 +59,9 @@ public abstract class FileOperationEvent extends ResourceSessionEvent {
 	@Override
 	public boolean isUsage() {
 		return false;
+	}
+	
+	public FileObject getFileObject() {
+		return file;
 	}
 }

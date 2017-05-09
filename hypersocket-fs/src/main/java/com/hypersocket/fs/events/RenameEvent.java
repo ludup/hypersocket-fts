@@ -1,6 +1,7 @@
 package com.hypersocket.fs.events;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.vfs2.FileObject;
 
 import com.hypersocket.fs.FileResource;
 import com.hypersocket.session.Session;
@@ -17,9 +18,9 @@ public class RenameEvent extends FileOperationEvent {
 	public static final String EVENT_RESOURCE_KEY = "fs.renameFile";
 	
 	public RenameEvent(Object source,
-			Session currentSession, FileResource fromResource,
+			Session currentSession, FileResource fromResource, FileObject file, 
 			String fromChildPath, FileResource toResource, String toChildPath, String protocol) {
-		super(source, "fs.renameFile", true, currentSession, fromResource, fromChildPath, protocol);
+		super(source, "fs.renameFile", true, currentSession, fromResource, file, fromChildPath, protocol);
 		addAttribute(ATTR_TO_RESOURCE_NAME,toResource.getName());
 		addAttribute(ATTR_TO_VIRTUAL_PATH,  FileUtils.checkEndsWithSlash(toResource.getVirtualPath())
 				+ FileUtils.checkStartsWithNoSlash(toChildPath));

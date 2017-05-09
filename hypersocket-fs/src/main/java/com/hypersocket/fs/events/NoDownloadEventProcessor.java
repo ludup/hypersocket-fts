@@ -24,7 +24,7 @@ public class NoDownloadEventProcessor implements DownloadEventProcessor {
 	@Override
 	public DownloadStartedEvent downloadStarted(FileResource resource, String childPath, FileObject file,
 			InputStream in, String protocol) {
-		return new DownloadStartedEvent(this, session, resource, childPath, in, protocol);
+		return new DownloadStartedEvent(this, session, resource, file, childPath, in, protocol);
 	}
 
 	@Override
