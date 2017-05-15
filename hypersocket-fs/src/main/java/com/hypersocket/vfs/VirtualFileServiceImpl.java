@@ -1115,6 +1115,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 				if (newName == null) {
 					int i = 2;
 					while (newFile.exists()) {
+						newFile.close();
 						newFile = file.resolveFile("untitled file " + i++);
 					}
 				}
@@ -1171,6 +1172,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 				if (newName == null) {
 					int i = 2;
 					while (newFile.exists()) {
+						newFile.close();
 						newFile = file.resolveFile("untitled file " + i++);
 					}
 				}
