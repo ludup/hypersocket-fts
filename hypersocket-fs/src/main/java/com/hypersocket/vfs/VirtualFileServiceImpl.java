@@ -249,7 +249,12 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 					
 					FileObject fileObject = resourceFile;
 					if (StringUtils.isNotBlank(childPath) && fileObject.getType()==FileType.FOLDER) {
-						fileObject = resourceFile.resolveFile(childPath);
+						try {
+							fileObject = resourceFile.resolveFile(childPath);
+						} catch (FileSystemException e) {
+							log.warn("Unexpected exception resolving file", e);
+							continue;
+						}
 						if (!fileObject.exists()) {
 							continue;
 						}
@@ -347,7 +352,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			if (StringUtils.isNotBlank(childPath)) {
 				fileObject = resourceFile.resolveFile(childPath);
 				if (!fileObject.exists()) {
-					throw new FileNotFoundException(parentFile.getVirtualPath());
+					continue;
 				}
 			}
 
