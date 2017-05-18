@@ -78,6 +78,8 @@ public class FileResourcesPlugin extends AbstractServicePlugin {
 			res.setIcon("logo://96_rectangle_autotype_iconfolder%20open%20o.png");
 			res.setModified(resource.getModifiedDate());
 			res.setType(Type.FILE);
+			res.setConnectionId(serviceClient.getAttachment().getId());
+			
 
 			String sessionId = serviceClient.getSessionId();
 			res.setResourceLauncher(new BrowserLauncher(serviceClient
