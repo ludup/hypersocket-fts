@@ -27,7 +27,7 @@ public class FileObjectFile extends AbstractFtpFile {
 			return factory.getService().downloadFile(absolutePath, position, FTP_PROTOCOL);
 		} catch (AccessDeniedException e) {
 			log.error("Failed to create InputStream", e);
-			throw new IOException(e);
+			throw new IOException(e.getMessage(), e);
 		}
 	}
 
@@ -37,7 +37,7 @@ public class FileObjectFile extends AbstractFtpFile {
 			return factory.getService().uploadFile(absolutePath, position, FTP_PROTOCOL);
 		} catch (AccessDeniedException e) {
 			log.error("Failed to create InputStream", e);
-			throw new IOException(e);
+			throw new IOException(e.getMessage(), e);
 		}
 	}
 
