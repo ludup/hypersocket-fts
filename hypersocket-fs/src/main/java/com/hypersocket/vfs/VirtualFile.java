@@ -22,12 +22,14 @@ import org.hibernate.annotations.FetchMode;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.hypersocket.fs.FileResource;
+import com.hypersocket.migration.annotation.LookUpKeys;
 import com.hypersocket.realm.Principal;
 import com.hypersocket.realm.Realm;
 import com.hypersocket.repository.AbstractEntity;
 
 @Entity
 @Table(name="virtual_fs")
+@LookUpKeys(propertyNames = {"legacyId", "filename"})
 public class VirtualFile extends AbstractEntity<Long> {
 
 	@Id
@@ -89,6 +91,7 @@ public class VirtualFile extends AbstractEntity<Long> {
 	@Transient
 	FileObject fileObject;
 	
+	@Override
 	public Long getId() {
 		return id;
 	}
@@ -193,7 +196,7 @@ public class VirtualFile extends AbstractEntity<Long> {
 		return type==VirtualFileType.FILE;
 	}
 	
-	public boolean isMount() {
+	public boolean isMountedFolder() {
 		return type==VirtualFileType.MOUNTED_FOLDER;
 	}
 

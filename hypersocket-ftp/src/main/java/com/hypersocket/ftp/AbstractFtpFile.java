@@ -141,7 +141,7 @@ public abstract class AbstractFtpFile implements FtpFile {
 	public boolean isDirectory() {
 		try {
 			checkFile();
-			return file.isFolder() || file.isMount();
+			return file.isFolder() || file.isMountedFolder();
 		} catch (IOException e) {
 			throw new IllegalStateException(e);
 		}
