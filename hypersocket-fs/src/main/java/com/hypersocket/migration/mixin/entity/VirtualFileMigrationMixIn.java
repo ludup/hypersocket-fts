@@ -37,6 +37,7 @@ public class VirtualFileMigrationMixIn extends VirtualFile implements MigrationM
 	@Override
 	@JsonSerialize(contentUsing = MigrationSerializerForResource.class)
     @JsonDeserialize(contentUsing = MigrationDeserializer.class)
+	@JsonIgnore(false)
 	public Set<FileResource> getFolderMounts() {return null;}
 	
 	@Override
@@ -47,6 +48,7 @@ public class VirtualFileMigrationMixIn extends VirtualFile implements MigrationM
 	@Override
 	@JsonSerialize(using = MigrationSerializerForResource.class)
     @JsonDeserialize(using = MigrationDeserializer.class)
+	@JsonIgnore(false)
 	public Principal getPrincipal() {return null;}
 
 }
