@@ -24,6 +24,7 @@ public class FileResourcesPlugin extends AbstractServicePlugin {
 		super("mounts");
 	}
 
+	@Override
 	protected void reloadResources(List<Resource> realmResources) {
 		if (log.isInfoEnabled()) {
 			log.info("Loading File Resources");
@@ -79,7 +80,6 @@ public class FileResourcesPlugin extends AbstractServicePlugin {
 			res.setModified(resource.getModifiedDate());
 			res.setType(Type.FILE);
 			res.setConnectionId(serviceClient.getAttachment().getId());
-			
 
 			String sessionId = serviceClient.getSessionId();
 			res.setResourceLauncher(new BrowserLauncher(serviceClient
