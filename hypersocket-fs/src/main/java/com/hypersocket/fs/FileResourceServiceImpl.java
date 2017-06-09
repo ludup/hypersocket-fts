@@ -21,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.hypersocket.browser.BrowserLaunchableService;
-import com.hypersocket.config.ConfigurationPermission;
 import com.hypersocket.events.EventService;
 import com.hypersocket.fs.events.CopyFileEvent;
 import com.hypersocket.fs.events.CreateFolderEvent;
@@ -41,7 +40,6 @@ import com.hypersocket.fs.tasks.CreateFileTask;
 import com.hypersocket.fs.tasks.CreateFileTaskResult;
 import com.hypersocket.fs.tasks.DeleteFolderTaskResult;
 import com.hypersocket.i18n.I18NService;
-import com.hypersocket.menus.MenuRegistration;
 import com.hypersocket.menus.MenuService;
 import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.permissions.PermissionCategory;
@@ -143,30 +141,6 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 		for (FileResourcePermission p : FileResourcePermission.values()) {
 			permissionService.registerPermission(p, cat);
 		}
-
-		menuService.registerMenu(new MenuRegistration(RESOURCE_BUNDLE, "fileSystems", "fa-folder-open", null, 200,
-				FileResourcePermission.READ, FileResourcePermission.CREATE, FileResourcePermission.UPDATE,
-				FileResourcePermission.DELETE), MenuService.MENU_RESOURCES);
-
-		menuService.registerMenu(new MenuRegistration(RESOURCE_BUNDLE, "fileResources", "fa-folder-open", "filesystems",
-				200, FileResourcePermission.READ, FileResourcePermission.CREATE, FileResourcePermission.UPDATE,
-				FileResourcePermission.DELETE), MENU_FILE_SYSTEMS);
-
-		menuService.registerMenu(
-				new MenuRegistration(RESOURCE_BUNDLE, "myFilesystems", "fa-folder-open", "myFilesystems", 200) {
-					public boolean canRead() {
-						return permissionService.hasAdministrativePermission(getCurrentPrincipal()) 
-					 || resourceRepository.getAssignableResourceCount(
-								realmService.getAssociatedPrincipals(getCurrentPrincipal())) > 0;
-					}
-				}, MenuService.MENU_MY_RESOURCES);
-
-		menuService.registerMenu(new MenuRegistration(RESOURCE_BUNDLE,
-				"fileSettings", "fa-gears", "fileSettings", Integer.MAX_VALUE, 
-				ConfigurationPermission.READ,
-				null, 
-				ConfigurationPermission.UPDATE,
-				null), FileResourceServiceImpl.MENU_FILE_SYSTEMS);
 		
 		if (log.isInfoEnabled()) {
 			log.info("VFS reports the following schemes available");
