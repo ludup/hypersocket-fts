@@ -3,7 +3,7 @@ package com.hypersocket.fs.json;
 import org.apache.commons.vfs2.CacheStrategy;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.hypersocket.properties.json.PropertyItem;
+import com.hypersocket.json.PropertyItem;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class FileResourceUpdate {
