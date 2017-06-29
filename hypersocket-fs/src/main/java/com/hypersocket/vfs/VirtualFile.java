@@ -246,6 +246,10 @@ public class VirtualFile extends AbstractEntity<Long> {
 		return folderMounts;
 	}
 	
+	public void setFolderMounts(Set<FileResource> folderMounts) {
+		this.folderMounts = folderMounts;
+	}
+	
 	public boolean isVirtualFolder() {
 		return mount==null;
 	}
