@@ -26,7 +26,7 @@ public class FileResourceMigrationProperties implements MigrationProperties {
 	private Map<Class<?>, MigrationLookupCriteriaBuilder> lookUpCriteriaMap = new HashMap<>();
 	
 	public FileResourceMigrationProperties() {
-		buildLookUpCriteriaForPasswordResource(VirtualFile.class);
+		buildLookUpCriteriaForFileResource(VirtualFile.class);
 	}
 
 	@Override
@@ -52,7 +52,7 @@ public class FileResourceMigrationProperties implements MigrationProperties {
 		return lookUpCriteriaMap;
 	}
 	
-	private void buildLookUpCriteriaForPasswordResource(final Class<VirtualFile> virtualFile) {
+	private void buildLookUpCriteriaForFileResource(final Class<VirtualFile> virtualFile) {
 		lookUpCriteriaMap.put(virtualFile, new MigrationLookupCriteriaBuilder() {
 					
 			@Override
