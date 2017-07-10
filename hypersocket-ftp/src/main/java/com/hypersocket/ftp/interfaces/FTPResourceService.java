@@ -5,6 +5,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.security.KeyStore;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
@@ -38,6 +40,7 @@ import com.hypersocket.ip.IPRestrictionService;
 import com.hypersocket.properties.ResourceUtils;
 import com.hypersocket.service.ManageableService;
 import com.hypersocket.service.ServiceManagementService;
+import com.hypersocket.service.ServiceStatus;
 import com.hypersocket.session.SessionService;
 import com.mysql.jdbc.StringUtils;
 
@@ -93,29 +96,32 @@ public class FTPResourceService implements ManageableService{
 	}
 	
 
-	@Override
-	public String getResourceKey() {
-		return "ftp.service";
-	}
 
-	@Override
-	public String getResourceBundle() {
-		return FTPInterfaceResourceServiceImpl.RESOURCE_BUNDLE;
-	}
-
-	@Override
-	public boolean isRunning() {
-		return true;
-	}
 	
 	@Override
-	public boolean isError() {
-		return lastError != null;
-	}
-	
-	@Override
-	public String getErrorText() {
-		return lastError == null ? "" : lastError.getMessage();
+	public Collection<ServiceStatus> getStatus() {
+		ServiceStatus status = new ServiceStatus() {
+			@Override
+			public String getResourceKey() {
+				return "ftp.service";
+			}
+
+			@Override
+			public boolean isRunning() {
+				return true;
+			}
+			
+			@Override
+			public boolean isError() {
+				return lastError != null;
+			}
+			
+			@Override
+			public String getErrorText() {
+				return lastError == null ? "" : lastError.getMessage();
+			}
+		};
+		return Arrays.asList(status);
 	}
 	
 	@Override
@@ -272,6 +278,11 @@ public class FTPResourceService implements ManageableService{
 	
 	public static String interfaceName(String ip, int port){
 		return String.format("%s:%d", ip, port);
+	}
+	
+	@Override
+	public boolean isSystem() {
+		return true;
 	}
 
 }
