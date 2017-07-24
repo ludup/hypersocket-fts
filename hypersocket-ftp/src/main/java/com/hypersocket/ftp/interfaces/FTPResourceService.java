@@ -120,6 +120,11 @@ public class FTPResourceService implements ManageableService{
 			public String getErrorText() {
 				return lastError == null ? "" : lastError.getMessage();
 			}
+			
+			@Override
+			public String getGroup() {
+				return "servers";
+			}
 		};
 		return Arrays.asList(status);
 	}
