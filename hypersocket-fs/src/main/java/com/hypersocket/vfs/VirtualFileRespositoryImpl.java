@@ -253,11 +253,11 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 		
 		VirtualFile mountPoint = getVirtualFile(resource.getVirtualPath(), resource.getRealm(), null);
 		
-		do {
+		while(mountPoint!=null) {
 			mountPoint.getFolderMounts().remove(resource);
 			save(mountPoint);
 			mountPoint = mountPoint.getParent();
-		} while(mountPoint!=null);
+		}
 		
 		Query update = createQuery("update VirtualFile set defaultMount = null where defaultMount = :mount", true);
 		update.setEntity("mount", resource);
