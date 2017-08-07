@@ -34,7 +34,6 @@ import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.apache.commons.vfs2.provider.FileProvider;
-import org.apache.derby.impl.io.vfmem.PathUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,17 +69,13 @@ import com.hypersocket.fs.events.VirtualFolderUpdatedEvent;
 import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.properties.ResourceUtils;
 import com.hypersocket.realm.Principal;
-import com.hypersocket.realm.Realm;
 import com.hypersocket.realm.UserVariableReplacementService;
 import com.hypersocket.resource.Resource;
 import com.hypersocket.resource.ResourceChangeException;
-import com.hypersocket.resource.ResourceCreationException;
 import com.hypersocket.scheduler.ClusteredSchedulerService;
 import com.hypersocket.session.Session;
 import com.hypersocket.tables.ColumnSort;
 import com.hypersocket.tables.Sort;
-import com.hypersocket.upload.FileStore;
-import com.hypersocket.upload.FileUpload;
 import com.hypersocket.upload.FileUploadService;
 import com.hypersocket.utils.FileUtils;
 import com.hypersocket.vfs.json.FileSystemColumn;
@@ -725,36 +720,46 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	}
 
 	@Override
-	public FileUpload uploadFile(String virtualPath, final InputStream in, final UploadProcessor<?> processor,
+	public Long uploadFile(String virtualPath, final InputStream in, final UploadProcessor<?> processor,
 			final String proto) throws AccessDeniedException, IOException {
 
 		virtualPath = normalise(virtualPath);
 		String parentPath = FileUtils.checkEndsWithSlash(FileUtils.stripLastPathElement(virtualPath));
-		final VirtualFile parentFile = getFile(parentPath);
+		getFile(parentPath);
 
-		FileResolver<FileUpload> resolver = new FileResolver<FileUpload>(false, true) {
+		FileResolver<Long> resolver = new FileResolver<Long>(false, true) {
 
 			@Override
-			FileUpload onFileResolved(FileResource resource, String childPath, FileObject file, String virtualPath)
+			Long onFileResolved(FileResource resource, String childPath, FileObject file, String virtualPath)
 					throws IOException {
 
-				FileUpload upload;
+			
+				Long bytesIn = 0L;
+
+				UploadStartedEvent event = uploadStarted(resource, childPath, file, proto);
+				file = event.getFileObject();
+				virtualPath = event.getTransformationPath();
+
+				OutputStream out = event.getOutputStream();
 				try {
 
-					FileObjectUploadStore store = new FileObjectUploadStore(file, resource, childPath, proto);
-					upload = uploadService.createFile(in, PathUtil.getBaseName(childPath), getCurrentRealm(), false,
-							"upload", store);
+					bytesIn = IOUtils.copyLarge(in, out);
+					event.getFileObject().refresh();
 
-					if (processor != null) {
-						processor.processUpload(resource, resolveVFSFile(parentFile.getMount()), childPath, file);
-					}
-					return upload;
+					uploadComplete(resource,
+							FileUtils.stripParentPath(resource.getVirtualPath(), event.getTransformationPath()),
+							event.getFileObject(), bytesIn, System.currentTimeMillis() - event.getTimestamp(), proto);
 
-				} catch (ResourceCreationException e) {
-					throw new IOException(e.getMessage(), e);
-				} catch (AccessDeniedException e) {
-					throw new IOException(e.getMessage(), e);
+				} catch (Exception e) {
+
+					eventService.publishEvent(new UploadCompleteEvent(this, getCurrentSession(), e, resource,
+							FileUtils.stripParentPath(resource.getVirtualPath(), event.getTransformationPath()), proto));
+				} finally {
+					FileUtils.closeQuietly(in);
+					FileUtils.closeQuietly(out);
 				}
+
+				return bytesIn;
 			}
 
 			@Override
@@ -1670,66 +1675,6 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		}
 	}
 
-	class FileObjectUploadStore implements FileStore {
-
-		FileObject file;
-		FileResource resource;
-		String childPath;
-		String protocol;
-		String virtualPath;
-
-		FileObjectUploadStore(FileObject file, FileResource resource, String childPath, String protocol) {
-			this.file = file;
-			this.resource = resource;
-			this.childPath = childPath;
-			this.protocol = protocol;
-			this.virtualPath = FileUtils.checkEndsWithSlash(resource.getVirtualPath()) + childPath;
-		}
-
-		public FileObject getFileObject() {
-			return file;
-		}
-
-		public String getVirtualPath() {
-			return virtualPath;
-		}
-
-		@Override
-		public long writeFile(Realm realm, String filename, String uuid, InputStream in) throws IOException {
-
-			long bytesIn = 0;
-
-			UploadStartedEvent event = uploadStarted(resource, childPath, file, protocol);
-			file = event.getFileObject();
-			virtualPath = event.getTransformationPath();
-
-			OutputStream out = event.getOutputStream();
-			try {
-
-				bytesIn = IOUtils.copyLarge(in, out);
-				event.getFileObject().refresh();
-
-				uploadComplete(resource,
-						FileUtils.stripParentPath(resource.getVirtualPath(), event.getTransformationPath()),
-						event.getFileObject(), bytesIn, System.currentTimeMillis() - event.getTimestamp(), protocol);
-
-			} catch (Exception e) {
-
-				eventService.publishEvent(new UploadCompleteEvent(this, getCurrentSession(), e, resource,
-						FileUtils.stripParentPath(resource.getVirtualPath(), event.getTransformationPath()), protocol));
-			} finally {
-				FileUtils.closeQuietly(in);
-				FileUtils.closeQuietly(out);
-			}
-
-			return bytesIn;
-		}
-
-		@Override
-		public InputStream getInputStream(FileUpload fileByUuid) throws IOException {
-			throw new UnsupportedOperationException();
-		}
-	}
 
 	@Override
 	public InputStream downloadFile(String virtualPath, final long position, final String proto)

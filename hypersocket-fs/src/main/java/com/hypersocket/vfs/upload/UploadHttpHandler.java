@@ -35,6 +35,7 @@ import com.hypersocket.upload.FileUpload;
 import com.hypersocket.utils.FileUtils;
 import com.hypersocket.vfs.VirtualFileService;
 import com.hypersocket.vfs.json.FileSystemController;
+import com.hypersocket.vfs.json.FileView;
 
 @Component
 public class UploadHttpHandler extends HttpRequestHandler {
@@ -97,7 +98,7 @@ public class UploadHttpHandler extends HttpRequestHandler {
 
 			// Parse the request
 			FileItemIterator iter = upload.getItemIterator(request);
-			List<FileUpload> uploads = new ArrayList<FileUpload>();
+			List<FileView> uploads = new ArrayList<FileView>();
 			while (iter.hasNext()) {
 			    FileItemStream item = iter.next();
 			    String name = item.getName();
@@ -105,11 +106,11 @@ public class UploadHttpHandler extends HttpRequestHandler {
 			    InputStream stream = new SessionStickyInputStream(item.openStream(), 
 			    		sessionService.getCurrentSession());
 			    try {
-				    uploads.add(fileService.uploadFile(
+				    uploads.add(new FileView(name, fileService.uploadFile(
 							FileUtils.checkEndsWithNoSlash(partDestination), 
 							stream, 
 							null, 
-							FileSystemController.HTTP_PROTOCOL));
+							FileSystemController.HTTP_PROTOCOL)));
 			    } finally {
 			    	stream.close();
 			    }
@@ -117,9 +118,9 @@ public class UploadHttpHandler extends HttpRequestHandler {
 			
 			
 			if(uploads.size()==1) {
-				sendResponse(new ResourceStatus<FileUpload>(uploads.get(0)), response);
+				sendResponse(new ResourceStatus<FileView>(uploads.get(0)), response);
 			} else {
-				sendResponse(new ResourceList<FileUpload>(uploads), response);
+				sendResponse(new ResourceList<FileView>(uploads), response);
 			}
 			
 		} catch(Exception e) { 

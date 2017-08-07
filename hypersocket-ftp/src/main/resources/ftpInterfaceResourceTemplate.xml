@@ -1,9 +1,9 @@
 <?xml version="1.0" ?>
 <propertyTemplates context="ftpInterfaceResource">
 	<propertyCategory resourceKey="category.ftp.interface" resourceBundle="FTPInterfaceResourceService" weight="0">
-		<property resourceKey="allInterfaces" inputType="switch" defaultValue="true" weight="0" />
+		<property resourceKey="allInterfaces" inputType="switch" defaultValue="true" weight="0" profile="!HA"/>
 		<property resourceKey="interfaces" inputType="multipleSelect" restart="false" url="server/networkInterfaces" 
-			selectAllIfEmpty="false" weight="0" visibilityDependsOn="allInterfaces" visibilityDependsValue="false"/>
+			selectAllIfEmpty="false" weight="0" visibilityDependsOn="allInterfaces" visibilityDependsValue="false" profile="!HA"/>
 		<property resourceKey="port" inputType="integer" minValue="1" maxValue="65535" restart="true" defaultValue="9021" weight="100" />
 	</propertyCategory>
 	<propertyCategory resourceKey="category.ftp.protocol" resourceBundle="FTPInterfaceResourceService" weight="100">

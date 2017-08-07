@@ -12,6 +12,7 @@ import java.util.Locale;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.FtpServerFactory;
 import org.apache.ftpserver.ftplet.DefaultFtplet;
@@ -42,7 +43,6 @@ import com.hypersocket.service.ManageableService;
 import com.hypersocket.service.ServiceManagementService;
 import com.hypersocket.service.ServiceStatus;
 import com.hypersocket.session.SessionService;
-import com.mysql.jdbc.StringUtils;
 
 @Service
 public class FTPResourceService implements ManageableService{
@@ -255,7 +255,7 @@ public class FTPResourceService implements ManageableService{
 		String passivePorts = ftpInterfaceResource.ftpPassivePorts;
 		
 		String passiveExternalAddress = ftpInterfaceResource.ftpPassiveExternalAddress;
-		if(StringUtils.isEmptyOrWhitespaceOnly(passiveExternalAddress)) {
+		if(StringUtils.isBlank(passiveExternalAddress)) {
 			passiveExternalAddress = null;
 		}
 		

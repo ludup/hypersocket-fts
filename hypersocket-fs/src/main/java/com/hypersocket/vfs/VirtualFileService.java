@@ -22,7 +22,6 @@ import com.hypersocket.realm.UserVariableReplacementService;
 import com.hypersocket.resource.Resource;
 import com.hypersocket.resource.ResourceChangeException;
 import com.hypersocket.tables.ColumnSort;
-import com.hypersocket.upload.FileUpload;
 import com.hypersocket.vfs.json.HttpDownloadProcessor;
 
 public interface VirtualFileService extends AuthenticatedService {
@@ -39,7 +38,7 @@ public interface VirtualFileService extends AuthenticatedService {
 
 	VirtualFile renameFile(String virtualPath, String toUri, String proto) throws IOException, AccessDeniedException;
 
-	FileUpload uploadFile(String virtualPath, InputStream in, UploadProcessor<?> processor, String proto) throws AccessDeniedException, IOException;
+	Long uploadFile(String virtualPath, InputStream in, UploadProcessor<?> processor, String proto) throws AccessDeniedException, IOException;
 
 	Collection<VirtualFile> listChildren(String virtualPath, String proto) throws IOException, AccessDeniedException;
 

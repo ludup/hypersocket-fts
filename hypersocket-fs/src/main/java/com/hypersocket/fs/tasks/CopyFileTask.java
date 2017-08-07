@@ -127,4 +127,9 @@ public class CopyFileTask extends AbstractRetryTaskProvider {
 	public ResourceTemplateRepository getRepository() {
 		return repository;
 	}
+	
+	@Override
+	public boolean isSystem() {
+		return true;
+	}
 }

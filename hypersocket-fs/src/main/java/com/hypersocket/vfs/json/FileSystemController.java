@@ -48,7 +48,6 @@ import com.hypersocket.tables.BootstrapTableResourceProcessor;
 import com.hypersocket.tables.BootstrapTableResult;
 import com.hypersocket.tables.Column;
 import com.hypersocket.tables.ColumnSort;
-import com.hypersocket.upload.FileUpload;
 import com.hypersocket.upload.FileUploadService;
 import com.hypersocket.utils.FileUtils;
 import com.hypersocket.vfs.VirtualFile;
@@ -466,7 +465,7 @@ public class FileSystemController extends ResourceController {
 	@RequestMapping(value = "fs/upload/**", method = RequestMethod.POST)
 	@ResponseStatus(value = HttpStatus.OK)
 	@ResponseBody
-	public ResourceStatus<FileUpload> uploadFile(final HttpServletRequest request,
+	public ResourceStatus<FileView> uploadFile(final HttpServletRequest request,
 			HttpServletResponse response,
 			final @RequestPart(value = "file") MultipartFile file)
 			throws AccessDeniedException, UnauthorizedException, IOException, SessionTimeoutException {
@@ -481,12 +480,12 @@ public class FileSystemController extends ResourceController {
 					URLDecoder.decode(request.getRequestURI(), "UTF-8"))));
 			virtualPath = virtualPath + FileUtils.lastPathElement(file.getOriginalFilename());
 			
-			return new ResourceStatus<FileUpload>(fileService.uploadFile(
-					FileUtils.checkEndsWithNoSlash(virtualPath), file.getInputStream(), null, HTTP_PROTOCOL));
+			return new ResourceStatus<FileView>(new FileView(FileUtils.lastPathElement(virtualPath), fileService.uploadFile(
+					FileUtils.checkEndsWithNoSlash(virtualPath), file.getInputStream(), null, HTTP_PROTOCOL)));
 			
 			
 		} catch(Exception e) { 
-			return new ResourceStatus<FileUpload>(false, e.getMessage());
+			return new ResourceStatus<FileView>(false, e.getMessage());
 		} finally {
 			clearAuthenticatedContext();
 		}
