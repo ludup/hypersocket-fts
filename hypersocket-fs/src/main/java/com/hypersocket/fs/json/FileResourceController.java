@@ -43,7 +43,6 @@ import com.hypersocket.properties.PropertyCategory;
 import com.hypersocket.realm.Realm;
 import com.hypersocket.resource.ResourceChangeException;
 import com.hypersocket.resource.ResourceColumns;
-import com.hypersocket.resource.ResourceCreationException;
 import com.hypersocket.resource.ResourceException;
 import com.hypersocket.resource.ResourceExportException;
 import com.hypersocket.resource.ResourceNotFoundException;
@@ -380,7 +379,7 @@ public class FileResourceController extends ResourceController {
 	private void buildResource(Realm realm, FileResource resource,
 			FileResourceUpdate update, Set<Role> roles, boolean creating,
 			String username, String password) throws UnauthorizedException,
-			ResourceChangeException, ResourceCreationException {
+			ResourceChangeException, ResourceException {
 		
 		resource.setName(update.getName());
 		resource.setVirtualPath(FileUtils.checkEndsWithSlash(update.getVirtualPath()));

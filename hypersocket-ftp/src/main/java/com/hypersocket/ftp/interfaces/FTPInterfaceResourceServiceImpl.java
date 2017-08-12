@@ -45,8 +45,6 @@ import com.hypersocket.realm.Realm;
 import com.hypersocket.realm.RealmAdapter;
 import com.hypersocket.resource.AbstractResourceRepository;
 import com.hypersocket.resource.AbstractResourceServiceImpl;
-import com.hypersocket.resource.ResourceChangeException;
-import com.hypersocket.resource.ResourceCreationException;
 import com.hypersocket.resource.ResourceException;
 import com.hypersocket.resource.TransactionAdapter;
 import com.hypersocket.server.events.ServerStartedEvent;
@@ -234,7 +232,7 @@ public class FTPInterfaceResourceServiceImpl extends
 	@Override
 	public FTPInterfaceResource updateResource(FTPInterfaceResource resource,
 			String name, Map<String, String> properties)
-			throws ResourceChangeException, AccessDeniedException {
+			throws ResourceException, AccessDeniedException {
 
 		resource.setName(name);
 		
@@ -275,7 +273,7 @@ public class FTPInterfaceResourceServiceImpl extends
 
 	@Override
 	public FTPInterfaceResource createResource(String name, Realm realm,
-			Map<String, String> properties) throws ResourceCreationException,
+			Map<String, String> properties) throws ResourceException,
 			AccessDeniedException {
 
 		FTPInterfaceResource resource = new FTPInterfaceResource();

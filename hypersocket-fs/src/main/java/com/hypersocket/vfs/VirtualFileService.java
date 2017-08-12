@@ -20,7 +20,7 @@ import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.realm.Principal;
 import com.hypersocket.realm.UserVariableReplacementService;
 import com.hypersocket.resource.Resource;
-import com.hypersocket.resource.ResourceChangeException;
+import com.hypersocket.resource.ResourceException;
 import com.hypersocket.tables.ColumnSort;
 import com.hypersocket.vfs.json.HttpDownloadProcessor;
 
@@ -93,7 +93,7 @@ public interface VirtualFileService extends AuthenticatedService {
 
 	VirtualFile getFileById(Long id) throws AccessDeniedException;
 
-	void setDefaultMount(VirtualFile file, FileResource mount) throws AccessDeniedException, ResourceChangeException;
+	void setDefaultMount(VirtualFile file, FileResource mount) throws AccessDeniedException, ResourceException;
 
 	OutputStream uploadFile(String virtualPath, long position, String proto, UploadEventProcessor uploadProcessor)
 			throws IOException, AccessDeniedException;

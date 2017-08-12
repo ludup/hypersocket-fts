@@ -72,6 +72,7 @@ import com.hypersocket.realm.Principal;
 import com.hypersocket.realm.UserVariableReplacementService;
 import com.hypersocket.resource.Resource;
 import com.hypersocket.resource.ResourceChangeException;
+import com.hypersocket.resource.ResourceException;
 import com.hypersocket.scheduler.ClusteredSchedulerService;
 import com.hypersocket.session.Session;
 import com.hypersocket.tables.ColumnSort;
@@ -1825,7 +1826,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 
 	@Override
 	public void setDefaultMount(VirtualFile file, FileResource mount)
-			throws AccessDeniedException, ResourceChangeException {
+			throws AccessDeniedException, ResourceException {
 
 		assertPermission(FileResourcePermission.UPDATE);
 
