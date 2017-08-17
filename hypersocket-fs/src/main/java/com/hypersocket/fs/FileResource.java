@@ -12,6 +12,7 @@ import javax.xml.bind.annotation.XmlTransient;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.vfs2.CacheStrategy;
+import org.apache.commons.vfs2.provider.UriParser;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -182,49 +183,46 @@ public class FileResource extends AssignableResource  {
 	private String getUrl(boolean friendly, Principal principal,
 			UserVariableReplacementService replacementService, String overrideUsername,
 			String overridePassword) {
-		try {
-			StringBuffer buf = new StringBuffer();
-			buf.append(scheme);
-			buf.append("://");
+	
+		StringBuffer buf = new StringBuffer();
+		buf.append(scheme);
+		buf.append("://");
 
-			if (StringUtils.isNotBlank(overrideUsername)) {
+		if (StringUtils.isNotBlank(overrideUsername)) {
+			if (friendly) {
+				buf.append(overrideUsername);
+			} else {
+				buf.append(UriParser.encode(replacementService
+						.replaceVariables(principal, overrideUsername), new char[] { ' ', '?', '/', '@'}));
+			}
+			if (StringUtils.isNotBlank(overridePassword)) {
+				buf.append(":");
 				if (friendly) {
-					buf.append(overrideUsername);
+					buf.append("***");
 				} else {
-					buf.append(URLEncoder.encode(replacementService
-							.replaceVariables(principal, overrideUsername), "UTF-8"));
-				}
-				if (StringUtils.isNotBlank(overridePassword)) {
-					buf.append(":");
-					if (friendly) {
-						buf.append("***");
-					} else {
-						buf.append(URLEncoder.encode(replacementService
-								.replaceVariables(principal, overridePassword), "UTF-8"));
-					}
-				}
-				buf.append("@");
-			}
-
-			if (server != null && !server.equals("")) {
-				buf.append(replacementService.replaceVariables(principal, server));
-				if (port != null) {
-					buf.append(":");
-					buf.append(port);
+					buf.append(UriParser.encode(replacementService
+							.replaceVariables(principal, overridePassword), new char[] { ' ', '?', '/', '@'}));
 				}
 			}
-
-			String thisPath = path;
-			if (!friendly) {
-				thisPath = replacementService.replaceVariables(principal,
-						Utils.checkNull(thisPath));
-			}
-			buf.append(FileUtils.checkStartsWithSlash(Utils.checkNull(thisPath)));
-			return buf.toString();
-		} catch (UnsupportedEncodingException e) {
-			throw new IllegalStateException(
-					"The system does not appear to support UTF-8!");
+			buf.append("@");
 		}
+
+		if (server != null && !server.equals("")) {
+			buf.append(replacementService.replaceVariables(principal, server));
+			if (port != null) {
+				buf.append(":");
+				buf.append(port);
+			}
+		}
+
+		String thisPath = path;
+		if (!friendly) {
+			thisPath = replacementService.replaceVariables(principal,
+					Utils.checkNull(thisPath));
+		}
+		buf.append(FileUtils.checkStartsWithSlash(Utils.checkNull(thisPath)));
+		return buf.toString();
+
 	}
 
 	public String getLaunchUrl() {
