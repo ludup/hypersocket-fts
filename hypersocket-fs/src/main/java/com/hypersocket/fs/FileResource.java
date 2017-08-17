@@ -1,8 +1,5 @@
 package com.hypersocket.fs;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
