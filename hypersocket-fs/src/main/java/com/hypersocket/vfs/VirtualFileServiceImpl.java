@@ -342,6 +342,13 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 				 *
 				 */
 				continue;
+			}catch(IOException e){
+				/*
+				 * The system can't connect the remote resource (authentication error, disconnected...)
+				 * We need to continue listing the next resources
+				 */
+				log.error("Cannot access " + resource.getVirtualPath(), e);
+				continue;
 			}
 			
 			FileObject fileObject = resourceFile;
