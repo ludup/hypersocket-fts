@@ -288,7 +288,8 @@
 		}
 		
 		$('.open').off('click');
-		$('.open').on('click', function() {
+		$('.open').on('click', function(e) {
+			e.preventDefault();
 			mountPath = $(this).data('path');
 			$('#dragAndDrop').widget().setOptions({url: basePath + '/api/fs/upload' + mountPath});
 			$('#viewfs').startSpin();
