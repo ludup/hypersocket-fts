@@ -1,4 +1,180 @@
 $.fn.fileTree = function(data) {
+	
+	var fileTypes = {
+	  		// Folder
+			"folder" : {
+	  			"icon" : "fa fa-2x fa-folder-o"
+	  		},
+	  		// Documents
+	  		"doc" : {
+	  			"icon" : "fa fa-2x fa-file-word-o"
+	  		},
+	  		"docx" : {
+	  			"icon" : "fa fa-2x fa-file-word-o"
+	  		},
+	  		"odt" : {
+	  			"icon" : "fa fa-2x fa-file-word-o"
+	  		},
+	  		"pdf" : {
+	  			"icon" : "fa fa-2x fa-file-pdf-o"
+	  		},
+	  		"ppt" : {
+	  			"icon" : "fa fa-2x fa-file-powerpoint-o"
+	  		},
+	  		// Spreadsheet
+	  		"xls" : {
+	  			"icon" : "fa fa-2x fa-file-excel-o"
+	  		},
+	  		"ods" : {
+	  			"icon" : "fa fa-2x fa-file-excel-o"
+	  		},
+	  		"xlr" : {
+	  			"icon" : "fa fa-2x fa-file-excel-o"
+	  		},
+	  		"xlsx" : {
+	  			"icon" : "fa fa-2x fa-file-excel-o"
+	  		},
+	  		// Sound
+	  		"mp3" : {
+	  			"icon" : "fa fa-2x fa-file-sound-o"
+	  		},
+	  		"mid" : {
+	  			"icon" : "fa fa-2x fa-file-sound-o"
+	  		},
+	  		"midi" : {
+	  			"icon" : "fa fa-2x fa-file-sound-o"
+	  		},
+	  		"ogg" : {
+	  			"icon" : "fa fa-2x fa-file-sound-o"
+	  		},
+	  		"wav" : {
+	  			"icon" : "fa fa-2x fa-file-sound-o"
+	  		},
+	  		"wma" : {
+	  			"icon" : "fa fa-2x fa-file-sound-o"
+	  		},
+	  		"mpa" : {
+	  			"icon" : "fa fa-2x fa-file-sound-o"
+	  		},
+	  		// Compressed
+	  		"zip" : {
+	  			"icon" : "fa fa-2x fa-file-archive-o"
+	  		},
+	  		"rar" : {
+	  			"icon" : "fa fa-2x fa-file-archive-o"
+	  		},
+	  		"7z" : {
+	  			"icon" : "fa fa-2x fa-file-archive-o"
+	  		},
+	  		"tar" : {
+	  			"icon" : "fa fa-2x fa-file-archive-o"
+	  		},
+	  		"gz" : {
+	  			"icon" : "fa fa-2x fa-file-archive-o"
+	  		},
+	  		// Images
+	  		"png" : {
+	  			"icon" : "fa fa-2x fa-file-image-o"
+	  		},
+	  		"tif" : {
+	  			"icon" : "fa fa-2x fa-file-image-o"
+	  		},
+	  		"tiff" : {
+	  			"icon" : "fa fa-2x fa-file-image-o"
+	  		},
+	  		"bmp" : {
+	  			"icon" : "fa fa-2x fa-file-image-o"
+	  		},
+	  		"gif" : {
+	  			"icon" : "fa fa-2x fa-file-image-o"
+	  		},
+	  		"ico" : {
+	  			"icon" : "fa fa-2x fa-file-image-o"
+	  		},
+	  		"jpg" : {
+	  			"icon" : "fa fa-2x fa-file-image-o"
+	  		},
+	  		"jpeg" : {
+	  			"icon" : "fa fa-2x fa-file-image-o"
+	  		},
+	  		"svg" : {
+	  			"icon" : "fa fa-2x fa-file-image-o"
+	  		},
+	  		// Plain text
+	  		"txt" : {
+	  			"icon" : "fa fa-2x fa-file-text-o"
+	  		},
+	  		"log" : {
+	  			"icon" : "fa fa-2x fa-file-text-o"
+	  		},
+	  		// Code
+	  		"js" : {
+	  			"icon" : "fa fa-2x fa-file-code-o"
+	  		},
+	  		"css" : {
+	  			"icon" : "fa fa-2x fa-file-code-o"
+	  		},
+	  		"html" : {
+	  			"icon" : "fa fa-2x fa-file-code-o"
+	  		},
+	  		"xml" : {
+	  			"icon" : "fa fa-2x fa-file-code-o"
+	  		},
+	  		"xhtml" : {
+	  			"icon" : "fa fa-2x fa-file-code-o"
+	  		},
+	  		"java" : {
+	  			"icon" : "fa fa-2x fa-file-code-o"
+	  		},
+	  		"jsp" : {
+	  			"icon" : "fa fa-2x fa-file-code-o"
+	  		},
+	  		"php" : {
+	  			"icon" : "fa fa-2x fa-file-code-o"
+	  		},
+	  		"py" : {
+	  			"icon" : "fa fa-2x fa-file-code-o"
+	  		},
+	  		"asp" : {
+	  			"icon" : "fa fa-2x fa-file-code-o"
+	  		},
+	  		"aspx" : {
+	  			"icon" : "fa fa-2x fa-file-code-o"
+	  		},
+	  		// Video
+	  		"mp4" : {
+	  			"icon" : "fa fa-2x fa-file-video-o"
+	  		},
+	  		"avi" : {
+	  			"icon" : "fa fa-2x fa-file-video-o"
+	  		},
+	  		"flv" : {
+	  			"icon" : "fa fa-2x fa-file-video-o"
+	  		},
+	  		"m4p" : {
+	  			"icon" : "fa fa-2x fa-file-video-o"
+	  		},
+	  		"mkv" : {
+	  			"icon" : "fa fa-2x fa-file-video-o"
+	  		},
+	  		"mop" : {
+	  			"icon" : "fa fa-2x fa-file-video-o"
+	  		},
+	  		"mpg" : {
+	  			"icon" : "fa fa-2x fa-file-video-o"
+	  		},
+	  		"mpeg" : {
+	  			"icon" : "fa fa-2x fa-file-video-o"
+	  		},
+	  		// Default
+	  		"error" : {
+	  			"icon" : "fa fa-2x fa-times"
+	  		},
+	  		"default" : {
+	  			"icon" : "fa fa-2x fa-file-o"
+	  		}
+		};
+	
 	var id = $(this).attr('id');
 	var include = function(node){
 		if(node.id == '#' || node.text == '/'){
@@ -205,10 +381,22 @@ $.fn.fileTree = function(data) {
 		            			$.each(object.children, function(index, children){
 				            		if(children.fileType == 'FOLDER'){
 				            			children.children = true;
+				            			children.type = 'folder';
 				            		}
 				            	});
 		            		}else if(object.fileType == 'FOLDER' && !object.children){
 		            			object.children = true;
+		            		}
+		            		
+		            		if(object.fileType == 'FOLDER' || object.fileType == 'ROOT'){
+		            			object.type = 'folder';
+		            		}else if(object.text && object.text.length > 0){
+		            			var extension = object.text.split('.')[object.text.split('.').length - 1];
+		            			if(fileTypes.hasOwnProperty(extension)){
+			            			object.type = extension;
+			            		}else{
+			            			object.type = 'default';
+			            		}
 		            		}
 		            	});
 		            	return data;
@@ -218,47 +406,7 @@ $.fn.fileTree = function(data) {
 			    	}
 			    }
 			},
-			"types" : {
-		  		"folder" : {
-		  			"icon" : "fa fa-2x fa-folder-o"
-		  		},
-		  		"pdf" : {
-		  			"icon" : "fa fa-2x fa-file-pdf-o"
-		  		},
-		  		"xls" : {
-		  			"icon" : "fa fa-2x fa-file-excel-o"
-		  		},
-		  		"mp3" : {
-		  			"icon" : "fa fa-2x fa-file-sound-o"
-		  		},
-		  		"doc" : {
-		  			"icon" : "fa fa-2x fa-file-word-o"
-		  		},
-		  		"zip" : {
-		  			"icon" : "fa fa-2x fa-file-archive-o"
-		  		},
-		  		"png" : {
-		  			"icon" : "fa fa-2x fa-file-image-o"
-		  		},
-		  		"txt" : {
-		  			"icon" : "fa fa-2x fa-file-text-o"
-		  		},
-		  		"js" : {
-		  			"icon" : "fa fa-2x fa-file-code-o"
-		  		},
-		  		"ppt" : {
-		  			"icon" : "fa fa-2x fa-file-powerpoint-o"
-		  		},
-		  		"mp4" : {
-		  			"icon" : "fa fa-2x fa-file-video-o"
-		  		},
-		  		"error" : {
-		  			"icon" : "fa fa-2x fa-times"
-		  		},
-		  		"default" : {
-		  			"icon" : "fa fa-2x fa-file-file-o"
-		  		}
-			},
+			"types" : fileTypes,
 			
 			"plugins" : [
 				"crrm", "types", "json_data"
