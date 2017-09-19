@@ -363,4 +363,14 @@ public class VirtualFileRespositoryImpl extends AbstractRepositoryImpl<Long> imp
 	public void deleteVirtualFolder(VirtualFile file) {
 		delete(file);
 	}
+
+	@Override
+	@Transactional
+	public void deleteRealm(Realm realm) {
+		String hql = String.format("delete from VirtualFile where realm = :r");
+		Query q = createQuery(hql, true);
+		q.setParameter("r", realm);
+		log.info(String.format("Deleted %d VirtualFile entries", q.executeUpdate()));
+		flush();
+	}
 }

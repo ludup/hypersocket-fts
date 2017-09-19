@@ -69,6 +69,9 @@ import com.hypersocket.fs.events.VirtualFolderUpdatedEvent;
 import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.properties.ResourceUtils;
 import com.hypersocket.realm.Principal;
+import com.hypersocket.realm.Realm;
+import com.hypersocket.realm.RealmAdapter;
+import com.hypersocket.realm.RealmService;
 import com.hypersocket.realm.UserVariableReplacementService;
 import com.hypersocket.resource.Resource;
 import com.hypersocket.resource.ResourceChangeException;
@@ -111,6 +114,9 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 
 	@Autowired
 	CacheService cacheService;
+	
+	@Autowired
+	RealmService realmService; 
 
 	Map<String, FileSystemManager> managers = new HashMap<>();
 	Map<String, FileProvider> providers = new HashMap<>();
@@ -128,6 +134,13 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		
 		eventService.registerEvent(VirtualFolderCreatedEvent.class, FileResourceServiceImpl.RESOURCE_BUNDLE);
 		eventService.registerEvent(VirtualFolderDeletedEvent.class, FileResourceServiceImpl.RESOURCE_BUNDLE);
+		
+		realmService.registerRealmListener(new RealmAdapter() {
+			@Override
+			public void onDeleteRealm(Realm realm) throws ResourceException, AccessDeniedException {
+				virtualRepository.deleteRealm(realm);
+			}	
+		});
 	}
 
 	@Override
