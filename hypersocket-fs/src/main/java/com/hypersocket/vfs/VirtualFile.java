@@ -24,14 +24,12 @@ import org.hibernate.annotations.FetchMode;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.hypersocket.fs.FileResource;
-import com.hypersocket.migration.annotation.LookUpKeys;
 import com.hypersocket.realm.Principal;
 import com.hypersocket.realm.Realm;
 import com.hypersocket.repository.AbstractEntity;
 
 @Entity
 @Table(name="virtual_fs")
-@LookUpKeys(propertyNames = {"legacyId", "filename"})
 public class VirtualFile extends AbstractEntity<Long> {
 
 	private static final long serialVersionUID = 2956499544612180484L;
