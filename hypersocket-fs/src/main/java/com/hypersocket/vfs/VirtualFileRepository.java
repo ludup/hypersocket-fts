@@ -61,4 +61,6 @@ public interface VirtualFileRepository extends AbstractRepository<Long> {
 	void addFileResource(VirtualFile mountedFile, FileResource resource);
 
 	void deleteVirtualFolder(VirtualFile file);
+
+	void deleteRealm(Realm realm);
 }
