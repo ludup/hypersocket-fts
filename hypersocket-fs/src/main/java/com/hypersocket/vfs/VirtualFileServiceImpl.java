@@ -219,7 +219,12 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 
 		if (file == null) {
 
-			VirtualFile parentFile = getFile(FileUtils.stripLastPathElement(virtualPath));
+			if(!virtualPath.startsWith("/")) {
+				throw new IOException(String.format("Invalid virtual path %s", virtualPath));
+			}
+			
+			String parentPath = FileUtils.stripLastPathElement(virtualPath);
+			VirtualFile parentFile = getFile(parentPath);
 			if (parentFile == null) {
 				throw new FileNotFoundException(virtualPath);
 			}
