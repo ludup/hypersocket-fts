@@ -166,6 +166,11 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	}
 
 	@Override
+	public VirtualFile getRootFolder(Realm realm) throws IOException, AccessDeniedException {
+		return virtualRepository.getRootFolder(realm);
+	}
+	
+	@Override
 	public VirtualFile getRootFolder() throws IOException, AccessDeniedException {
 		return virtualRepository.getRootFolder(getCurrentRealm());
 	}
@@ -196,6 +201,11 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 
 	@Override
 	public VirtualFile getFile(String virtualPath) throws IOException, AccessDeniedException {
+		return getFile(virtualPath, getCurrentRealm());
+	}
+	
+	@Override
+	public VirtualFile getFile(String virtualPath, Realm realm) throws IOException, AccessDeniedException {
 
 		virtualPath = normalise(virtualPath);
 
@@ -203,9 +213,9 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		Set<FileResource> resources = new HashSet<FileResource>();
 		
 		if (virtualPath.equals("/")) {
-			file = getRootFolder();
+			file = getRootFolder(realm);
 		} else {
-			file = virtualRepository.getVirtualFile(virtualPath, getCurrentRealm(), getCurrentPrincipal());
+			file = virtualRepository.getVirtualFile(virtualPath, realm, getCurrentPrincipal());
 			if(file!=null) {
 				if(permissionService.hasAdministrativePermission(getCurrentPrincipal())) {
 					resources.addAll(file.getFolderMounts());
@@ -224,7 +234,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			}
 			
 			String parentPath = FileUtils.stripLastPathElement(virtualPath);
-			VirtualFile parentFile = getFile(parentPath);
+			VirtualFile parentFile = getFile(parentPath, realm);
 			if (parentFile == null) {
 				throw new FileNotFoundException(virtualPath);
 			}
