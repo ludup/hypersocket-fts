@@ -87,7 +87,7 @@
 								'click',
 								'#dropdown_' + index + ' .row-' + act.resourceKey,
 								function(e) {
-									
+									e.preventDefault();
 									path = row.virtualPath;
 									act.action(path, row, function(resource) {
 										

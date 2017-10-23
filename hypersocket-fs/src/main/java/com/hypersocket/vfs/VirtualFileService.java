@@ -18,6 +18,7 @@ import com.hypersocket.fs.UploadEventProcessor;
 import com.hypersocket.fs.UploadProcessor;
 import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.realm.Principal;
+import com.hypersocket.realm.Realm;
 import com.hypersocket.realm.UserVariableReplacementService;
 import com.hypersocket.resource.Resource;
 import com.hypersocket.resource.ResourceException;
@@ -114,4 +115,8 @@ public interface VirtualFileService extends AuthenticatedService {
 	<T extends Resource> FileSystemManager getManager(T id, CacheStrategy cacheStrategy) throws FileSystemException;
 
 	void addProvider(String scheme, FileProvider newInstance) throws FileSystemException;
+
+	VirtualFile getRootFolder(Realm realm) throws IOException, AccessDeniedException;
+
+	VirtualFile getFile(String virtualPath, Realm realm) throws IOException, AccessDeniedException;
 }

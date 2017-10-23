@@ -352,7 +352,7 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 
 	protected void configureDefaults(FileResource resource, boolean isNew) {
 		try {
-			VirtualFile mountedFile = virtualFileService.getFile(resource.getVirtualPath());
+			VirtualFile mountedFile = virtualFileService.getFile(resource.getVirtualPath(), resource.getRealm());
 			if(isNew) {
 				virtualFileService.attachMount(mountedFile, resource);
 			}
