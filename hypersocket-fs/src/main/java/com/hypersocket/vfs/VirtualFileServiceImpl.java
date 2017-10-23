@@ -1556,8 +1556,13 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 
 		FileObject obj;
 		if (scheme.getFileService() != null) {
-			String url = resource.getPrivateUrl(getCurrentPrincipal(), userVariableReplacement, getUsername(resource),
+			String url;
+			if(scheme.isSupportsCredentials()) {
+				url = resource.getPrivateUrl(getCurrentPrincipal(), userVariableReplacement, getUsername(resource),
 					getPassword(resource));
+			} else {
+				url = resource.getPrivateUrl(getCurrentPrincipal(), userVariableReplacement);
+			}
 			FileSystemOptions opts = scheme.getFileService().buildFileSystemOptions(resource);
 			obj = getManager(resource, resource.getCacheStrategy()).resolveFile(url, opts);
 		} else {
