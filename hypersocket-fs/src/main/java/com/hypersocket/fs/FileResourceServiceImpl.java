@@ -181,6 +181,7 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 		}
 		
 		indexPage.addScript("${uiPath}/js/jstree.js");
+		indexPage.addScript("${uiPath}/js/fileTree.js");
 		indexPage.addStyleSheet("${uiPath}/css/themes/default/style.min.css");
 		indexPage.addStyleSheet("${uiPath}/css/fs.css");
 		
