@@ -196,6 +196,11 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 	}
 	
 	@Override
+	public boolean hasScheme(String scheme) {
+		return schemes.containsKey(scheme);
+	}
+	
+	@Override
 	public void registerScheme(FileResourceScheme scheme) {
 		if (schemes.containsKey(scheme.getScheme())) {
 			throw new IllegalArgumentException(scheme.getScheme() + " is already a registerd scheme");

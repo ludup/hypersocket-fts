@@ -255,46 +255,48 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			// Lookup file from resources
 			for (FileResource resource : resources) {
 
-				if (FileUtils.checkEndsWithSlash(virtualPath)
-						.startsWith(FileUtils.checkEndsWithSlash(resource.getVirtualPath()))) {
-
-					String childPath = FileUtils.stripParentPath(resource.getVirtualPath(), virtualPath);
-					
-					FileObject resourceFile;
-					try {
-						resourceFile = getFileObject(resource);
-					}
-					catch(FileNotFoundException fne) {
-						/* If we get file not found exception here, it means the scheme no longer exists,
-						 * probably because of a plugin that was is installed is now gone.
-						 */
-						continue;
-					}
-					
-					FileObject fileObject = resourceFile;
-					if (StringUtils.isNotBlank(childPath) && fileObject.getType()==FileType.FOLDER) {
+				if(fileService.hasScheme(resource.getScheme())) {
+					if (FileUtils.checkEndsWithSlash(virtualPath)
+							.startsWith(FileUtils.checkEndsWithSlash(resource.getVirtualPath()))) {
+	
+						String childPath = FileUtils.stripParentPath(resource.getVirtualPath(), virtualPath);
+						
+						FileObject resourceFile;
 						try {
-							fileObject = resourceFile.resolveFile(childPath);
-						} catch (FileSystemException e) {
-							log.warn("Unexpected exception resolving file", e);
+							resourceFile = getFileObject(resource);
+						}
+						catch(FileNotFoundException fne) {
+							/* If we get file not found exception here, it means the scheme no longer exists,
+							 * probably because of a plugin that was is installed is now gone.
+							 */
 							continue;
 						}
-						if (!fileObject.exists()) {
-							continue;
+						
+						FileObject fileObject = resourceFile;
+						if (StringUtils.isNotBlank(childPath) && fileObject.getType()==FileType.FOLDER) {
+							try {
+								fileObject = resourceFile.resolveFile(childPath);
+							} catch (FileSystemException e) {
+								log.warn("Unexpected exception resolving file", e);
+								continue;
+							}
+							if (!fileObject.exists()) {
+								continue;
+							}
 						}
-					}
-
-					switch (fileObject.getType()) {
-					case FOLDER:
-						return checkWriteState(virtualRepository.reconcileNewFolder(
-								fileObject.getName().getBaseName(), parentFile,
-								fileObject, resource, false, null), resources);
-					case FILE:
-						return checkWriteState(virtualRepository.reconcileFile(
-								fileObject.getName().getBaseName(), fileObject, resource,
-								parentFile, null), resources);
-					default:
-						// Not supported
+	
+						switch (fileObject.getType()) {
+						case FOLDER:
+							return checkWriteState(virtualRepository.reconcileNewFolder(
+									fileObject.getName().getBaseName(), parentFile,
+									fileObject, resource, false, null), resources);
+						case FILE:
+							return checkWriteState(virtualRepository.reconcileFile(
+									fileObject.getName().getBaseName(), fileObject, resource,
+									parentFile, null), resources);
+						default:
+							// Not supported
+						}
 					}
 				}
 			}

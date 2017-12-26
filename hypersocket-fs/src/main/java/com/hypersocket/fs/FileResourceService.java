@@ -38,4 +38,6 @@ public interface FileResourceService extends
 
 	void registerProcessor(FileResourceProcessor processor);
 
+	boolean hasScheme(String scheme);
+
 }
