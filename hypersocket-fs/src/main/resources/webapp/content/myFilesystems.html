@@ -208,6 +208,7 @@
 
 	window.actionEvents = {
 		'click .download' : function(e, value, row, index) {
+			e.stopPropagation();
 			window.location = createApiUrl('download', row, 'forceDownload=true&token=' + getCsrfToken());
 		},
 		'click .edit' : function(e, value, row, index) {
@@ -215,8 +216,7 @@
 			$('tr[data-index="' + index + '"]').find('.fileLabel').editable('toggle');
 		},
 		'click .delete' : function(e, value, row, index) {
-
-			
+			e.stopPropagation();
 			var erow = $(document).data('deleteRow');
 			
 			if(erow && erow.length == 1 && erow[0].id == row.id) {
@@ -289,11 +289,15 @@
 		
 		$('.open').off('click');
 		$('.open').on('click', function(e) {
+			debugger;
 			e.preventDefault();
-			mountPath = $(this).data('path');
-			$('#dragAndDrop').widget().setOptions({url: basePath + '/api/fs/upload' + mountPath});
 			$('#viewfs').startSpin();
-			$('#table').bootstrapTable('refreshOptions', {url: basePath + '/api/fs/search' + mountPath, pageNumber: 1, searchText: null });
+			mountPath = $(this).data('path');
+			setTimeout(function() {
+				$('#dragAndDrop').widget().setOptions({url: basePath + '/api/fs/upload' + mountPath});
+				$('#table').bootstrapTable('refreshOptions', {url: basePath + '/api/fs/search' + mountPath, pageNumber: 1, searchText: null });
+			}, 250);
+
 		});
 		
 		$('.fileLabel').editable(
@@ -387,19 +391,24 @@
 														+ "</div>" + "</div>"
 														+ "</div>"
 											});
-
+									$(document).off('click',
+													'.notifyjs-confirm-base .no');
+									
 									$(document).on('click',
 											'.notifyjs-confirm-base .no', function() {
 												$(document).data('deleteRow', null);
 												$(this).trigger('notify-hide');
 											});
 
+									$(document).off('click',
+													'.notifyjs-confirm-base .yes');
+									
 									$(document).on('click',
 													'.notifyjs-confirm-base .yes',
 													function() {
 														
 														var row = $(document).data('deleteRow');
-													
+														debugger;
 														
 														$.each(row, function(idx, row) {
 															getJSON(createApiUrl('delete', row),
@@ -545,20 +554,24 @@
 												$('#newFolderButton').prop('disabled', true);
 												$('#multipleDelete').prop('disabled', true);
 											}
+											
 											rebindEditable();
 											
 											$('#viewfs').stopSpin();
 											
 											loadComplete();
 										},
-										onLoadError: function(status) {
-											$('#viewfs').stopSpin();
-											getJSON(basePath + '/api/fs/lastError', null, function(data) {
-												if(data.success) {
-													showError(data.message);
-												}
-												log(status);
-											});
+										onLoadError: function(status, res) {
+											// Not sure about this. Seem to get this on first open of folder but action does succeed.
+											if(status > 0) {
+												$('#viewfs').stopSpin();
+												getJSON(basePath + '/api/fs/lastError', null, function(data) {
+													if(data.success) {
+														showError(data.message);
+													}
+													log(status);
+												});
+											}
 										}
 									});
 								});
