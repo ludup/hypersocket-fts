@@ -448,7 +448,7 @@ public class FileResourceController extends ResourceController {
 		try {
 			response.setHeader("Content-Disposition", "attachment; filename=\""
 					+ mountService.getResourceCategory() + ".json\"");
-			return mountService.exportAllResoures();
+			return mountService.exportAllResources();
 		} finally {
 			clearAuthenticatedContext();
 		}
