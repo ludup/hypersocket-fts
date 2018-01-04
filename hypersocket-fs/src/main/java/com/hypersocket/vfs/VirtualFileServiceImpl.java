@@ -1354,13 +1354,12 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			try {
 
 				if (existed = file.exists()) {
-					boolean deleted = file.delete();
+					int deleted = file.deleteAll();
 
-					if (deleted) {
-						eventService.publishEvent(
-								new DeleteFileEvent(this, deleted, getCurrentSession(), resource, file, childPath, protocol));
-						return true;
-					}
+					eventService.publishEvent(
+							new DeleteFileEvent(this, deleted > 0, getCurrentSession(), resource, file, childPath, protocol));
+					return true;
+					
 				}
 
 				eventService.publishEvent(
@@ -1807,7 +1806,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 						event.getFileObject(), event.getOutputStream(), position,
 						event.getTimestamp(), new SessionAwareUploadEventProcessor(getCurrentSession(),
 								getCurrentLocale(), VirtualFileServiceImpl.this, uploadProcessor),
-						proto, getOwnerPrincipal(resource));
+						proto, getOwnerPrincipal(resource), getCurrentSession());
 			}
 
 			@Override

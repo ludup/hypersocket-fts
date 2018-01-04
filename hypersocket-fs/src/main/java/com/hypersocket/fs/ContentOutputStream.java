@@ -7,6 +7,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 
 import com.hypersocket.realm.Principal;
+import com.hypersocket.session.Session;
 import com.hypersocket.utils.FileUtils;
 import com.hypersocket.vfs.VirtualFile;
 import com.hypersocket.vfs.VirtualFileRepository;
@@ -25,6 +26,7 @@ public class ContentOutputStream extends OutputStream {
 	VirtualFile parentFile;
 	VirtualFileRepository virtualRepository;
 	Principal principal;
+	Session session;
 	
 	public ContentOutputStream(FileResource resource, 
 			String childPath,
@@ -37,7 +39,8 @@ public class ContentOutputStream extends OutputStream {
 			long started,
 			UploadEventProcessor eventProcessor,
 			String protocol,
-			Principal principal)
+			Principal principal,
+			Session session)
 			throws FileSystemException {
 		this.out = out;
 		this.started = started;
@@ -50,6 +53,7 @@ public class ContentOutputStream extends OutputStream {
 		this.parentFile = parentFile;
 		this.virtualRepository = virtualRepository;
 		this.principal = principal;
+		this.session = session;
 	}
 
 	@Override
@@ -57,6 +61,7 @@ public class ContentOutputStream extends OutputStream {
 		try {
 			out.write(b);
 			bytesIn++;
+			session.touch();
 		} catch (IOException e) {
 			FileUtils.closeQuietly(out);
 			eventProcessor.uploadFailed(resource, childPath, file, bytesIn, e,
@@ -72,6 +77,7 @@ public class ContentOutputStream extends OutputStream {
 		try {
 			out.write(buf, off, len);
 			bytesIn += len;
+			session.touch();
 		} catch (IOException e) {
 			FileUtils.closeQuietly(out);
 			eventProcessor.uploadFailed(resource, childPath, file, bytesIn, e,

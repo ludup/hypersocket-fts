@@ -73,6 +73,7 @@ public class ContentInputStream extends InputStream {
 		if (b == -1) {
 			internalClose();
 		}
+		session.touch();
 		return b;
 	}
 
@@ -88,6 +89,7 @@ public class ContentInputStream extends InputStream {
 		if (r == -1) {
 			internalClose();
 		}
+		session.touch();
 		return r;
 	}
 
