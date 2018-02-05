@@ -102,6 +102,10 @@ public class VirtualFile extends AbstractEntity<Long> {
 		this.id = id;
 	}
 
+	public boolean isRoot() {
+		return parent==null;
+	}
+	
 	@JsonIgnore
 	public Realm getRealm() {
 		return realm;
