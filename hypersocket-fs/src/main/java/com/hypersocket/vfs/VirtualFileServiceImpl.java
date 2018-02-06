@@ -1556,19 +1556,17 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			throw new FileNotFoundException(String.format("No such scheme %s", resource.getScheme()));
 
 		FileObject obj;
+		String url;
+		if(scheme.isSupportsCredentials()) {
+			url = resource.getPrivateUrl(getCurrentPrincipal(), userVariableReplacement, getUsername(resource),
+				getPassword(resource));
+		} else {
+			url = resource.getPrivateUrl(getCurrentPrincipal(), userVariableReplacement);
+		}
 		if (scheme.getFileService() != null) {
-			String url;
-			if(scheme.isSupportsCredentials()) {
-				url = resource.getPrivateUrl(getCurrentPrincipal(), userVariableReplacement, getUsername(resource),
-					getPassword(resource));
-			} else {
-				url = resource.getPrivateUrl(getCurrentPrincipal(), userVariableReplacement);
-			}
 			FileSystemOptions opts = scheme.getFileService().buildFileSystemOptions(resource);
 			obj = getManager(resource, resource.getCacheStrategy()).resolveFile(url, opts);
 		} else {
-			String url = resource.getPrivateUrl(getCurrentPrincipal(), userVariableReplacement, getUsername(resource),
-					getPassword(resource));
 			obj = getManager(resource, resource.getCacheStrategy()).resolveFile(url);
 		}
 
