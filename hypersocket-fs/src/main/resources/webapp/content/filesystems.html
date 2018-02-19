@@ -639,14 +639,7 @@
 			logo.defaultTextChanged();
 		});
 		
-		if(currentMenu.canCreate || currentMenu.canUpdate) {
-			$('#tabRoles').multipleSearchInput({
-				url: 'roles/table',
-				isNamePairValue: false,
-				selectedIsObjectList : true,
-				resourceKey : 'mount'
-			});
-		}
+		$('#tabRoles').roles();
 	
 		var refreshFunc = function() {
 			var ref = $('#treeview').jstree(true);
@@ -734,7 +727,14 @@
 						$('#showHidden').prop('checked', false);
 						$('#showFolders').prop('checked', true);
 						
-						$('#tabRoles').multipleSearchInput();
+						$('#tabRoles').widget().clear();
+						if((isCreate && currentMenu.canCreate) || (!isCreate && currentMenu.canUpdate)) {
+							$('#tabRoles').widget().enable();
+						} else {
+							$('#tabRoles').widget().disable();
+						}
+						
+						$('.tabPropertiesTab').first().trigger('click');
 						
 					},
 					createResource : function() {
@@ -753,13 +753,14 @@
 						resource.showHidden = $('#showHidden').prop('checked') ? true : false;
 						resource.showFolders = $('#showFolders').prop('checked') ? true : false;
 						resource.logo = logo.getValue();
-						resource.roles = $('#tabRoles').multipleSelectValues();
+						resource.roles = $('#tabRoles').widget().getValue();
+						
 						$('#mountProperties').saveProperties(true, function(items) {
 							resource.properties = items;
 						});
 						return resource;
 					},
-					displayResource : function(resource) {
+					displayResource : function(resource, readOnly) {
 						
 						schemeButton.setValue(resource.scheme);
 						var scheme = schemeButton.getSelectedObject();
@@ -787,13 +788,11 @@
 						$('#showHidden').prop('checked', resource.showHidden);
 						$('#showFolders').prop('checked', resource.showFolders);
 						
-						$('#tabRoles').multipleSearchInput({
-							url: 'roles/table',
-							isNamePairValue: false,
-							selected : resource.roles,
-							selectedIsObjectList : true,
-							resourceKey : 'mount'
-						});
+						$('#tabRoles').widget().setValue(resource.roles);
+						
+						if(readOnly) {
+							$('#tabRoles').widget().disable();
+						} 
 						
 						schemeButton.disable();
 					},

@@ -289,7 +289,7 @@
 		
 		$('.open').off('click');
 		$('.open').on('click', function(e) {
-			debugger;
+			
 			e.preventDefault();
 			$('#viewfs').startSpin();
 			mountPath = $(this).data('path');
@@ -408,7 +408,7 @@
 													function() {
 														
 														var row = $(document).data('deleteRow');
-														debugger;
+														
 														
 														$.each(row, function(idx, row) {
 															getJSON(createApiUrl('delete', row),
