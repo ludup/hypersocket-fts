@@ -548,7 +548,7 @@
 		
 		var usernameInput = $('#usernameField').textInput({
 			id: 'username',
-			url: 'realms/realm/userVariables/' + $(document).data('session').currentRealm.id,
+			url: 'currentRealm/user/variableNames',
 			getUrlData: function(data) {
 				return data.resources;
 			}
@@ -556,7 +556,7 @@
 		
 		var serverInput = $('#serverName').textInput({
 			id: 'server',
-			url: 'realms/realm/userVariables/' + $(document).data('session').currentRealm.id,
+			url: 'currentRealm/user/variableNames',
 			getUrlData: function(data) {
 				return data.resources;
 			}
@@ -564,7 +564,7 @@
 		
 		var pathInput = $('#pathField').textInput({
 			id: 'path',
-			url: 'realms/realm/userVariables/' + $(document).data('session').currentRealm.id,
+			url: 'currentRealm/user/variableNames',
 			getUrlData: function(data) {
 				return data.resources;
 			}
@@ -573,7 +573,7 @@
 		var passwordInput = $('#passwordField').textInput({
 			id: 'password',
 			inputType: 'password',
-			url: 'realms/realm/userVariables/' + $(document).data('session').currentRealm.id,
+			url: 'currentRealm/user/variableNames',
 			getUrlData: function(data) {
 				data.resources.push('password');
 				return data.resources;
