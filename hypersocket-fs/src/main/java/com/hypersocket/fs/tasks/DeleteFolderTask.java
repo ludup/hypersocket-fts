@@ -1,6 +1,7 @@
 package com.hypersocket.fs.tasks;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
@@ -81,7 +82,7 @@ public class DeleteFolderTask extends AbstractRetryTaskProvider {
 	}
 
 	@Override
-	public AbstractTaskResult onExecute(Task task, Realm currentRealm, SystemEvent event)
+	public AbstractTaskResult onExecute(Task task, Realm currentRealm, List<SystemEvent> event)
 			throws ValidationException {
 
 		String path = processTokenReplacements(repository.getValue(task, "folder.path"), event);

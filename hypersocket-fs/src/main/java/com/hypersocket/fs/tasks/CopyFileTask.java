@@ -1,5 +1,6 @@
 package com.hypersocket.fs.tasks;
 
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
@@ -79,7 +80,7 @@ public class CopyFileTask extends AbstractRetryTaskProvider {
 	}
 
 	@Override
-	public AbstractTaskResult onExecute(Task task, Realm currentRealm, SystemEvent event)
+	public AbstractTaskResult onExecute(Task task, Realm currentRealm, List<SystemEvent> event)
 			throws ValidationException {
 
 		String originPath = processTokenReplacements(repository.getValue(task, "origin.path"), event);
