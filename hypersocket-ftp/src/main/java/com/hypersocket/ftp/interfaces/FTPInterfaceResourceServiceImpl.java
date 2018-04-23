@@ -160,7 +160,8 @@ public class FTPInterfaceResourceServiceImpl extends
 						AUTHENTICATION_SCHEME_RESOURCE_KEY, 
 						false, 
 						1, 
-						AuthenticationModuleType.BASIC);
+						AuthenticationModuleType.BASIC,
+						false);
 			}
 		});
 
