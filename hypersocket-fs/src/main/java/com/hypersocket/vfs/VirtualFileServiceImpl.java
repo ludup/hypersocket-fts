@@ -212,7 +212,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		VirtualFile file = null;
 		Set<FileResource> resources = new HashSet<FileResource>();
 		
-		if (virtualPath.equals("/")) {
+		if (virtualPath.equals("") || virtualPath.equals("/")) {
 			file = getRootFolder(realm);
 		} else {
 			file = virtualRepository.getVirtualFile(virtualPath, realm, getCurrentPrincipal());
