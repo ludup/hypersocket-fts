@@ -67,9 +67,13 @@
 
 	<repositories>
 		<repository>
-			<id>sshtools</id>
-			<name>sshtools-releases</name>
+			<id>ext-releases-local</id>
+			<name>artifactory.javassh.com-ext-releases</name>
 			<url>http://artifactory.javassh.com/ext-releases-local</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<releases/>
 		</repository>
 	</repositories>
 </project>
