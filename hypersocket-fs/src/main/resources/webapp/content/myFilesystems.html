@@ -436,6 +436,11 @@
 										url : basePath + '/api/fs/search' + mountPath,
 										queryParams: function(params) {
  											params._ = new Date().getTime();
+ 											debugger;
+ 											if($('#table').data('refreshFile')) {
+ 												params.refresh = true;
+ 												$('#table').data('refreshFile', false);
+ 											}
 											return params;
 										},
 										pagination : true,
@@ -447,7 +452,7 @@
 										showColumns : true,
 										sortName: 'filename',
 										sortOrder: 'asc',
-										showRefresh : true,
+										showRefresh : false,
 										showToggle : true,
 										checkboxHeader: false,
 										uniqueId: 'filename',
@@ -463,6 +468,17 @@
 										},
 										sidePagination : 'server',
 										onPostHeader: function() {
+											
+											if($('#refreshCache').length==0) {
+												$('.fixed-table-toolbar').find('.btn-group').first().prepend('<button id="refreshCache" class="btn btn-default" type="button" name="refreshCache" title="Refresh"><i class="fa fa-refresh"></i></button>');
+												
+												$('#refreshCache').click(
+														function(e) {
+															debugger;
+															$('#table').data('refreshFile', true);
+															$('#table').bootstrapTable('refresh');
+												});
+											}
 											
 											if($('#multipleDelete').length==0) {
 												$('.fixed-table-toolbar').find('.btn-group').first().prepend('<button id="multipleDelete" class="btn btn-default" type="button" name="multipleDelete" title="Delete" disabled="disabled"><i class="fa fa-trash"></i></button>');

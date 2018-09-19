@@ -42,6 +42,8 @@ public interface VirtualFileService extends AuthenticatedService {
 	Long uploadFile(String virtualPath, InputStream in, UploadProcessor<?> processor, String proto) throws AccessDeniedException, IOException;
 
 	Collection<VirtualFile> listChildren(String virtualPath, String proto) throws IOException, AccessDeniedException;
+	
+	Collection<VirtualFile> listChildren(String virtualPath, String proto, boolean refresh) throws IOException, AccessDeniedException;
 
 	long getSearchCount(String virtualPath, String searchColumn, String search, String flags) throws AccessDeniedException;
 
@@ -119,4 +121,14 @@ public interface VirtualFileService extends AuthenticatedService {
 	VirtualFile getRootFolder(Realm realm) throws IOException, AccessDeniedException;
 
 	VirtualFile getFile(String virtualPath, Realm realm) throws IOException, AccessDeniedException;
+
+	FileObject getFileObject(String virtualPath, Realm realm) throws IOException, AccessDeniedException;
+	
+	Collection<VirtualFile> getChildren(String virtualPath, boolean refresh) throws IOException, AccessDeniedException;
+
+	Collection<VirtualFile> getChildren(VirtualFile parentFile, boolean refresh)
+			throws AccessDeniedException, IOException;
+
+	Collection<VirtualFile> searchFiles(String virtualPath, String searchColumn, String search, int offset, int limit,
+			ColumnSort[] sort, String proto, String flags, boolean refresh) throws AccessDeniedException, IOException;
 }

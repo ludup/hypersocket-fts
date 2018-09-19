@@ -496,7 +496,8 @@ public class FileSystemController extends ResourceController {
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
 	public ResourceList<VirtualFile> list(HttpServletRequest request,
-			HttpServletResponse response) throws AccessDeniedException,
+			HttpServletResponse response,
+			@RequestParam(required=false) boolean refresh) throws AccessDeniedException,
 			UnauthorizedException, IOException, SessionTimeoutException {
 
 		setupAuthenticatedContext(sessionUtils.getSession(request),
@@ -507,7 +508,7 @@ public class FileSystemController extends ResourceController {
 					FileUtils.stripParentPath(server.getApiPath() + "/fs/list", 
 							URLDecoder.decode(request.getRequestURI(), "UTF-8")));
 			
-			return new ResourceList<VirtualFile>(fileService.listChildren(virtualPath, HTTP_PROTOCOL));
+			return new ResourceList<VirtualFile>(fileService.listChildren(virtualPath, HTTP_PROTOCOL, refresh));
 
 		} catch (FileSystemException e) {
 			throw e;
@@ -544,7 +545,7 @@ public class FileSystemController extends ResourceController {
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
 	public BootstrapTableResult<?> search(final HttpServletRequest request,
-			HttpServletResponse response) throws AccessDeniedException,
+			HttpServletResponse response, @RequestParam(required=false) boolean refresh) throws AccessDeniedException,
 			UnauthorizedException, IOException, SessionTimeoutException {
 
 		setupAuthenticatedContext(sessionUtils.getSession(request),
@@ -585,7 +586,7 @@ public class FileSystemController extends ResourceController {
 						String requiredFlags = Request.get().getParameter("flags");
 						results = fileService.searchFiles(virtualPath, "filename",
 								filename, start, length,
-								sorting, HTTP_PROTOCOL, requiredFlags);
+								sorting, HTTP_PROTOCOL, requiredFlags, refresh);
 						ArrayList<VirtualFile> ret = new ArrayList<VirtualFile>(results);
 						return ret.subList(start, start + Math.min(length, ret.size() - start));
 					} catch (IOException e) {
