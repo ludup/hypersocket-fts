@@ -436,7 +436,6 @@
 										url : basePath + '/api/fs/search' + mountPath,
 										queryParams: function(params) {
  											params._ = new Date().getTime();
- 											debugger;
  											if($('#table').data('refreshFile')) {
  												params.refresh = true;
  												$('#table').data('refreshFile', false);
@@ -474,7 +473,6 @@
 												
 												$('#refreshCache').click(
 														function(e) {
-															debugger;
 															$('#table').data('refreshFile', true);
 															$('#table').bootstrapTable('refresh');
 												});
