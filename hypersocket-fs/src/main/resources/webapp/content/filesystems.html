@@ -622,7 +622,7 @@
 				name : 'cacheStrategy',
 				value : 'MANUAL'
 		});
-		cacheStrategyButton.setValue('ON_RESOLVE');
+		cacheStrategyButton.setValue('MANUAL');
 		
 		var logo = $('#logo').logoInput({
 			defaultTextCallback: function() {
@@ -696,7 +696,7 @@
 						
 						schemeButton.enable();
 						schemeButton.setValue('file');
-						cacheStrategyButton.setValue('ON_RESOLVE');
+						cacheStrategyButton.setValue('MANUAL');
 						
 					    if(isCreate) {
 					    	schemeButton.changed();
