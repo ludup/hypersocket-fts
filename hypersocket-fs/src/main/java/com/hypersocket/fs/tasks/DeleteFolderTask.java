@@ -93,11 +93,12 @@ public class DeleteFolderTask extends AbstractRetryTaskProvider {
 			log.info("Path " + path);
 			log.info("Delete non-empty " + deleteNonEmpty);
 		}
+		
 		try {
 			if (!deleteNonEmpty) {
 				fileResourceService.deleteFile(path, PROTOCOL);
 			} else {
-				fileResourceService.deleteFile(path, PROTOCOL);
+				fileResourceService.deleteTree(path, PROTOCOL);
 			}
 
 			return new DeleteFolderTaskResult(this, currentRealm,

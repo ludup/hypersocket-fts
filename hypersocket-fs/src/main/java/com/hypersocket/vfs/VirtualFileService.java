@@ -131,4 +131,6 @@ public interface VirtualFileService extends AuthenticatedService {
 
 	Collection<VirtualFile> searchFiles(String virtualPath, String searchColumn, String search, int offset, int limit,
 			ColumnSort[] sort, String proto, String flags, boolean refresh) throws AccessDeniedException, IOException;
+
+	void deleteTree(String path, String protocol) throws IOException, AccessDeniedException;
 }

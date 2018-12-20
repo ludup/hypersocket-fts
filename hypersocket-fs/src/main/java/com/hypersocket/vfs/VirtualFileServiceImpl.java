@@ -490,8 +490,13 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 		return deleteFile(file, proto);
 	}
 
+	
 	@Override
 	public Boolean deleteFile(VirtualFile file, String proto) throws IOException, AccessDeniedException {
+		return deleteFile(file, proto, false);
+	}
+
+	protected Boolean deleteFile(VirtualFile file, String proto, boolean recursive) throws IOException, AccessDeniedException {
 
 		if (!file.isMounted()) {
 
@@ -520,7 +525,7 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			}
 		} else {
 
-			DeleteFileResolver resolver = new DeleteFileResolver(proto);
+			DeleteFileResolver resolver = new DeleteFileResolver(proto, recursive);
 
 			boolean success = resolver.processRequest(file);
 			return success;
@@ -1370,8 +1375,9 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 
 		String protocol;
 		boolean existed;
-
-		DeleteFileResolver(String protocol) {
+		boolean recursive;
+		
+		DeleteFileResolver(String protocol, boolean recursive) {
 			super(true, true);
 			this.protocol = protocol;
 		}
@@ -1382,11 +1388,21 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			try {
 
 				if (existed = file.exists()) {
-					int deleted = file.deleteAll();
-
-					eventService.publishEvent(
-							new DeleteFileEvent(this, deleted > 0, getCurrentSession(), resource, file, childPath, protocol));
-					return true;
+					
+					if(recursive) {
+						int deleted = file.deleteAll();
+	
+						eventService.publishEvent(
+								new DeleteFileEvent(this, deleted > 0, getCurrentSession(), resource, file, childPath, protocol));
+						return true;
+						
+					} else {
+						boolean deleted = file.delete();
+						
+						eventService.publishEvent(
+								new DeleteFileEvent(this, deleted, getCurrentSession(), resource, file, childPath, protocol));
+						return true;
+					}
 					
 				}
 
@@ -1939,5 +1955,15 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 			providers.put(scheme, provider);
 		}
 
+	}
+
+	@Override
+	public void deleteTree(String virtualPath, String proto) throws IOException, AccessDeniedException {
+		
+		virtualPath = normalise(virtualPath);
+		VirtualFile file = getFile(virtualPath);
+
+		deleteFile(file, proto, true);
+		
 	}
 }
