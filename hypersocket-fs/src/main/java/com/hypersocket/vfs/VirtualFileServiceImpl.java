@@ -43,6 +43,8 @@ import com.hypersocket.auth.PasswordEnabledAuthenticatedServiceImpl;
 import com.hypersocket.cache.CacheService;
 import com.hypersocket.config.ConfigurationService;
 import com.hypersocket.events.EventService;
+import com.hypersocket.files.FileResolutionService;
+import com.hypersocket.files.FileResolver;
 import com.hypersocket.fs.ContentInputStream;
 import com.hypersocket.fs.ContentOutputStream;
 import com.hypersocket.fs.DownloadEventProcessor;
@@ -87,7 +89,7 @@ import com.hypersocket.vfs.json.HttpDownloadProcessor;
 
 @Service
 public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceImpl
-		implements VirtualFileService, DownloadEventProcessor, UploadEventProcessor {
+		implements VirtualFileService, DownloadEventProcessor, UploadEventProcessor, FileResolver {
 
 	static Logger log = LoggerFactory.getLogger(VirtualFileServiceImpl.class);
 
@@ -118,6 +120,9 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	@Autowired
 	RealmService realmService; 
 
+	@Autowired
+	FileResolutionService fileResolutionService; 
+	
 	Map<String, FileSystemManager> managers = new HashMap<>();
 	Map<String, FileProvider> providers = new HashMap<>();
 
@@ -141,6 +146,8 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 				virtualRepository.deleteRealm(realm);
 			}	
 		});
+		
+		fileResolutionService.registerFileSource(this);
 	}
 
 	@Override
@@ -1965,5 +1972,43 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 
 		deleteFile(file, proto, true);
 		
+	}
+
+	@Override
+	public boolean isSystem() {
+		return false;
+	}
+
+	@Override
+	public Integer getWeight() {
+		return new Integer(0);
+	}
+
+	@Override
+	public boolean fileExists(String path, Realm realm) {
+		try {
+			getFile(path, realm);
+			return true;
+		} catch (IOException | AccessDeniedException e) {
+			return false;
+		}
+	}
+
+	@Override
+	public InputStream getInputStream(String path, Realm realm) throws IOException {
+		try {
+			return downloadFile(path, 0L, "System");
+		} catch (AccessDeniedException e) {
+			throw new IOException(e.getMessage(), e);
+		}
+	}
+
+	@Override
+	public OutputStream getOutputStream(String path, Realm realm) throws IOException {
+		try {
+			return uploadFile(path, 0L, "System");
+		} catch (AccessDeniedException e) {
+			throw new IOException(e.getMessage(), e);
+		}
 	}
 }
