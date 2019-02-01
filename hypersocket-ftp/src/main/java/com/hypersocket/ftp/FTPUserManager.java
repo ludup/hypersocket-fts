@@ -66,7 +66,8 @@ public class FTPUserManager implements UserManager {
 					.createAuthenticationState(FTPService.AUTHENTICATION_SCHEME_RESOURCE_KEY,
 							auth.getUserMetadata()
 							.getInetAddress().getHostAddress(), environment,
-							Locale.getDefault(), null);
+							null,
+							Locale.getDefault());
 			return state;
 		} catch (UnsupportedEncodingException e) {
 			throw new IllegalStateException("Surely all environments support UTF-8?");
