@@ -309,7 +309,8 @@ $.fn.fileTree = function(data) {
 	 		}
 		}
 		
-		$('#' + id + 'Include').click(function(){
+		$('#' + id + 'Include').click(function(e) {
+			e.preventDefault();
 			if(!options.disabled){
 				var selected = $('#' + id + 'TreeView').jstree('get_selected', true);
 				$.each(selected, function(index, node){
@@ -321,13 +322,15 @@ $.fn.fileTree = function(data) {
 			}
 		});
 		
-		$('#' + id + 'IncludeAll').click(function(){
+		$('#' + id + 'IncludeAll').click(function(e) {
+			e.preventDefault();
 			if(!options.disabled){
 				include($('#' + id + 'TreeView').jstree().get_node('#'));
 			}
 		});
 		
-		$('#' + id + 'Exclude').click(function(){
+		$('#' + id + 'Exclude').click(function(e) {
+			e.preventDefault();
 			if(!options.disabled){
 				var selected = $('#' + id + 'Included').val();
 				var changed = false;
@@ -345,7 +348,8 @@ $.fn.fileTree = function(data) {
 			}
 		});
 		
-		$('#' + id + 'ExcludeAll').click(function(){
+		$('#' + id + 'ExcludeAll').click(function(e) {
+			e.preventDefault();
 			if(!options.disabled){
 				var numIncluded = $('#' + id + 'Included option').length;
 				$('#' + id + 'Included option').remove();
