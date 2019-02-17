@@ -1,4 +1,4 @@
-package com.hypersocket.fs.tasks;
+package com.hypersocket.fs.tasks.copy;
 
 import com.hypersocket.properties.ResourceTemplateRepository;
 

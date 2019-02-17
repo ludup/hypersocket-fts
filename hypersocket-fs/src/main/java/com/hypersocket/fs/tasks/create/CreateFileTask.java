@@ -1,4 +1,4 @@
-package com.hypersocket.fs.tasks;
+package com.hypersocket.fs.tasks.create;
 
 import java.util.List;
 import java.util.Map;
@@ -126,8 +126,8 @@ public class CreateFileTask extends AbstractRetryTaskProvider {
 		}
 	}
 
-	public String[] getResultResourceKeys() {
-		return new String[] { CreateFileTaskResult.EVENT_RESOURCE_KEY };
+	public String getResultResourceKey() {
+		return CreateFileTaskResult.EVENT_RESOURCE_KEY;
 	}
 	
 	@Override

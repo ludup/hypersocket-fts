@@ -1,7 +1,8 @@
-package com.hypersocket.fs.tasks;
+package com.hypersocket.fs.tasks.copy;
 
 import org.apache.commons.lang3.ArrayUtils;
 
+import com.hypersocket.fs.tasks.AbstractCopyFileTaskResult;
 import com.hypersocket.realm.Realm;
 import com.hypersocket.tasks.Task;
 

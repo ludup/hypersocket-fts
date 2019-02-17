@@ -1,7 +1,8 @@
-package com.hypersocket.fs.tasks;
+package com.hypersocket.fs.tasks.create;
 
 import org.apache.commons.lang3.ArrayUtils;
 
+import com.hypersocket.fs.tasks.FileOperationTaskResult;
 import com.hypersocket.realm.Realm;
 import com.hypersocket.tasks.Task;
 

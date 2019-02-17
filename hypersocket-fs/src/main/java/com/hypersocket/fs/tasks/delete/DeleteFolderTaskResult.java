@@ -1,7 +1,9 @@
-package com.hypersocket.fs.tasks;
+package com.hypersocket.fs.tasks.delete;
 
 import org.apache.commons.lang3.ArrayUtils;
 
+import com.hypersocket.fs.tasks.FileOperationTaskResult;
+import com.hypersocket.fs.tasks.copy.CopyFileTask;
 import com.hypersocket.realm.Realm;
 import com.hypersocket.tasks.Task;
 

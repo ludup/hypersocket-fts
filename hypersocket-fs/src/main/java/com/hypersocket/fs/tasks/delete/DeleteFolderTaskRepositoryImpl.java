@@ -1,4 +1,4 @@
-package com.hypersocket.fs.tasks;
+package com.hypersocket.fs.tasks.delete;
 
 import javax.annotation.PostConstruct;
 
@@ -7,11 +7,11 @@ import org.springframework.stereotype.Repository;
 import com.hypersocket.properties.ResourceTemplateRepositoryImpl;
 
 @Repository
-public class CreateFileTaskRepositoryImpl extends ResourceTemplateRepositoryImpl
-		implements CreateFileTaskRepository {
+public class DeleteFolderTaskRepositoryImpl extends ResourceTemplateRepositoryImpl
+		implements DeleteFolderTaskRepository {
 
 	@PostConstruct
 	private void postConstruct() {
-		loadPropertyTemplates("tasks/createFile.xml");
+		loadPropertyTemplates("tasks/deleteFolder.xml");
 	}
 }

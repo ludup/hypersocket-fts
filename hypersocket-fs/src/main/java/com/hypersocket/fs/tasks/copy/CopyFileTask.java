@@ -1,4 +1,4 @@
-package com.hypersocket.fs.tasks;
+package com.hypersocket.fs.tasks.copy;
 
 import java.util.List;
 import java.util.Map;
@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.hypersocket.events.SystemEvent;
+import com.hypersocket.fs.tasks.RenameFileTaskResult;
 import com.hypersocket.i18n.I18NService;
 import com.hypersocket.properties.ResourceTemplateRepository;
 import com.hypersocket.realm.Realm;
@@ -120,8 +121,8 @@ public class CopyFileTask extends AbstractRetryTaskProvider {
 
 	}
 	
-	public String[] getResultResourceKeys() {
-		return new String[] { CopyFileTaskResult.EVENT_RESOURCE_KEY };
+	public String getResultResourceKey() {
+		return CopyFileTaskResult.EVENT_RESOURCE_KEY;
 	}
 
 	@Override

@@ -2,6 +2,7 @@ package com.hypersocket.fs.tasks;
 
 import org.apache.commons.lang3.ArrayUtils;
 
+import com.hypersocket.fs.tasks.copy.CopyFileTask;
 import com.hypersocket.realm.Realm;
 import com.hypersocket.tasks.Task;
 

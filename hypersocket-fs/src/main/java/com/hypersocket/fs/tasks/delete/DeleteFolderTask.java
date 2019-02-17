@@ -1,4 +1,4 @@
-package com.hypersocket.fs.tasks;
+package com.hypersocket.fs.tasks.delete;
 
 import java.io.IOException;
 import java.util.List;
@@ -112,8 +112,8 @@ public class DeleteFolderTask extends AbstractRetryTaskProvider {
 		}
 	}
 	
-	public String[] getResultResourceKeys() {
-		return new String[] { DeleteFolderTaskResult.EVENT_RESOURCE_KEY };
+	public String getResultResourceKey() {
+		return DeleteFolderTaskResult.EVENT_RESOURCE_KEY;
 	}
 
 	public void deleteFolder(String path, FileResource resource) throws IOException, AccessDeniedException {
