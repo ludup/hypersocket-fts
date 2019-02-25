@@ -133,7 +133,7 @@ public class FTPInterfaceResourceServiceImpl extends
 				this);
 
 		EntityResourcePropertyStore.registerResourceService(FTPInterfaceResource.class, repository);
-		schemeRepository.enableAuthenticationScheme(AUTHENTICATION_SCHEME_RESOURCE_KEY);
+		schemeRepository.registerAuthenticationScheme(AUTHENTICATION_SCHEME_RESOURCE_KEY);
 		
 	}
 	
