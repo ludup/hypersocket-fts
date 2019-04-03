@@ -45,6 +45,7 @@ import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.permissions.PermissionCategory;
 import com.hypersocket.permissions.PermissionService;
 import com.hypersocket.permissions.PermissionType;
+import com.hypersocket.properties.EntityResourcePropertyStore;
 import com.hypersocket.properties.PropertyCategory;
 import com.hypersocket.properties.ResourceUtils;
 import com.hypersocket.realm.Principal;
@@ -188,6 +189,8 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 		if (log.isDebugEnabled()) {
 			log.debug("FileResourceService constructed");
 		}
+
+		EntityResourcePropertyStore.registerResourceService(FileResource.class, getRepository());
 	}
 
 	@Override
