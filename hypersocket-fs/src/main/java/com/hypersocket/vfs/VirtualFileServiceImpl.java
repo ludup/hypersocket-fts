@@ -400,45 +400,49 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 				}
 			}
 
-			if (!fileObject.exists()) {
-				throw new FileNotFoundException(parentFile.getVirtualPath());
-			}
-
 			if(refresh) {
 				fileObject.refresh();
 			}
 			
-			switch (fileObject.getType()) {
-			case FOLDER:
-				for (FileObject child : fileObject.getChildren()) {
-					switch (child.getType()) {
-					case FOLDER:
-						if (isReconciledFolder(resource, child)) {
-							buildFileMap(results, virtualRepository.reconcileNewFolder(child.getName().getBaseName(), parentFile,
-									child, resource, false, null), resources);
+			if (fileObject.exists()) {
+
+				
+				switch (fileObject.getType()) {
+				case FOLDER:
+					for (FileObject child : fileObject.getChildren()) {
+						switch (child.getType()) {
+						case FOLDER:
+							if (isReconciledFolder(resource, child)) {
+								buildFileMap(results, virtualRepository.reconcileNewFolder(child.getName().getBaseName(), parentFile,
+										child, resource, false, null), resources);
+							}
+							break;
+						case FILE:
+							if (isReconciledFile(resource, child)) {
+								buildFileMap(results, virtualRepository.reconcileFile(child.getName().getBaseName(), child, resource,
+										parentFile, null), resources);
+							}
+							break;
+						default:
+							// Unsupported file type
 						}
-						break;
-					case FILE:
-						if (isReconciledFile(resource, child)) {
-							buildFileMap(results, virtualRepository.reconcileFile(child.getName().getBaseName(), child, resource,
-									parentFile, null), resources);
-						}
-						break;
-					default:
-						// Unsupported file type
 					}
+					break;
+				case FILE:
+					buildFileMap(results, virtualRepository.reconcileFile(
+							fileObject.getName().getBaseName(), 
+							fileObject, 
+							resource, 
+							parentFile, 
+							null), resources);
+					break;
+				default:
+					// What do we do here?
 				}
-				break;
-			case FILE:
-				buildFileMap(results, virtualRepository.reconcileFile(
-						fileObject.getName().getBaseName(), 
-						fileObject, 
-						resource, 
-						parentFile, 
-						null), resources);
-				break;
-			default:
-				// What do we do here?
+			}
+			else {
+				/* Can happen in a mixed virtual folder */
+				log.warn(String.format("Could not find child file %s", fileObject));
 			}
 		}
 
