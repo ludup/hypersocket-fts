@@ -148,7 +148,7 @@ public class FileSystemController extends ResourceController {
 					try {
 						TreeNode node = new TreeNode();
 						node.setParent(rootNode.id);
-						node.setText(resource.getName());
+						node.setText(String.format("%s (%s)", resource.getName(), resource.getScheme()));
 						node.getState().opened = true;
 						node.setFileType(VirtualFileType.FOLDER);
 						node.setType("mount");
@@ -201,7 +201,7 @@ public class FileSystemController extends ResourceController {
 					}
 					node.setId(String.valueOf(resource.getId()));
 					node.setParent(parent.id);
-					node.setText(resource.getName());
+					node.setText(String.format("%s (%s)", resource.getName(), resource.getScheme()));
 					node.getState().opened = true;
 					node.setResourceId(resource.getId());
 					node.setFileType(VirtualFileType.FOLDER);
@@ -606,7 +606,7 @@ public class FileSystemController extends ResourceController {
 				}
 			});
 
-		} catch (IllegalStateException e) {
+		} catch (Throwable e) {
 			request.getSession().setAttribute("lastError", e);
 			throw e;
 		} finally {
