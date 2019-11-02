@@ -214,6 +214,10 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	@Override
 	public VirtualFile getFile(String virtualPath, Realm realm) throws IOException, AccessDeniedException {
 
+		if(log.isInfoEnabled()) {
+			log.info("Looking up path {} in realm {}", virtualPath, realm.getName());
+		}
+		
 		virtualPath = normalise(virtualPath);
 
 		VirtualFile file = null;

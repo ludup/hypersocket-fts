@@ -370,6 +370,7 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 				virtualFileService.setDefaultMount(mountedFile, resource);
 			}
 		} catch (Throwable e) {
+			log.error("Failed to configureDefaults", e);
 			ResourceException re = new ResourceCreationException(RESOURCE_BUNDLE, 
 					"error.virtualFileError", e.getMessage());
 			re.initCause(e);

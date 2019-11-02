@@ -276,7 +276,7 @@ public class FileSystemController extends ResourceController {
 	@RequestMapping(value = "fs/setDefaultMount/{fileId}/{mountId}", method = RequestMethod.GET, produces = { "application/json" })
 	@ResponseBody
 	@ResponseStatus(value = HttpStatus.OK)
-	public ResourceStatus<VirtualFile> setDefaultMound(HttpServletRequest request,
+	public ResourceStatus<VirtualFile> setDefaultMount(HttpServletRequest request,
 			HttpServletResponse response, @PathVariable Long fileId, @PathVariable Long mountId) throws AccessDeniedException,
 			UnauthorizedException, IOException, SessionTimeoutException {
 
@@ -607,6 +607,7 @@ public class FileSystemController extends ResourceController {
 			});
 
 		} catch (Throwable e) {
+			log.error("Failed to search files", e);
 			request.getSession().setAttribute("lastError", e);
 			throw e;
 		} finally {
