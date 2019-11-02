@@ -413,7 +413,7 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 			virtualFileService.detachMount(resource);
 		} catch (Throwable e) {
 			ResourceChangeException re = new ResourceChangeException(RESOURCE_BUNDLE, "error.virtualFileError", e.getMessage());
-			re.initCause(re);
+			re.initCause(e);
 			throw re;
 		}
 		
