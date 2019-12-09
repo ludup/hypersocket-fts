@@ -739,6 +739,9 @@
 					},
 					createResource : function() {
 						resource = new Object();
+						
+						var scheme = schemeButton.getSelectedObject();
+						
 						resource.id = $('#resourceId').val();
 						resource.name = $('#resourceName').val();
 						resource.virtualPath = $('#virtualPath').val();
@@ -747,8 +750,12 @@
 						resource.server = $('#serverName').widget().getValue();
 						resource.port = $('#port').val();
 						resource.path = pathInput.getValue();
-						resource.username = usernameInput.getValue();
-						resource.password = passwordInput.getValue();
+
+						if(scheme.supportsCredentials) {
+							resource.username = usernameInput.getValue();
+							resource.password = passwordInput.getValue();
+						}
+						
 						resource.readOnly = $('#readOnly').prop('checked') ? true : false;
 						resource.showHidden = $('#showHidden').prop('checked') ? true : false;
 						resource.showFolders = $('#showFolders').prop('checked') ? true : false;
