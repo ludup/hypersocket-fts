@@ -37,61 +37,61 @@ public class VirtualFile extends AbstractEntity<Long> {
 	@Id
 	@GeneratedValue(strategy=GenerationType.TABLE)
 	@Column(name="id")
-	Long id;
+	private Long id;
 
 	@OneToOne
-	Realm realm;
+	private Realm realm;
 	
 	@Column(name="file_type")
-	VirtualFileType type;
+	private VirtualFileType type;
 	
 	@OneToOne
-	VirtualFile parent;
+	private VirtualFile parent;
 	
 	@Column(name="size")
-	Long size;
+	private Long size;
 	
 	@Column(name="last_modified")
-	Long lastModified;
+	private Long lastModified;
 	
 	@Column(name="virtual_path", length=8000)
-	String virtualPath;
+	private String virtualPath;
 	
 	@Column(name="filename", length=256)
-	String filename;
+	private String filename;
 	
 	@Column(name="display_name", length=512)
-	String displayName;
+	private String displayName;
 	
 	@Column(name="writable")
-	Boolean writable;
+	private Boolean writable;
 	
 	@OneToOne
-	FileResource mount;
+	private FileResource mount;
 	
 	@ManyToMany(fetch=FetchType.EAGER)
 	@Fetch(FetchMode.SELECT)
 	@JoinTable(name = "virtual_fs_mounts", joinColumns={@JoinColumn(name="resource_id")}, 
 			inverseJoinColumns={@JoinColumn(name="mount_id")})
-	Set<FileResource> folderMounts = new HashSet<>();
+	private Set<FileResource> folderMounts = new HashSet<>();
 	
 	@Column(name="conflicted")
-	Boolean conflicted;
+	private Boolean conflicted;
 	
 	@Column(name="sync")
-	Boolean sync;
+	private Boolean sync;
 	
 	@ManyToOne
-	FileResource defaultMount;
+	private FileResource defaultMount;
 	
 	@ManyToOne
-	Principal principal;
+	private Principal principal;
 	
 	@Column(name="hash")
-	int hash;
+	private int hash;
 	
 	@Transient
-	transient FileObject fileObject;
+	private transient FileObject fileObject;
 	
 	@Override
 	public Long getId() {

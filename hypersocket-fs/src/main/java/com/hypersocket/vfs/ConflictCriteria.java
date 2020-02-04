@@ -7,7 +7,7 @@ import com.hypersocket.repository.CriteriaConfiguration;
 
 public class ConflictCriteria implements CriteriaConfiguration {
 
-	boolean conflicted = false;
+	private boolean conflicted = false;
 	
 	public ConflictCriteria() {
 		

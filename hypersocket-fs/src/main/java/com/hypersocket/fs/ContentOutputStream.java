@@ -6,40 +6,29 @@ import java.io.OutputStream;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 
-import com.hypersocket.realm.Principal;
 import com.hypersocket.session.Session;
 import com.hypersocket.utils.FileUtils;
-import com.hypersocket.vfs.VirtualFile;
-import com.hypersocket.vfs.VirtualFileRepository;
 
 public class ContentOutputStream extends OutputStream {
 
-	OutputStream out;
-	long started;
-	FileResource resource;
-	FileObject file;
-	String childPath;
-	UploadEventProcessor eventProcessor;
-	long bytesIn = 0;
-	String protocol;
-	String virtualPath;
-	VirtualFile parentFile;
-	VirtualFileRepository virtualRepository;
-	Principal principal;
-	Session session;
+	private OutputStream out;
+	private long started;
+	private FileResource resource;
+	private FileObject file;
+	private String childPath;
+	private UploadEventProcessor eventProcessor;
+	private long bytesIn = 0;
+	private String protocol;
+	private Session session;
 	
 	public ContentOutputStream(FileResource resource, 
 			String childPath,
-			String virtualPath,
-			VirtualFileRepository virtualRepository,
-			VirtualFile parentFile,
-			FileObject file, 
-			OutputStream out, 
-			long position, 
-			long started,
-			UploadEventProcessor eventProcessor,
-			String protocol,
-			Principal principal,
+			FileObject file,
+			OutputStream out,
+			long position,
+			long started, 
+			UploadEventProcessor eventProcessor, 
+			String protocol, 
 			Session session)
 			throws FileSystemException {
 		this.out = out;
@@ -49,10 +38,6 @@ public class ContentOutputStream extends OutputStream {
 		this.childPath = childPath;
 		this.eventProcessor = eventProcessor;
 		this.protocol = protocol;
-		this.virtualPath = virtualPath;
-		this.parentFile = parentFile;
-		this.virtualRepository = virtualRepository;
-		this.principal = principal;
 		this.session = session;
 	}
 

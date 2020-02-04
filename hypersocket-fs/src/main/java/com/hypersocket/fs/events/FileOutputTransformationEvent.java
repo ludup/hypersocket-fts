@@ -7,13 +7,13 @@ import com.hypersocket.events.SynchronousEvent;
 
 public interface FileOutputTransformationEvent extends SynchronousEvent {
 
-	public InputStream getInputStream() throws IOException;
+	InputStream getInputStream() throws IOException;
 	
-	public void setInputStream(InputStream in) throws IOException;
+	void setInputStream(InputStream in) throws IOException;
 	
-	public String getTransformationFilename();
+	String getTransformationFilename();
 	
-	public String getOriginalFilename();
+	String getOriginalFilename();
 	
-	public void setTransformationFilename(String filename);
+	void setTransformationFilename(String filename);
 }

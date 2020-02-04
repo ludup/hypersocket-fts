@@ -34,7 +34,6 @@ import com.hypersocket.ftp.interfaces.events.FTPInterfaceResourceEvent;
 import com.hypersocket.ftp.interfaces.events.FTPInterfaceResourceUpdatedEvent;
 import com.hypersocket.i18n.I18N;
 import com.hypersocket.i18n.I18NService;
-import com.hypersocket.menus.MenuService;
 import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.permissions.PermissionCategory;
 import com.hypersocket.permissions.PermissionService;
@@ -66,31 +65,28 @@ public class FTPInterfaceResourceServiceImpl extends
 	public static final String AUTHENTICATION_SCHEME_RESOURCE_KEY = "ftp";
 
 	@Autowired
-	FTPInterfaceResourceRepository repository;
+	private FTPInterfaceResourceRepository repository;
 
 	@Autowired
-	I18NService i18nService;
+	private I18NService i18nService;
 
 	@Autowired
-	PermissionService permissionService;
+	private PermissionService permissionService;
 
 	@Autowired
-	MenuService menuService;
-
-	@Autowired
-	EventService eventService;
+	private EventService eventService;
 	
 	@Autowired
-	InterfaceRegistrationService interfaceService;
+	private InterfaceRegistrationService interfaceService;
 	
 	@Autowired
-	FTPResourceService ftpResourceService;
+	private FTPResourceService ftpResourceService;
 	
 	@Autowired
-	SessionService sessionService;
+	private SessionService sessionService;
 	
 	@Autowired
-	AuthenticationSchemeRepository schemeRepository;
+	private AuthenticationSchemeRepository schemeRepository;
 	
 	public FTPInterfaceResourceServiceImpl() {
 		super("FTPInterface");
@@ -252,7 +248,7 @@ public class FTPInterfaceResourceServiceImpl extends
 				}
 				
 				
-				DefaultFtpServer ftpServer = (DefaultFtpServer) ftpResourceService.ftpServer;
+				DefaultFtpServer ftpServer = (DefaultFtpServer) ftpResourceService.getServer();
 				String[] interfaces = ResourceUtils.explodeValues(properties.get("ftpInterfaces"));
 				if(interfaces != null && ftpServer != null){
 					for (String intface : interfaces) {
@@ -291,7 +287,7 @@ public class FTPInterfaceResourceServiceImpl extends
 				
 				checkPassivePortRange(resource.getFtpPassivePorts());
 				
-				DefaultFtpServer ftpServer = (DefaultFtpServer) ftpResourceService.ftpServer;
+				DefaultFtpServer ftpServer = (DefaultFtpServer) ftpResourceService.getServer();
 				
 				String[] interfaces;
 				
@@ -364,12 +360,12 @@ public class FTPInterfaceResourceServiceImpl extends
 	}
 	
 	private void createInterfaces(FTPInterfaceResource ftpResourceToStoreInListener){
-		if(!ftpResourceService.running){
+		if(!ftpResourceService.isRunning()){
 			ftpResourceService.start();
 		} else {
 		
 			//add to existing
-			DefaultFtpServer ftpServer = (DefaultFtpServer) ftpResourceService.ftpServer;
+			DefaultFtpServer ftpServer = (DefaultFtpServer) ftpResourceService.getServer();
 			DefaultFtpServerContext ftpServerContext = (DefaultFtpServerContext) ftpServer.getServerContext();
 			
 			String[] interfaces;
@@ -395,9 +391,9 @@ public class FTPInterfaceResourceServiceImpl extends
 	}
 	
 	private void deleteInterfaces(FTPInterfaceResource ftpInterfaceResource){
-		if(ftpResourceService.running){
+		if(ftpResourceService.isRunning()){
 			//remove from existing
-			DefaultFtpServer ftpServer = (DefaultFtpServer) ftpResourceService.ftpServer;
+			DefaultFtpServer ftpServer = (DefaultFtpServer) ftpResourceService.getServer();
 			DefaultFtpServerContext ftpServerContext = (DefaultFtpServerContext) ftpServer.getServerContext();
 			
 			String[] interfaces;
@@ -409,7 +405,7 @@ public class FTPInterfaceResourceServiceImpl extends
 			if (interfaces != null && interfaces.length > 0) {
 				for (String intface : interfaces) {
 					String interfaceName = FTPResourceService.interfaceName(intface, ftpInterfaceResource.getPort());
-					log.info(String.format("Stopping ftp instance %s:%s", interfaceName, ftpInterfaceResource.ftpProtocol.name()));
+					log.info(String.format("Stopping ftp instance %s:%s", interfaceName, ftpInterfaceResource.getFtpProtocol().name()));
 					if(ftpServerContext.getListener(interfaceName) != null){
 						ftpServerContext.getListener(interfaceName).stop();
 					}
@@ -434,7 +430,7 @@ public class FTPInterfaceResourceServiceImpl extends
 	}
 	
 	private FTPInterfaceResource getOnCreationFTPInterfaceResourceFromFtpListeners(FTPInterfaceResource resource){
-		DefaultFtpServer ftpServer = (DefaultFtpServer) ftpResourceService.ftpServer;
+		DefaultFtpServer ftpServer = (DefaultFtpServer) ftpResourceService.getServer();
 		HypersocketNioListener hypersocketNioListener = null;
 		for(Listener listener: ftpServer.getListeners().values()){
 			hypersocketNioListener = (HypersocketNioListener) listener;

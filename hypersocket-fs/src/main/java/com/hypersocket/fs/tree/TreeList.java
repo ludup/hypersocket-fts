@@ -4,7 +4,7 @@ import java.util.List;
 
 public class TreeList {
 
-	List<?> folders;
+	private List<?> folders;
 	
 	public TreeList(List<?> folders) {
 		this.folders = folders;

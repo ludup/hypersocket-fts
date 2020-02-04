@@ -15,19 +15,19 @@ public class FTPInterfaceResource extends InterfaceResource {
 	private static final long serialVersionUID = -7196348246139661166L;
 	
 	@Column(name="protocol")
-	FTPProtocol ftpProtocol;
+	private FTPProtocol ftpProtocol;
 	
 	@Column(name="passive_ports")
-	String ftpPassivePorts;
+	private String ftpPassivePorts;
 	
 	@Column(name="passive_external_address")
-	String ftpPassiveExternalAddress;
+	private String ftpPassiveExternalAddress;
 	
 	@Column(name="idle_timeout")
-	Integer ftpIdleTimeout;
+	private Integer ftpIdleTimeout;
 	
 	@OneToOne
-	CertificateResource ftpCertificate;
+	private CertificateResource ftpCertificate;
 
 	public FTPProtocol getFtpProtocol() {
 		return ftpProtocol;

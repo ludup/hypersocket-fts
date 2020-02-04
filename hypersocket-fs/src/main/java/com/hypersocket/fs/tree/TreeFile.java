@@ -9,30 +9,30 @@ import com.hypersocket.utils.FileUtils;
 
 public class TreeFile {
 
-	String id;
-	String label;
-	boolean isFolder = false;
-	String icon = "file";
-	String size;
-	String type;
-	String lastModified;
-	String parent;
-	
+	private String id;
+	private String label;
+	private boolean isFolder = false;
+	private String icon = "file";
+	private String size;
+	private String type;
+	private String lastModified;
+	private String parent;
+
 	static ConfigurableMimeFileTypeMap mimeTypesMap = new ConfigurableMimeFileTypeMap();
-	
+
 	public TreeFile(FileObject file, FileObject mount) throws FileSystemException {
 		this(file, mount, false);
 	}
-	
-	public TreeFile(FileObject file, FileObject mount, boolean open) throws FileSystemException {	
+
+	public TreeFile(FileObject file, FileObject mount, boolean open) throws FileSystemException {
 		this.id = mount.getName().getRelativeName(file.getName());
 		this.label = file.getName().getBaseName();
-		this.type = mimeTypesMap.getContentType(file.getName().getBaseName()); //TODO format
+		this.type = mimeTypesMap.getContentType(file.getName().getBaseName()); // TODO format
 		this.size = FileUtils.formatSize(file.getContent().getSize());
 		this.lastModified = FileUtils.formatLastModified(file.getContent().getLastModifiedTime());
-		this.parent =  mount.getName().getRelativeName(file.getParent().getName());
+		this.parent = mount.getName().getRelativeName(file.getParent().getName());
 	}
-	
+
 	public String getSize() {
 		return size;
 	}

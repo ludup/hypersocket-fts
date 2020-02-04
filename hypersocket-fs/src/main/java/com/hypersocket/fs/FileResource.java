@@ -27,47 +27,47 @@ public class FileResource extends AssignableResource  {
 	private static final long serialVersionUID = 4890173886479512286L;
 
 	@Column(name = "scheme")
-	String scheme;
+	private String scheme;
 
 	@Column(name = "server", nullable = true)
-	String server;
+	private String server;
 
 	@Column(name = "port", nullable = true)
-	Integer port;
+	private Integer port;
 
 	@Column(name = "path")
-	String path;
+	private String path;
 
 	@Column(name = "username", nullable = true)
-	String username;
+	private String username;
 
 	@Column(name = "password", nullable = true)
-	String password;
+	private String password;
 
 	@Column(name = "read_only")
-	boolean readOnly;
+	private boolean readOnly;
 
 	@Column(name = "show_hidden")
-	boolean showHidden;
+	private boolean showHidden;
 
 	@Column(name = "show_folders")
-	boolean showFolders;
+	private boolean showFolders;
 
 	@Column(name = "cache_strategy")
 	@Enumerated(EnumType.STRING)
-	CacheStrategy cacheStrategy  = CacheStrategy.ON_RESOLVE;
+	private CacheStrategy cacheStrategy  = CacheStrategy.ON_RESOLVE;
 
 	@Column(name = "displayInBrowserResourcesTable")
-	Boolean displayInBrowserResourcesTable = Boolean.FALSE;
+	private Boolean displayInBrowserResourcesTable = Boolean.FALSE;
 	
 	@Column(name = "logo")
-	String logo;
+	private String logo;
 
 	@Column(name="virtual_path", length=8000)
-	String virtualPath;
+	private String virtualPath;
 	
 	@Column(name="flags")
-	String flags;
+	private String flags;
 	
 	public String getScheme() {
 		return scheme;

@@ -48,7 +48,6 @@ import com.hypersocket.tables.BootstrapTableResourceProcessor;
 import com.hypersocket.tables.BootstrapTableResult;
 import com.hypersocket.tables.Column;
 import com.hypersocket.tables.ColumnSort;
-import com.hypersocket.upload.FileUploadService;
 import com.hypersocket.utils.FileUtils;
 import com.hypersocket.vfs.VirtualFile;
 import com.hypersocket.vfs.VirtualFileService;
@@ -63,19 +62,16 @@ public class FileSystemController extends ResourceController {
 	public static final String CONTENT_INPUTSTREAM = "ContentInputStream";
 	
 	@Autowired
-	SessionUtils sessionUtils;
+	private SessionUtils sessionUtils; 
 	
 	@Autowired
-	FileUploadService fileUploadService; 
+	private VirtualFileService fileService; 
 	
 	@Autowired
-	VirtualFileService fileService; 
+	private FileResourceService fileResourceService; 
 	
 	@Autowired
-	FileResourceService fileResourceService; 
-	
-	@Autowired
-	HypersocketServer server;
+	private HypersocketServer server;
 	
 	@AuthenticationRequired
 	@RequestMapping(value = "fs/mounts", method = RequestMethod.GET, produces = { "application/json" })
@@ -147,14 +143,14 @@ public class FileSystemController extends ResourceController {
 				if(!resource.isSystem()) {
 					try {
 						TreeNode node = new TreeNode();
-						node.setParent(rootNode.id);
+						node.setParent(rootNode.getId());
 						node.setText(String.format("%s (%s)", resource.getName(), resource.getScheme()));
 						node.getState().opened = true;
 						node.setFileType(VirtualFileType.FOLDER);
 						node.setType("mount");
 						node.setVirtualPath(resource.getVirtualPath());
 						node.setResourceId(resource.getId());
-						rootNode.children.add(node);
+						rootNode.getChildren().add(node);
 					} catch (Throwable e) {
 						log.error(String.format("Could not add root mount resource %s", resource.getName()), e);
 					}
@@ -182,7 +178,7 @@ public class FileSystemController extends ResourceController {
 						node.setVirtualPath(file.getVirtualPath());
 						node.setType("default");
 
-						nodesById.get(String.valueOf(file.getParent().getId())).children.add(node);
+						nodesById.get(String.valueOf(file.getParent().getId())).getChildren().add(node);
 						nodesByPath.put(FileUtils.checkEndsWithSlash(file.getVirtualPath()), node);
 						nodesById.put(node.getId(), node);
 						
@@ -200,14 +196,14 @@ public class FileSystemController extends ResourceController {
 						log.info(resource.getVirtualPath());
 					}
 					node.setId(String.valueOf(resource.getId()));
-					node.setParent(parent.id);
+					node.setParent(parent.getId());
 					node.setText(String.format("%s (%s)", resource.getName(), resource.getScheme()));
 					node.getState().opened = true;
 					node.setResourceId(resource.getId());
 					node.setFileType(VirtualFileType.FOLDER);
 					node.setType("mount");
 					node.setVirtualPath(resource.getVirtualPath());
-					parent.children.add(node);
+					parent.getChildren().add(node);
 				} catch (Throwable e) {
 					log.error(String.format("Could not add file resource %s", resource.getName()), e);
 				}

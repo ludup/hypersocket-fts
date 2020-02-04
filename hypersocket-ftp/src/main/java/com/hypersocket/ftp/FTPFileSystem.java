@@ -12,9 +12,9 @@ public class FTPFileSystem implements FileSystemView {
 
 	static Logger log = LoggerFactory.getLogger(FTPFileSystem.class);
 
-	FTPSessionUser user;
-	FtpFile workingDir;
-	FTPFileSystemFactory factory;
+	private FTPSessionUser user;
+	private FtpFile workingDir;
+	private FTPFileSystemFactory factory;
 
 	public FTPFileSystem(FTPSessionUser user, FTPFileSystemFactory factory)
 			throws FtpException {

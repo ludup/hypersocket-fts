@@ -40,7 +40,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.hypersocket.auth.PasswordEnabledAuthenticatedServiceImpl;
-import com.hypersocket.cache.CacheService;
 import com.hypersocket.config.ConfigurationService;
 import com.hypersocket.events.EventService;
 import com.hypersocket.files.FileResolutionService;
@@ -78,11 +77,9 @@ import com.hypersocket.realm.UserVariableReplacementService;
 import com.hypersocket.resource.Resource;
 import com.hypersocket.resource.ResourceChangeException;
 import com.hypersocket.resource.ResourceException;
-import com.hypersocket.scheduler.ClusteredSchedulerService;
 import com.hypersocket.session.Session;
 import com.hypersocket.tables.ColumnSort;
 import com.hypersocket.tables.Sort;
-import com.hypersocket.upload.FileUploadService;
 import com.hypersocket.utils.FileUtils;
 import com.hypersocket.vfs.json.FileSystemColumn;
 import com.hypersocket.vfs.json.HttpDownloadProcessor;
@@ -94,41 +91,31 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 	static Logger log = LoggerFactory.getLogger(VirtualFileServiceImpl.class);
 
 	@Autowired
-	ClusteredSchedulerService schedulerService;
+	private FileResourceService fileService;
 
 	@Autowired
-	FileResourceService fileService;
+	private VirtualFileRepository virtualRepository;
 
 	@Autowired
-	VirtualFileRepository virtualRepository;
-
-	@Autowired
-	UserVariableReplacementService userVariableReplacement;
+	private UserVariableReplacementService userVariableReplacement;
 	
 	@Autowired
-	EventService eventService;
+	private EventService eventService;
 
 	@Autowired
-	FileUploadService uploadService;
-
-	@Autowired
-	ConfigurationService configurationService;
-
-	@Autowired
-	CacheService cacheService;
+	private ConfigurationService configurationService;
 	
 	@Autowired
-	RealmService realmService; 
+	private RealmService realmService; 
 
 	@Autowired
-	FileResolutionService fileResolutionService; 
+	private FileResolutionService fileResolutionService; 
 	
-	Map<String, FileSystemManager> managers = new HashMap<>();
-	Map<String, FileProvider> providers = new HashMap<>();
-
-	ThreadLocal<Principal> overridePrincipal = new ThreadLocal<Principal>();
-	ThreadLocal<String> overrideUsername = new ThreadLocal<String>();
-	ThreadLocal<String> overridePassword = new ThreadLocal<String>();
+	private Map<String, FileSystemManager> managers = new HashMap<>();
+	private Map<String, FileProvider> providers = new HashMap<>();
+	private ThreadLocal<Principal> overridePrincipal = new ThreadLocal<Principal>();
+	private ThreadLocal<String> overrideUsername = new ThreadLocal<String>();
+	private ThreadLocal<String> overridePassword = new ThreadLocal<String>();
 
 	enum CACHE {
 		CHILDREN
@@ -1852,8 +1839,6 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 
 		virtualPath = normalise(virtualPath);
 
-		String parentPath = FileUtils.checkEndsWithSlash(FileUtils.stripLastPathElement(virtualPath));
-		final VirtualFile parentFile = getFile(parentPath);
 
 		VirtualFile file = null;
 
@@ -1869,11 +1854,10 @@ public class VirtualFileServiceImpl extends PasswordEnabledAuthenticatedServiceI
 					throws IOException {
 				UploadStartedEvent event = uploadProcessor.uploadStarted(resource, childPath, file, proto);
 
-				return new ContentOutputStream(resource, childPath, virtualPath, virtualRepository, parentFile,
-						event.getFileObject(), event.getOutputStream(), position,
+				return new ContentOutputStream(resource, childPath, event.getFileObject(), event.getOutputStream(), position,
 						event.getTimestamp(), new SessionAwareUploadEventProcessor(getCurrentSession(),
-								getCurrentLocale(), VirtualFileServiceImpl.this, uploadProcessor),
-						proto, getOwnerPrincipal(resource), getCurrentSession());
+								getCurrentLocale(), VirtualFileServiceImpl.this, uploadProcessor), proto,
+						getCurrentSession());
 			}
 
 			@Override

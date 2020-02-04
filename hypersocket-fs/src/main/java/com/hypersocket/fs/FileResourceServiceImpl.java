@@ -40,7 +40,6 @@ import com.hypersocket.fs.tasks.create.CreateFileTask;
 import com.hypersocket.fs.tasks.create.CreateFileTaskResult;
 import com.hypersocket.fs.tasks.delete.DeleteFolderTaskResult;
 import com.hypersocket.i18n.I18NService;
-import com.hypersocket.menus.MenuService;
 import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.permissions.PermissionCategory;
 import com.hypersocket.permissions.PermissionService;
@@ -50,7 +49,6 @@ import com.hypersocket.properties.PropertyCategory;
 import com.hypersocket.properties.ResourceUtils;
 import com.hypersocket.realm.Principal;
 import com.hypersocket.realm.RealmService;
-import com.hypersocket.realm.UserVariableReplacementService;
 import com.hypersocket.repository.CriteriaConfiguration;
 import com.hypersocket.resource.AbstractAssignableResourceRepository;
 import com.hypersocket.resource.AbstractAssignableResourceServiceImpl;
@@ -58,10 +56,7 @@ import com.hypersocket.resource.ResourceChangeException;
 import com.hypersocket.resource.ResourceCreationException;
 import com.hypersocket.resource.ResourceException;
 import com.hypersocket.resource.TransactionAdapter;
-import com.hypersocket.server.HypersocketServer;
 import com.hypersocket.ui.IndexPageFilter;
-import com.hypersocket.ui.UserInterfaceContentHandler;
-import com.hypersocket.upload.FileUploadService;
 import com.hypersocket.vfs.VirtualFile;
 import com.hypersocket.vfs.VirtualFileService;
 
@@ -79,47 +74,32 @@ public class FileResourceServiceImpl extends AbstractAssignableResourceServiceIm
 	public static final String ACTIONS_BULK = "fileToolbarActions";
 
 	@Autowired
-	HypersocketServer server;
+	private I18NService i18nService;
 
 	@Autowired
-	I18NService i18nService;
+	private PermissionService permissionService;
 
 	@Autowired
-	PermissionService permissionService;
-
-	@Autowired
-	MenuService menuService;
-
-	@Autowired
-	UserInterfaceContentHandler jQueryUIContentHandler;
-
-	@Autowired
-	IndexPageFilter indexPage;
+	private IndexPageFilter indexPage;
 	
 	@Autowired
-	FileResourceRepository resourceRepository;
+	private FileResourceRepository resourceRepository;
 
 	@Autowired
-	EventService eventService;
+	private EventService eventService;
 
 	@Autowired
-	RealmService realmService;
-
-	@Autowired
-	FileUploadService uploadService;
-
-	@Autowired
-	UserVariableReplacementService userVariableReplacement;
+	private RealmService realmService;
 	
 	@Autowired
-	BrowserLaunchableService browserLaunchableService;
+	private BrowserLaunchableService browserLaunchableService;
 
 	@Autowired
-	VirtualFileService virtualFileService; 
+	private VirtualFileService virtualFileService; 
 	
-	List<FileResourceProcessor> processors = new ArrayList<FileResourceProcessor>();
-	Map<String, FileResourceScheme> schemes = new HashMap<String, FileResourceScheme>();
-	List<FileResourceScheme> userSchemes = new ArrayList<FileResourceScheme>();
+	private List<FileResourceProcessor> processors = new ArrayList<FileResourceProcessor>();
+	private Map<String, FileResourceScheme> schemes = new HashMap<String, FileResourceScheme>();
+	private List<FileResourceScheme> userSchemes = new ArrayList<FileResourceScheme>();
 	
 	public FileResourceServiceImpl() {
 		super("fileResource");

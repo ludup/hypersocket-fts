@@ -5,8 +5,9 @@ import java.io.Serializable;
 public class FileView implements Serializable {
 
 	private static final long serialVersionUID = 887348472822993221L;
-	String fileName;
-	Long fileSize;
+	
+	private String fileName;
+	private Long fileSize;
 	
 	public FileView(String fileName, Long fileSize) {
 		super();

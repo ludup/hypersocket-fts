@@ -16,15 +16,13 @@ public class FileObjectFile extends AbstractFtpFile {
 
 	static Logger log = LoggerFactory.getLogger(FileObjectFile.class);
 
-	VirtualFile virtualFile;
-	
-	FileObjectFile(Session session, FTPFileSystemFactory factory, String path) {
+	public FileObjectFile(Session session, FTPFileSystemFactory factory, String path) {
 		super(session, factory, path);
 	}
 	
 	public InputStream createInputStream(long position) throws IOException {
 		try {
-			return factory.getService().downloadFile(absolutePath, position, FTP_PROTOCOL);
+			return getFactory().getService().downloadFile(getAbsolutePath(), position, FTP_PROTOCOL);
 		} catch (AccessDeniedException e) {
 			log.error("Failed to create InputStream", e);
 			throw new IOException(e.getMessage(), e);
@@ -34,7 +32,7 @@ public class FileObjectFile extends AbstractFtpFile {
 	public OutputStream createOutputStream(long position) throws IOException {
 		
 		try {
-			return factory.getService().uploadFile(absolutePath, position, FTP_PROTOCOL);
+			return getFactory().getService().uploadFile(getAbsolutePath(), position, FTP_PROTOCOL);
 		} catch (AccessDeniedException e) {
 			log.error("Failed to create InputStream", e);
 			throw new IOException(e.getMessage(), e);
@@ -43,7 +41,7 @@ public class FileObjectFile extends AbstractFtpFile {
 
 	public boolean delete() {
 		try {
-			return factory.getService().deleteFile(absolutePath, FTP_PROTOCOL);
+			return getFactory().getService().deleteFile(getAbsolutePath(), FTP_PROTOCOL);
 		} catch (IOException e) {
 			log.error("Failed to delete file", e);
 			return false;
@@ -55,7 +53,7 @@ public class FileObjectFile extends AbstractFtpFile {
 	public boolean doesExist() {
 		
 		try {
-			factory.getService().getFile(absolutePath);
+			getFactory().getService().getFile(getAbsolutePath());
 			return true;
 		} catch (IOException e) {
 			return false;
@@ -78,7 +76,7 @@ public class FileObjectFile extends AbstractFtpFile {
 	}
 
 	public String getName() {
-		return FileUtils.lastPathElement(absolutePath);
+		return FileUtils.lastPathElement(getAbsolutePath());
 	}
 	
 	public boolean isReadable() {
@@ -101,7 +99,7 @@ public class FileObjectFile extends AbstractFtpFile {
 		} catch (IOException e) {
 			VirtualFile parentFile;
 			try {
-				parentFile = factory.getService().getFile(FileUtils.stripLastPathElement(absolutePath));
+				parentFile = getFactory().getService().getFile(FileUtils.stripLastPathElement(getAbsolutePath()));
 				return parentFile.getWritable();
 			} catch (IOException | AccessDeniedException e1) {
 				return false;

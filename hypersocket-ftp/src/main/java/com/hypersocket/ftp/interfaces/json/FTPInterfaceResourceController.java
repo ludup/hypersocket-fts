@@ -42,16 +42,8 @@ import com.hypersocket.tables.json.BootstrapTablePageProcessor;
 
 @Controller
 public class FTPInterfaceResourceController extends ResourceController {
-
-	/**
-	 * TODO rename this class to match your entity.
-	 * 
-	 * rename RequestMapping annotions for your desired resource URLs. e.g
-	 * replace ftpInterfaces for example with "applications" FTPInterfaces with "Applications"
-	 * ftpInterface with "application" and FTPInterface with "Application"
-	 */
 	@Autowired
-	FTPInterfaceResourceService resourceService;
+	private FTPInterfaceResourceService resourceService;
 
 	@AuthenticationRequired
 	@RequestMapping(value = "ftpInterfaces/list", method = RequestMethod.GET, produces = { "application/json" })

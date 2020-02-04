@@ -10,8 +10,8 @@ import com.hypersocket.realm.Principal;
 
 public class FTPUser implements User {
 
-	Principal principal;;
-	String password;
+	private Principal principal;;
+	private String password;
 	
 	public FTPUser(Principal principal, String password) {
 		this.principal = principal;

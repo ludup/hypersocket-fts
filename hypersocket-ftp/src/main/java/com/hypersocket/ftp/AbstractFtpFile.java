@@ -21,16 +21,24 @@ public abstract class AbstractFtpFile implements FtpFile {
 	public static String FTP_PROTOCOL = "FTP";
 	static Logger log = LoggerFactory.getLogger(AbstractFtpFile.class);
 
-	final Session session;
-	final FTPFileSystemFactory factory;
-	final String absolutePath;
+	private final Session session;
+	private final FTPFileSystemFactory factory;
+	private final String absolutePath;
 	
 	protected VirtualFile file;
 	
-	AbstractFtpFile(Session session, FTPFileSystemFactory factory, String absolutePath) {
+	public AbstractFtpFile(Session session, FTPFileSystemFactory factory, String absolutePath) {
 		this.session = session;
 		this.factory = factory;
 		this.absolutePath = absolutePath;
+	}
+
+	public FTPFileSystemFactory getFactory() {
+		return factory;
+	}
+
+	public VirtualFile getFile() {
+		return file;
 	}
 
 	protected void checkFile() throws IOException {

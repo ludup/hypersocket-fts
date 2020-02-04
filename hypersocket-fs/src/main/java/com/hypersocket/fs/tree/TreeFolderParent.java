@@ -15,15 +15,15 @@ public class TreeFolderParent {
 
 	static Logger log = LoggerFactory.getLogger(TreeFolderParent.class);
 	
-	String id;
-	String label;
-	boolean isFolder = true;
-	boolean open = false;
-	String icon = "folder";
-	String lastModified;
-	String type = "Folder";
-	String size = "--";
-	List<TreeFolderParent> childs = new ArrayList<TreeFolderParent>();
+	private String id;
+	private String label;
+	private boolean isFolder = true;
+	private boolean open = false;
+	private String icon = "folder";
+	private String lastModified;
+	private String type = "Folder";
+	private String size = "--";
+	private List<TreeFolderParent> childs = new ArrayList<TreeFolderParent>();
 	
 	public TreeFolderParent(FileObject file, FileObject mount, FileResource resource) throws FileSystemException {
 		this.id = mount.getName().getRelativeName(file.getParent().getName());

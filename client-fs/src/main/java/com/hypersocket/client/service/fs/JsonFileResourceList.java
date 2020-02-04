@@ -7,11 +7,10 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown=true)
 public class JsonFileResourceList {
 
-	boolean success;
-	String error;
-	
-	JsonFileResource[] resources;
-	Map<String,String> properties;
+	private boolean success;
+	private String error;
+	private JsonFileResource[] resources;
+	private Map<String,String> properties;
 	
 	public boolean isSuccess() {
 		return success;

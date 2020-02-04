@@ -7,11 +7,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class JsonFileResource {
 
-	String name;
-	String launchUrl;
-	String logo;
-	Long id;
-	Calendar modifiedDate;
+	private String name;
+	private String launchUrl;
+	private String logo;
+	private Long id;
+	private Calendar modifiedDate;
 
 	public Long getId() {
 		return id;

@@ -11,9 +11,9 @@ import com.hypersocket.session.Session;
 
 public class SessionContextFtpFileAdapter implements FtpFile {
 
-	FtpFile file;
-	Session session;
-	FTPFileSystemFactory factory;
+	private FtpFile file;
+	private Session session;
+	private FTPFileSystemFactory factory;
 	
 	public SessionContextFtpFileAdapter(AbstractFtpFile file, FTPFileSystemFactory factory) {
 		this.file = file;

@@ -6,19 +6,19 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class FileResourceScheme {
 
-	String scheme;
-	boolean isRemote;
-	boolean supportsCredentials;
-	boolean showPort;
-	int defaultPort;
-	boolean showPath;
-	boolean readOnly;
-	boolean showHidden;
-	boolean showFolders;
-	boolean createRoot;
-	boolean userFilesystem = true;
-	FileService fileService;
-	Class<? extends FileProvider> provider;
+	private String scheme;
+	private boolean isRemote;
+	private boolean supportsCredentials;
+	private boolean showPort;
+	private int defaultPort;
+	private boolean showPath;
+	private boolean readOnly;
+	private boolean showHidden;
+	private boolean showFolders;
+	private boolean createRoot;
+	private boolean userFilesystem = true;
+	private FileService fileService;
+	private Class<? extends FileProvider> provider;
 	
 	public FileResourceScheme() {
 	}

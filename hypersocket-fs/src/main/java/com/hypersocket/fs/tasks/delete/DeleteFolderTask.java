@@ -23,7 +23,6 @@ import com.hypersocket.tasks.AbstractRetryTaskProvider;
 import com.hypersocket.tasks.Task;
 import com.hypersocket.tasks.TaskProviderService;
 import com.hypersocket.triggers.AbstractTaskResult;
-import com.hypersocket.triggers.TriggerResourceService;
 import com.hypersocket.triggers.ValidationException;
 import com.hypersocket.vfs.VirtualFileService;
 
@@ -39,19 +38,16 @@ public class DeleteFolderTask extends AbstractRetryTaskProvider {
 	public static final String RESOURCE_KEY = "deleteFolder";
 
 	@Autowired
-	DeleteFolderTaskRepository repository;
+	private DeleteFolderTaskRepository repository;
 
 	@Autowired
-	VirtualFileService fileResourceService;
+	private VirtualFileService fileResourceService;
 
 	@Autowired
-	TriggerResourceService triggerService;
+	private I18NService i18nService;
 
 	@Autowired
-	I18NService i18nService;
-
-	@Autowired
-	TaskProviderService taskService;
+	private TaskProviderService taskService;
 
 	@PostConstruct
 	private void postConstruct() {

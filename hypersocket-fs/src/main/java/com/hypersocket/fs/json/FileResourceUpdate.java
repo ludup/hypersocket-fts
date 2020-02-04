@@ -8,22 +8,22 @@ import com.hypersocket.json.PropertyItem;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class FileResourceUpdate {
 
-	Long id;
-	String name;
-	String virtualPath;
-	String scheme;
-	String server;
-	Integer port;
-	String path;
-	String username;
-	String password;
-	CacheStrategy cacheStrategy;
-	boolean readOnly;
-	boolean showHidden;
-	boolean showFolders;
-	Long[] roles;
-	String logo;
-	PropertyItem[] properties;
+	private Long id;
+	private String name;
+	private String virtualPath;
+	private String scheme;
+	private String server;
+	private Integer port;
+	private String path;
+	private String username;
+	private String password;
+	private CacheStrategy cacheStrategy;
+	private boolean readOnly;
+	private boolean showHidden;
+	private boolean showFolders;
+	private Long[] roles;
+	private String logo;
+	private PropertyItem[] properties;
 
 	public FileResourceUpdate() {
 	}

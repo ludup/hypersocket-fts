@@ -61,10 +61,10 @@ public class FileResourceController extends ResourceController {
 	static Logger log = LoggerFactory.getLogger(FileResourceController.class);
 
 	@Autowired
-	FileResourceService mountService;
+	private FileResourceService mountService;
 
 	@Autowired
-	SessionUtils sessionUtils;
+	private SessionUtils sessionUtils;
 
 	@RequestMapping(value = "mounts/schemes", method = RequestMethod.GET, produces = { "application/json" })
 	@ResponseBody

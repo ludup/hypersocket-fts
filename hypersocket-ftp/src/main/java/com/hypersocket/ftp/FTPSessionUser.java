@@ -13,9 +13,9 @@ import com.hypersocket.session.Session;
 
 public class FTPSessionUser implements User {
 
-	Session session;
-	String password;
-	Collection<FileResource> mounts;
+	private Session session;
+	private String password;
+	private Collection<FileResource> mounts;
 	
 	public FTPSessionUser(Session session, String password, Collection<FileResource> mounts) {
 		this.session = session;

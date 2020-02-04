@@ -19,7 +19,6 @@ import com.hypersocket.tasks.AbstractRetryTaskProvider;
 import com.hypersocket.tasks.Task;
 import com.hypersocket.tasks.TaskProviderService;
 import com.hypersocket.triggers.AbstractTaskResult;
-import com.hypersocket.triggers.TriggerResourceService;
 import com.hypersocket.triggers.ValidationException;
 import com.hypersocket.vfs.VirtualFileService;
 
@@ -38,19 +37,16 @@ public class CreateFileTask extends AbstractRetryTaskProvider {
 	public static final String ACTION_TOUCH_FILE = "touchFile";
 
 	@Autowired
-	CreateFileTaskRepository repository;
+	private CreateFileTaskRepository repository;
 
 	@Autowired
-	VirtualFileService fileService;
+	private VirtualFileService fileService;
 
 	@Autowired
-	TriggerResourceService triggerService;
+	private I18NService i18nService;
 
 	@Autowired
-	I18NService i18nService;
-
-	@Autowired
-	TaskProviderService taskService;
+	private TaskProviderService taskService;
 
 	@PostConstruct
 	private void postConstruct() {

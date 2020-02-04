@@ -36,7 +36,6 @@ import com.hypersocket.ftp.FTPFileSystemFactory;
 import com.hypersocket.ftp.FTPSessionUser;
 import com.hypersocket.ftp.FTPUserManager;
 import com.hypersocket.ftp.HypersocketListenerFactory;
-import com.hypersocket.i18n.I18NService;
 import com.hypersocket.ip.IPRestrictionService;
 import com.hypersocket.properties.ResourceUtils;
 import com.hypersocket.service.ManageableService;
@@ -50,33 +49,30 @@ public class FTPResourceService implements ManageableService{
 	static Logger log = LoggerFactory.getLogger(FTPResourceService.class);
 	
 
-	boolean running = false;
-	FtpServer ftpServer;
-	Throwable lastError = null;
+	private boolean running = false;
+	private FtpServer ftpServer;
+	private Throwable lastError = null;
 	
 	@Autowired 
-	FTPInterfaceResourceService ftpInterfaceResourceService;
+	private FTPInterfaceResourceService ftpInterfaceResourceService;
 	
 	@Autowired
-	IPRestrictionService ipRestrictionService; 
+	private IPRestrictionService ipRestrictionService; 
 	
 	@Autowired
-	FTPUserManager userManager;
+	private FTPUserManager userManager;
 	
 	@Autowired
-	FTPFileSystemFactory filesystemFactory;
+	private FTPFileSystemFactory filesystemFactory;
 	
 	@Autowired
-	ServiceManagementService serviceManagementService; 
+	private ServiceManagementService serviceManagementService; 
 	
 	@Autowired
-	SessionService sessionService;
+	private SessionService sessionService;
 	
 	@Autowired
-	I18NService i18nService;
-	
-	@Autowired
-	CertificateResourceService certificateService;
+	private CertificateResourceService certificateService;
 	
 	@PostConstruct
 	protected void postConstruct() {
@@ -213,11 +209,11 @@ public class FTPResourceService implements ManageableService{
 
 	public SslConfiguration getSslConfiguration(FTPInterfaceResource ftpInterfaceResource) {
 		try{
-			if(FTPProtocol.FTP.equals(ftpInterfaceResource.ftpProtocol)){
+			if(FTPProtocol.FTP.equals(ftpInterfaceResource.getFtpProtocol())){
 				return null;
 			}
 
-			CertificateResource certificateResource = ftpInterfaceResource.ftpCertificate;
+			CertificateResource certificateResource = ftpInterfaceResource.getFtpCertificate();
 			KeyStore keyStore = null;
 			if(certificateResource == null){
 				keyStore = certificateService.getDefaultCertificate();
@@ -241,20 +237,20 @@ public class FTPResourceService implements ManageableService{
 
 	public ListenerFactory createListener(FTPInterfaceResource ftpInterfaceResource, String intface, SslConfiguration sslConfig) {
 		if (log.isInfoEnabled()) {
-			log.info(String.format("Starting FTP server on interface %s:%d:%s ",intface, ftpInterfaceResource.getPort(), ftpInterfaceResource.ftpProtocol.name()));
+			log.info(String.format("Starting FTP server on interface %s:%d:%s ",intface, ftpInterfaceResource.getPort(), ftpInterfaceResource.getFtpProtocol().name()));
 		}
 
 		ListenerFactory factory = new HypersocketListenerFactory();
 
-		int idleTime = ftpInterfaceResource.ftpIdleTimeout;
+		int idleTime = ftpInterfaceResource.getFtpIdleTimeout();
 		// set the port of the listener
 		factory.setPort(ftpInterfaceResource.getPort());
 		factory.setIdleTimeout(idleTime);
 		factory.setServerAddress(intface);
 		
-		String passivePorts = ftpInterfaceResource.ftpPassivePorts;
+		String passivePorts = ftpInterfaceResource.getFtpPassivePorts();
 		
-		String passiveExternalAddress = ftpInterfaceResource.ftpPassiveExternalAddress;
+		String passiveExternalAddress = ftpInterfaceResource.getFtpPassiveExternalAddress();
 		if(StringUtils.isBlank(passiveExternalAddress)) {
 			passiveExternalAddress = null;
 		}
@@ -290,4 +286,11 @@ public class FTPResourceService implements ManageableService{
 		return true;
 	}
 
+	public boolean isRunning() {
+		return running;
+	}
+
+	public FtpServer getServer() {
+		return ftpServer;
+	}
 }

@@ -22,25 +22,25 @@ import com.hypersocket.vfs.VirtualFileService;
 public class FTPFileSystemFactory implements FileSystemFactory {
 
 	@Autowired
-	I18NService i18nService;
+	private I18NService i18nService;
 	
 	@Autowired
-	VirtualFileService fileService;
+	private VirtualFileService fileService;
 	
 	@Autowired
-	RealmService realmService;
+	private RealmService realmService;
 	
 	@Autowired
-	PermissionService permissionService;
+	private PermissionService permissionService;
 	
 	@Autowired
-	AuthenticationService authenticationService;
+	private AuthenticationService authenticationService;
 	
 	@Autowired
-	SessionService sessionService;
+	private SessionService sessionService;
 	
 	@Autowired
-	ConfigurationService configurationService;
+	private ConfigurationService configurationService;
 	
 	public FileSystemView createFileSystemView(User user) throws FtpException {
 		FTPSessionUser sessionUser = (FTPSessionUser) user;

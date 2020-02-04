@@ -6,9 +6,9 @@ import org.apache.ftpserver.ftplet.FtpFile;
 
 public class SessionContextFileSystemViewAdapter implements FileSystemView {
 
-	FileSystemView view;
-	FTPSessionUser user;
-	FTPFileSystemFactory factory;
+	private FileSystemView view;
+	private FTPSessionUser user;
+	private FTPFileSystemFactory factory;
 
 	public SessionContextFileSystemViewAdapter(FTPSessionUser user,
 			FileSystemView view, FTPFileSystemFactory factory) {

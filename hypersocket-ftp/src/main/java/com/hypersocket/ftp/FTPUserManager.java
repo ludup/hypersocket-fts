@@ -23,7 +23,6 @@ import com.hypersocket.auth.AuthenticationService;
 import com.hypersocket.auth.AuthenticationState;
 import com.hypersocket.auth.BrowserEnvironment;
 import com.hypersocket.auth.FallbackAuthenticationRequired;
-import com.hypersocket.config.ConfigurationService;
 import com.hypersocket.fs.FileResourceService;
 import com.hypersocket.permissions.AccessDeniedException;
 import com.hypersocket.realm.PrincipalType;
@@ -37,19 +36,16 @@ public class FTPUserManager implements UserManager {
 	static Logger log = LoggerFactory.getLogger(FTPUserManager.class);
 	
 	@Autowired
-	AuthenticationService authenticationService;
+	private AuthenticationService authenticationService;
 
 	@Autowired
-	FileResourceService fileResourceService; 
+	private FileResourceService fileResourceService; 
 	
 	@Autowired
-	RealmService realmService;
-
-	@Autowired
-	ConfigurationService configurationService;
+	private RealmService realmService;
 	
 	@Autowired
-	SessionService sessionService;
+	private SessionService sessionService;
 
 	AuthenticationState createAuthenticationState(
 			UsernamePasswordAuthentication auth) throws AccessDeniedException {

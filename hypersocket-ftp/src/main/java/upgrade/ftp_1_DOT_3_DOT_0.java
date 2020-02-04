@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.hypersocket.certificates.CertificateResource;
 import com.hypersocket.certificates.CertificateResourceRepository;
-import com.hypersocket.certificates.CertificateResourceService;
 import com.hypersocket.certificates.CertificateResourceServiceImpl;
 import com.hypersocket.ftp.interfaces.FTPInterfaceResource;
 import com.hypersocket.ftp.interfaces.FTPInterfaceResourceRepository;
@@ -21,16 +20,13 @@ public class ftp_1_DOT_3_DOT_0 implements Runnable {
 	static Logger log = LoggerFactory.getLogger(ftp_1_DOT_3_DOT_0.class);
 	
 	@Autowired
-	FTPInterfaceResourceRepository ftpInterfaceResourceRepository; 
+	private FTPInterfaceResourceRepository ftpInterfaceResourceRepository; 
 	
 	@Autowired
-	RealmRepository realmRepository;
+	private RealmRepository realmRepository;
 	
 	@Autowired
-	CertificateResourceService certificateResourceService;
-	
-	@Autowired
-	CertificateResourceRepository certificateResourceRepository; 
+	private CertificateResourceRepository certificateResourceRepository; 
 	
 	
 	@SuppressWarnings("unchecked")

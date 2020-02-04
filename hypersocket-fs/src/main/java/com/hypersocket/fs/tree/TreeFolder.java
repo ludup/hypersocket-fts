@@ -16,17 +16,17 @@ public class TreeFolder {
 
 	static Logger log = LoggerFactory.getLogger(TreeFolder.class);
 	
-	String id;
-	String label;
-	boolean isFolder = true;
-	boolean open = false;
-	String icon = "folder";
-	String lastModified;
-	String type = "Folder";
-	String size = "--";
-	String parent;
+	private String id;
+	private String label;
+	private boolean isFolder = true;
+	private boolean open = false;
+	private String icon = "folder";
+	private String lastModified;
+	private String type = "Folder";
+	private String size = "--";
+	private String parent;
 	
-	List<TreeFolder> childs = new ArrayList<TreeFolder>();
+	private List<TreeFolder> childs = new ArrayList<TreeFolder>();
 	
 	public TreeFolder(FileObject file, FileObject mount, FileResource resource) throws FileSystemException {
 		this(file, mount, resource, false);

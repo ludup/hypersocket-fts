@@ -16,11 +16,11 @@ public class UploadStartedEvent extends FileOperationEvent implements FileInputT
 
 	public static final String EVENT_RESOURCE_KEY = "fs.uploadStarted";
 	
-	String transformationFilename;
-	String originalPath;
-	String originalFilename;
-	FileObject outputFile;
-	OutputStream out;
+	private String transformationFilename;
+	private String originalPath;
+	private String originalFilename;
+	private FileObject outputFile;
+	private OutputStream out;
 	
 	public UploadStartedEvent(Object source, Session session, FileResource sourceResource,
 			FileObject file, String sourcePath, String protocol) {

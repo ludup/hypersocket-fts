@@ -10,7 +10,7 @@ import com.hypersocket.session.Session;
 
 public class NoDownloadEventProcessor implements DownloadEventProcessor {
 
-	Session session;
+	private Session session;
 	
 	public NoDownloadEventProcessor(Session session) {
 		this.session = session;

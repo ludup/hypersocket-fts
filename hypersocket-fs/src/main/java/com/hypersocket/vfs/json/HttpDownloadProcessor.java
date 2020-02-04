@@ -24,12 +24,12 @@ public class HttpDownloadProcessor implements DownloadProcessor {
 
 	public static final String CONTENT_INPUTSTREAM = "ContentInputStream";
 
-	HttpServletRequest request;
-	HttpServletResponse response;
-	long start;
-	long length;
-	String protocol;
-	Session session;
+	private HttpServletRequest request;
+	private HttpServletResponse response;
+	private long start;
+	private long length;
+	private String protocol;
+	private Session session;
 
 	static MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
 

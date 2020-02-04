@@ -8,19 +8,18 @@ import com.hypersocket.repository.CriteriaConfiguration;
 
 public class PrincipalCriteria implements CriteriaConfiguration {
 
-	Principal principal;
-	
+	private Principal principal;
+
 	public PrincipalCriteria(Principal principal) {
 		this.principal = principal;
 	}
-	
+
 	@Override
 	public void configure(Criteria criteria) {
-		if(principal==null) {
+		if (principal == null) {
 			criteria.add(Restrictions.isNull("principal"));
 		} else {
-			criteria.add(Restrictions.or(Restrictions.eq("principal", principal),
-				Restrictions.isNull("principal")));
+			criteria.add(Restrictions.or(Restrictions.eq("principal", principal), Restrictions.isNull("principal")));
 		}
 	}
 

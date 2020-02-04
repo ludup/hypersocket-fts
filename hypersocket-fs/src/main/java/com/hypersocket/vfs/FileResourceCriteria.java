@@ -10,10 +10,10 @@ import com.hypersocket.repository.HibernateUtils;
 
 public class FileResourceCriteria implements CriteriaConfiguration {
 
-	FileResource resource;
-	FileResource[] resources;
+	private FileResource resource;
+	private FileResource[] resources;
 	
-	FileResourceCriteria(FileResource resource) {
+	public FileResourceCriteria(FileResource resource) {
 		this.resource = resource;
 	}
 	

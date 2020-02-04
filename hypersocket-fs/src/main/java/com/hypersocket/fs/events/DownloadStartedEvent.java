@@ -15,9 +15,9 @@ public class DownloadStartedEvent extends FileOperationEvent implements FileOutp
 
 	public static final String EVENT_RESOURCE_KEY = "fs.downloadStarted";
 	
-	InputStream in;
-	String transformationFilename;
-	String originalFilename;
+	private InputStream in;
+	private String transformationFilename;
+	private String originalFilename;
 	
 	public DownloadStartedEvent(Object source, Session session, FileResource sourceResource,
 			FileObject file, String sourcePath, InputStream in, String protocol) {

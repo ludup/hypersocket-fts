@@ -10,10 +10,10 @@ import com.hypersocket.session.Session;
 
 public class SessionAwareUploadEventProcessor implements UploadEventProcessor {
 
-	Session session;
-	Locale locale;
-	UploadEventProcessor processor;
-	AuthenticatedService authenticatedService;
+	private Session session;
+	private Locale locale;
+	private UploadEventProcessor processor;
+	private AuthenticatedService authenticatedService;
 
 	public SessionAwareUploadEventProcessor(Session session, Locale locale,
 			AuthenticatedService authenticatedService,

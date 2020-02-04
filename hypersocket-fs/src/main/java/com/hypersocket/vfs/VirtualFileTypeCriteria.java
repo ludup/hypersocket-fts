@@ -7,9 +7,9 @@ import com.hypersocket.repository.CriteriaConfiguration;
 
 public class VirtualFileTypeCriteria implements CriteriaConfiguration {
 
-	VirtualFileType[] type;
+	private VirtualFileType[] type;
 	
-	VirtualFileTypeCriteria(VirtualFileType... type) {
+	public VirtualFileTypeCriteria(VirtualFileType... type) {
 		this.type = type;
 	}
 	

@@ -8,29 +8,30 @@ import com.hypersocket.session.Session;
 
 public class NoUploadEventProcessor implements UploadEventProcessor {
 
-		Session session;
-		public NoUploadEventProcessor(Session session) {
-			this.session = session;
-		}
-		
-		@Override
-		public void uploadCannotStart(String virtualPath, Throwable t, String protocol) {
-		}
+	private Session session;
 
-		@Override
-		public UploadStartedEvent uploadStarted(FileResource resource, String virtualPath, FileObject file,
-				String protocol) {
-			return new UploadStartedEvent(this, session, resource, file, virtualPath, protocol);
-		}
-
-		@Override
-		public void uploadComplete(FileResource resource, String virtualPath, FileObject file, long bytesIn,
-				long timeMillis, String protocol) {
-		}
-
-		@Override
-		public void uploadFailed(FileResource resource, String virtualPath, FileObject file, long bytesIn, Throwable t,
-				String protocol) {
-		}
-		
+	public NoUploadEventProcessor(Session session) {
+		this.session = session;
 	}
+
+	@Override
+	public void uploadCannotStart(String virtualPath, Throwable t, String protocol) {
+	}
+
+	@Override
+	public UploadStartedEvent uploadStarted(FileResource resource, String virtualPath, FileObject file,
+			String protocol) {
+		return new UploadStartedEvent(this, session, resource, file, virtualPath, protocol);
+	}
+
+	@Override
+	public void uploadComplete(FileResource resource, String virtualPath, FileObject file, long bytesIn,
+			long timeMillis, String protocol) {
+	}
+
+	@Override
+	public void uploadFailed(FileResource resource, String virtualPath, FileObject file, long bytesIn, Throwable t,
+			String protocol) {
+	}
+
+}

@@ -8,13 +8,13 @@ import com.hypersocket.utils.FileUtils;
 
 public class VirtualPathCriteria implements CriteriaConfiguration {
 
-	String virtualPath;
+	private String virtualPath;
 
 	public VirtualPathCriteria(String virtualPath) {
 		this.virtualPath = virtualPath;
 	}
 	
-	VirtualPathCriteria(String virtualPath, String column) {
+	public VirtualPathCriteria(String virtualPath, String column) {
 		this.virtualPath = virtualPath;
 	}
 	

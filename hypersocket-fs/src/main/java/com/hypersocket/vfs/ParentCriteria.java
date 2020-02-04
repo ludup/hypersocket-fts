@@ -7,14 +7,15 @@ import com.hypersocket.repository.CriteriaConfiguration;
 
 public class ParentCriteria implements CriteriaConfiguration {
 
-	VirtualFile parent;
-	ParentCriteria(VirtualFile parent) {
+	private VirtualFile parent;
+
+	public ParentCriteria(VirtualFile parent) {
 		this.parent = parent;
 	}
-	
+
 	@Override
 	public void configure(Criteria criteria) {
-		if(parent==null) {
+		if (parent == null) {
 			criteria.add(Restrictions.isNull("parent"));
 		} else {
 			criteria.add(Restrictions.eq("parent", parent));

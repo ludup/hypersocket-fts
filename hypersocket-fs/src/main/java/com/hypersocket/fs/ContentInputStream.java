@@ -14,16 +14,16 @@ public class ContentInputStream extends InputStream {
 
 	static Logger log = LoggerFactory.getLogger(ContentInputStream.class);
 
-	long remaining;
-	long totalBytesOut = 0;
-	long timeStarted;
-	DownloadEventProcessor eventProcessor;
-	FileResource resource;
-	String childPath;
-	FileObject file;
-	InputStream in;
-	String protocol;
-	Session session;
+	private long remaining;
+	private long totalBytesOut = 0;
+	private long timeStarted;
+	private DownloadEventProcessor eventProcessor;
+	private FileResource resource;
+	private String childPath;
+	private FileObject file;
+	private InputStream in;
+	private String protocol;
+	private Session session;
 
 	public ContentInputStream(FileResource resource, 
 			String childPath,

@@ -19,7 +19,7 @@ public abstract class FileOperationEvent extends ResourceSessionEvent {
 	public static final String ATTR_VIRTUAL_PATH = "attr.virtualPath";
 	public static final String ATTR_PROTOCOL = "attr.protocol";
 	
-	FileObject file;
+	private FileObject file;
 	
 	public FileOperationEvent(Object source, String resourceKey, boolean success,
 			Session session, FileResource sourceResource, FileObject file, String sourcePath, String protocol) {

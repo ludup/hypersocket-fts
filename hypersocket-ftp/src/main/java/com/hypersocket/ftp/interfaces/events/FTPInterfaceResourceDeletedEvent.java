@@ -10,13 +10,6 @@ public class FTPInterfaceResourceDeletedEvent extends
 
 	private static final long serialVersionUID = -8344184695531380409L;
 	
-	/**
-	 * TODO rename to suit your resource and replace ftpInterface with lower case
-	 * name of your resource.
-	 * 
-	 * You typically add attributes to the base FTPInterfaceResourceEvent
-	 * class so these can be reused across all resource events.
-	 */
 	public static final String EVENT_RESOURCE_KEY = "ftpInterface.deleted";
 
 	public FTPInterfaceResourceDeletedEvent(Object source,
