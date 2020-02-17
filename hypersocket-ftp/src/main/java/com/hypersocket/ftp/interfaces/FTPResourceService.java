@@ -271,7 +271,7 @@ public class FTPResourceService implements ManageableService{
 			
 			@Override
 			public boolean accept(InetAddress address) {
-				return !ipRestrictionService.isBlockedAddress(address);
+				return !ipRestrictionService.isBlockedAddress(address, IPRestrictionService.DEFAULT_SERVICE, ftpInterfaceResource.getRealm());
 			}
 		});
 		return factory;
