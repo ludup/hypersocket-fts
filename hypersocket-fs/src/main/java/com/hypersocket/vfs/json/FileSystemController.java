@@ -193,7 +193,8 @@ public class FileSystemController extends ResourceController {
 					TreeNode node = new TreeNode();
 					TreeNode parent = nodesByPath.get(FileUtils.checkEndsWithSlash(resource.getVirtualPath()));
 					if(parent==null) {
-						log.info(resource.getVirtualPath());
+						log.info(String.format("File resource %s cannot be loaded because no VirtualFolder exists for path", resource.getVirtualPath()));
+						continue;
 					}
 					node.setId(String.valueOf(resource.getId()));
 					node.setParent(parent.getId());
