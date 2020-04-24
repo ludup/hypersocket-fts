@@ -61,7 +61,7 @@ public class TreeNode {
 	}
 
 	public List<TreeNode> getChildren() {
-		return children.isEmpty() ? null : children;
+		return children;
 	}
 
 	public void setChildren(List<TreeNode> children) {
