@@ -339,9 +339,9 @@ public class FTPInterfaceResourceServiceImpl extends
 				@Override
 				public void run() {
 					if (event instanceof ServerStartedEvent) {
-						ftpResourceService.start();
+						ftpResourceService.startService();
 					}else if (event instanceof ServerStoppingEvent) {
-						ftpResourceService.stop();
+						ftpResourceService.stopService();
 					}else if(event instanceof FTPInterfaceResourceCreatedEvent){
 						FTPInterfaceResource ftpInterfaceResource = (FTPInterfaceResource) ((FTPInterfaceResourceCreatedEvent) event).getResource();
 						createInterfaces(ftpInterfaceResource);
@@ -361,7 +361,7 @@ public class FTPInterfaceResourceServiceImpl extends
 	
 	private void createInterfaces(FTPInterfaceResource ftpResourceToStoreInListener){
 		if(!ftpResourceService.isRunning()){
-			ftpResourceService.start();
+			ftpResourceService.startService();
 		} else {
 		
 			//add to existing

@@ -80,7 +80,7 @@ public class FTPResourceService implements ManageableService{
 	}
 	
 	@Override
-	public void stop() {
+	public void stopService() {
 		try {
 			if(ftpServer!=null) {
 				ftpServer.stop();
@@ -126,7 +126,7 @@ public class FTPResourceService implements ManageableService{
 	}
 	
 	@Override
-	public boolean start() {
+	public boolean startService() {
 		
 		certificateService.setCurrentSession(sessionService.getSystemSession(),	Locale.getDefault());
 		certificateService.clearPrincipalContext();
