@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?><!DOCTYPE xml>
-<providers>
-	<provider
-		class-name="org.apache.commons.vfs2.provider.smb.SmbFileProvider">
-		<scheme name="smb" />
-	</provider>
-</providers>

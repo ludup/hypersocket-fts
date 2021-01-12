@@ -1,4 +1,0 @@
-EXIT IF FRESH
-TRY
-ALTER TABLE file_resources CONVERT TO CHARACTER SET utf8 COLLATE utf8_unicode_ci;
-CATCH
