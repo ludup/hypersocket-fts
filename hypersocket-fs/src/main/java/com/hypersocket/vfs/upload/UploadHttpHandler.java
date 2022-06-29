@@ -15,6 +15,7 @@ import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +27,6 @@ import com.hypersocket.json.ResourceList;
 import com.hypersocket.json.ResourceStatus;
 import com.hypersocket.server.HypersocketServer;
 import com.hypersocket.server.handlers.HttpRequestHandler;
-import com.hypersocket.server.handlers.HttpResponseProcessor;
 import com.hypersocket.session.Session;
 import com.hypersocket.session.SessionService;
 import com.hypersocket.session.json.SessionTimeoutException;
@@ -72,18 +72,17 @@ public class UploadHttpHandler extends HttpRequestHandler {
 	}
 
 	@Override
-	public void handleHttpRequest(HttpServletRequest request, HttpServletResponse response,
-			HttpResponseProcessor responseProcessor) throws IOException {
+	public void handleHttpRequest(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		
 		// Handle upload directly instead of using servlet API spec. This allows us to stream.
 		try {
 			sessionService.setCurrentSession(sessionUtils.getSession(request),
 					sessionUtils.getLocale(request));
 		} catch (UnauthorizedException e1) {
-			responseProcessor.send401(request, response);
+			response.sendError(HttpStatus.SC_UNAUTHORIZED);
 			return;
 		} catch (SessionTimeoutException e1) {
-			responseProcessor.send401(request, response);
+			response.sendError(HttpStatus.SC_UNAUTHORIZED);
 			return;
 		}
 
@@ -126,7 +125,6 @@ public class UploadHttpHandler extends HttpRequestHandler {
 		} catch(Exception e) { 
 			sendResponse(new ResourceStatus<FileUpload>(false, e.getMessage()), response);
 		} finally {
-			responseProcessor.sendResponse(request, response, false);
 			sessionService.clearPrincipalContext();
 		}
 		

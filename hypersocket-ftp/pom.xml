@@ -17,11 +17,6 @@
 	<dependencies>
 		<dependency>
 			<groupId>com.hypersocket</groupId>
-			<artifactId>hypersocket-netty</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.hypersocket</groupId>
 			<artifactId>hypersocket-fs</artifactId>
 			<version>${project.version}</version>
 		</dependency>
