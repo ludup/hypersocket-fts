@@ -69,7 +69,7 @@
 		<repository>
 			<id>ext-releases-local</id>
 			<name>artifactory.javassh.com-ext-releases</name>
-			<url>http://artifactory.javassh.com/ext-releases-local</url>
+			<url>https://artifactory.jadaptive.com/ext-releases-local</url>
 			<snapshots>
 				<enabled>false</enabled>
 			</snapshots>
